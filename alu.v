@@ -1,17 +1,19 @@
+`include include.vh
+
 `default_nettype none
 
 module alu
-    (input wire [3-1:0]   func3,
-     input wire           add_minus,
+    (input wire [LEN_FUNC3-1:0] func3,
+     input wire                 add_minus,
 
-     input wire [32-1:0]  rs1,
-     input wire [32-1:0]  rs2,
-     output wire [32-1:0] rd);
+     input wire  [LEN_WORD-1:0] rs1,
+     input wire  [LEN_WORD-1:0] rs2,
+     output wire [LEN_WORD-1:0] rd);
 
     assign rd =
-        (func3 == 3'b000) ? ((add_minus == 1'b1) ? (rs1 - rs2) : (rs1 + rs2)) :
-        (func3 == 3'b110) ? (rs1 | rs2) :
-        (func3 == 3'b111) ? (rs1 & rs2) :
+        (func3 == F3_ADD) ? (add_minus ? (rs1 - rs2) : (rs1 + rs2)) :
+        (func3 == F3_OR ) ? (rs1 | rs2) :
+        (func3 == F3_AND) ? (rs1 & rs2) :
         32'b0;
 endmodule
 

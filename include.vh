@@ -1,12 +1,16 @@
 `define LEN_WORD 32
+`define LEN_INST 32
 `define LEN_REG_ADDR 7
 
 `define LEN_OPECODE 7
 `define LEN_IMM12 12
-`define LEN_IMM20 20
+`define LEN_IMM13 13
 `define LEN_IMM21 21
+`define LEN_IMM32 32
 `define LEN_FUNC3 3
 `define LEN_FUNC7 7
+
+`define NUM_REG 32
 
 // opecode
 
