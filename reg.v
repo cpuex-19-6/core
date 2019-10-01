@@ -39,27 +39,27 @@ module regs
      input wire clk,
      input wire rstn);
     
-    wire [(NUM_REG+1)*LEN_REG-1:0] rs1s;
-    wire [(NUM_REG+1)*LEN_REG-1:0] rs2s;
+    wire [NUM_REG*LEN_REG-1:0] rs1s;
+    wire [NUM_REG*LEN_REG-1:0] rs2s;
 
     assign drs1 = rs1s[0+:LEN_REG];
     assign drs2 = rs2s[0+:LEN_REG];
-    assign rs1s[NUM_REG*LEN_REG+:LEN_REG] = 0;
-    assign rs2s[NUM_REG*LEN_REG+:LEN_REG] = 0;
+    assign rs1s[(NUM_REG-1)*LEN_REG+:LEN_REG] = 0;
+    assign rs2s[(NUM_REG-1)*LEN_REG+:LEN_REG] = 0;
     
     genvar i;
     generate
-        for (i = 0; i < NUM_REG; i = i + 1) begin
+        for (i = 1; i < NUM_REG; i = i + 1) begin
             wire           in;
             wire [LEN_REG] out_data;
             single_reg #(LEN_REG) rg
                 (in, drd, out_data, clk, rstn);
 
             assign in = inflag & (ard == i);
-            assign rs1s[i*LEN_REG+:LEN_REG] =
-                ars1 == i ? out_data : rs1s[(i+1)*LEN_REG+:LEN_REG];
-            assign rs2s[i*LEN_REG+:LEN_REG] =
-                ars2 == i ? out_data : rs2s[(i+1)*LEN_REG+:LEN_REG];
+            assign rs1s[(i-1)*LEN_REG+:LEN_REG] =
+                ars1 == i ? out_data : rs1s[i*LEN_REG+:LEN_REG];
+            assign rs2s[(i-1)*LEN_REG+:LEN_REG] =
+                ars2 == i ? out_data : rs2s[i*LEN_REG+:LEN_REG];
         end
     endgenerate
 endmodule

@@ -10,7 +10,6 @@ module decode
      output wire alui,
 
      output wire [LEN_OPECODE-1:0]  opecode,
-     output wire [LEN_WORD-1:0]  pc_out,
 
      output wire [LEN_REG_ADDR-1:0] rd,
      output wire [LEN_REG_ADDR-1:0] rs1,
