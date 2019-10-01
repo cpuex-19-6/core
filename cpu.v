@@ -114,7 +114,7 @@ module cpu
     wire                    mem_accessed;
 
     memory mem(
-        mem_flag, mem_io,
+        mem_flag, mem_io, func3_de,
         d_rs2_de, d_rs1_de,
         mem_accessed, d_dr_mem,
         clk, rstn);
@@ -128,6 +128,7 @@ module cpu
     branch br(
         func3_de, d_rs1_de, d_rs2_de,
         branch_jump);
+
     // write -------------------------------
 
     // main -------------------------------
@@ -176,27 +177,34 @@ module cpu
                 // alu ---------------------------
                 if (alu_de) begin
                     d_rd_ew <= alu_rs;
-                    next_pc_ew <= pc_de + 'd2;
+                    next_pc_ew <= pc_de + 32'd2;
                     write_ew <= 1'b1;
                     state <= STATE_WRITE;
                 end
                 // mem ---------------------------
                 else if (mem_de) begin
-                    mem_io <= (func7 == FUNC7_WRITE) ? 1'b1 : 1'b0;
+                    mem_io <= (opecode_de == OP_MEMS) ? 1'b1 : 1'b0;
                     mem_flag <= 1'b1;
                     state <= STATE_EXECUTE_WAIT;
                 end
                 // branch ---------------------------
                 else if (branch_de) begin
-                    next_pc_ew <= (branch_jump) ? d_rs1_de : (pc_de + 'd2);
+                    next_pc_ew <= (branch_jump) ? d_rs3_de : (pc_de + 32'd2);
                     write_ew <= 1'b0;
                     state <= STATE_EXECUTE_WAIT;
                 end
                 // jump ---------------------------
                 else if (jump_de) begin
-                    next_pc_ew <= d_rs1_de;
+                    next_pc_ew <= d_rs3_de;
                     write_ew <= 1'b1;
-                    d_rd_ew <= pc_de + 'd2;
+                    d_rd_ew <= pc_de + 32'd2;
+                    state <= STATE_WRITE;
+                end
+                // subst ---------------------------
+                else if (jump_de) begin
+                    next_pc_ew <= pc_de + 32'd2;
+                    write_ew <= 1'b1;
+                    d_rd_ew <= d_rs3_de;
                     state <= STATE_WRITE;
                 end
             end
