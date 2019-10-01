@@ -94,7 +94,7 @@ module cpu
     reg                     write_ew;
     reg  [LEN_REG_ADDR-1:0] a_rd_ew;
     reg  [LEN_WORD-1:0]     d_rd_ew;
-    reg  [LEN_MEM_ADDR-1:0] next_pc_ew;
+    reg  [LEN_MEM_ADDR-1:0] ;
 
     // alu -------------------------------
     //  out
@@ -137,7 +137,33 @@ module cpu
         if (~rstn) begin
             pc <= 'b0;
             state <= STATE_FETCH;
-            // reg reset *
+            reg_a_rd <= 5'b0;
+            reg_d_rd <= 32'b0;
+
+            fetch_order <= 1'b0;
+            inst_fd <= 32'b0;
+            pc_fd <= 32'b0;
+
+            alu_de <= 1'b0;
+            mem_de <= 1'b0;
+            branch_de <= 1'b0;
+            jump_de <= 1'b0;
+            subst_de <= 1'b0;
+            d_rs1_de <= 32'b0;
+            d_rs2_de <= 32'b0;
+            d_rs3_de <= 32'b0;
+            a_rd_de <= 5'b0;
+            opecode_de <= 7'b0;
+            func3_de <= 3'b0;
+            func7_de <= 7'b0;
+            pc_de <= 32'b0;
+
+            write_ew <= 1'b0;
+            a_rd_ew <= 5'b0;
+            d_rd_ew <= 32'b0;
+            next_pc_ew <= 32'b0;
+            mem_flag <= 1'b0;
+            mem_io <= 1'b0;
         end else if (in) begin
             reg_flag <= 1'b0;
             // fetch ---------------------------

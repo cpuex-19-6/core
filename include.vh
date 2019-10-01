@@ -29,6 +29,11 @@
 `define OP_LUI    7'b0110111
 `define OP_AUIPC  7'b0010111
 
+`define OP_FPU    7'b1010011
+
+`define OP_FMEML  7'b0000111
+`define OP_FMEMS  7'b0100111
+
 // FUNC3
 
 `define FUNC3_ADD 3'b000
