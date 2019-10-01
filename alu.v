@@ -11,9 +11,9 @@ module alu
      output wire [LEN_WORD-1:0] rd);
 
     assign rd =
-        (func3 == F3_ADD) ? (add_minus ? (rs1 - rs2) : (rs1 + rs2)) :
-        (func3 == F3_OR ) ? (rs1 | rs2) :
-        (func3 == F3_AND) ? (rs1 & rs2) :
+        (func3 == FUNC3_ADD) ? (add_minus ? (rs1 - rs2) : (rs1 + rs2)) :
+        (func3 == FUNC3_OR ) ? (rs1 | rs2) :
+        (func3 == FUNC3_AND) ? (rs1 & rs2) :
         32'b0;
 endmodule
 
