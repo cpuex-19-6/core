@@ -11,8 +11,6 @@ module decode
      input  wire [LEN_WORD-1:0]     regi_d_rs1,
      input  wire [LEN_WORD-1:0]     regi_d_rs2,
 
-     output wire [LEN_OPECODE-1:0]  opecode,
-
      output wire                    alu,
      output wire                    mem,
      output wire                    jump,
@@ -23,6 +21,8 @@ module decode
      output wire [LEN_WORD-1:0]     d_rs2,
      output wire [LEN_WORD-1:0]     d_rs3, // for immediate
      output wire [LEN_REG_ADDR-1:0] a_rd,
+     
+     output wire [LEN_OPECODE-1:0]  opecode,
      output wire [LEN_FUNC3-1:0]    func3,
      output wire [LEN_FUNC3-1:0]    func7);
 
