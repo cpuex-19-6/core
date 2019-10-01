@@ -25,3 +25,10 @@
 `define F3_ADD 3'b000
 `define F3_OR  3'b110
 `define F3_AND 3'b111
+
+`define FUNC3_BEQ  3'b000
+`define FUNC3_BNE  3'b001
+`define FUNC3_BLT  3'b100
+`define FUNC3_BGE  3'b101
+`define FUNC3_BLTU 3'b110
+`define FUNC3_BGTU 3'b111
