@@ -143,14 +143,23 @@ module cpu
             else if (state == STATE_FETCH_WAIT) begin
                 fetch_order <= 1'b0;
                 if (fetched) begin
-                    // wire->reg connect *
+                    inst_fd <= inst_f;
                     pc_fd <= pc;
                     state <= STATE_DECODE;
                 end
             end
             // decode ---------------------------
             else if (state == STATE_DECODE) begin
-                // wire->reg connect *
+                opecode_de <= opecode_d;
+                alu_de <= alu_d;
+                mem_de <= mem_d;
+                branch_de <= branch_d;
+                jump_de <= jump_d;
+                d_rs1_de <= d_rs1_d;
+                d_rs2_de <= d_rs2_d;
+                a_rd_de <= a_rd_d;
+                func3_de <= func3_d;
+                func7_de <= func7_d;
                 pc_de <= pc_fd;
                 state <= STATE_EXECUTE;
             end
