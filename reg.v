@@ -52,8 +52,9 @@ module regs
         for (i = 1; i < NUM_REG; i = i + 1) begin
             wire           in;
             wire [LEN_REG] out_data;
-            single_reg #(LEN_REG) rg
-                (in, drd, out_data, clk, rstn);
+            single_reg #(LEN_REG) rg(
+                in, drd, out_data,
+                clk, rstn);
 
             assign in = inflag & (ard == i);
             assign rs1s[(i-1)*LEN_REG+:LEN_REG] =

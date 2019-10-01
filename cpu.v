@@ -30,7 +30,7 @@ module cpu
     wire [REG_SIZE-1:0]     reg_d_rs1;
     wire [REG_SIZE-1:0]     reg_d_rs2;
 
-    regs reg_i(
+    regs #(LEN_WORD, NUM_REG) reg_i(
         reg_flag, reg_a_rd, reg_a_rs1, reg_a_rs2,
         reg_d_rd, reg_d_rs1, reg_d_rs2,
         clk, rstn);
