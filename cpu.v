@@ -20,18 +20,18 @@ module cpu
 
     // registers -------------------------------
     //  in
-    reg                     in_flag;
-    wire [LEN_REG_ADDR-1:0] reg_a_rd;
+    reg                     reg_flag;
+    reg  [LEN_REG_ADDR-1:0] reg_a_rd;
+    reg  [REG_SIZE-1:0]     reg_d_rd;
     wire [LEN_REG_ADDR-1:0] reg_a_rs1;
     wire [LEN_REG_ADDR-1:0] reg_a_rs2;
-    reg  [REG_SIZE-1:0]     reg_d_rd;
 
     //  out
     wire [REG_SIZE-1:0]     reg_d_rs1;
     wire [REG_SIZE-1:0]     reg_d_rs2;
 
     regs reg_i(
-        in_flag, reg_a_rd, reg_a_rs1, reg_a_rs2,
+        reg_flag, reg_a_rd, reg_a_rs1, reg_a_rs2,
         reg_d_rd, reg_d_rs1, reg_d_rs2,
         clk, rstn);
 
@@ -87,7 +87,8 @@ module cpu
 
     //  out
     reg                     write_ew;
-    reg  [LEN_WORD-1:0]     ans_ew;
+    reg  [LEN_REG_ADDR-1:0] a_rd_ew;
+    reg  [LEN_WORD-1:0]     d_rd_ew;
     reg  [LEN_MEM_ADDR-1:0] next_pc_ew;
 
     // alu -------------------------------
@@ -95,7 +96,7 @@ module cpu
     wire [LEN_WORD-1:0]     alu_rs;
     
     alu alu_m(
-        func3_de, func7_de[5], rs1_de, rs2_de,
+        func3_de, func7_de[5], d_rs1_de, d_rs2_de,
         alu_rs);
 
     // mem -------------------------------
@@ -104,13 +105,13 @@ module cpu
     reg                     mem_io;
     
     //  out
-    wire [LEN_WORD-1:0]     d_in_mem;
+    wire [LEN_WORD-1:0]     d_dr_mem;
     wire                    mem_accessed;
 
     memory mem(
         mem_flag, mem_io,
         d_rs2_de, d_rs1_de,
-        mem_accessed, d_in_mem,
+        mem_accessed, d_dr_mem,
         clk, rstn);
 
     // jump -------------------------------
@@ -120,9 +121,8 @@ module cpu
     wire branch_jump;
 
     branch br(
-        func3_de, rs1_de, rs2_de,
+        func3_de, d_rs1_de, d_rs2_de,
         branch_jump);
-
     // write -------------------------------
 
     // main -------------------------------
@@ -133,6 +133,7 @@ module cpu
             state <= STATE_FETCH;
             // reg reset *
         end else if (in) begin
+            reg_flag <= 1'b0;
             // fetch ---------------------------
             if (state == STATE_FETCH) begin
                 fetch_order <= 1'b1;
@@ -155,27 +156,53 @@ module cpu
             end
             // execute ---------------------------
             else if (state == STATE_EXECUTE) begin
+                a_rd_ew <= a_rd_de;
                 // alu ---------------------------
                 if (alu_de) begin
-                    ans_ew <= alu_rs;
+                    d_rd_ew <= alu_rs;
                     next_pc_ew <= pc_de + 'd2;
+                    write_ew <= 1'b1;
                     state <= STATE_WRITE;
                 end
                 // mem ---------------------------
                 else if (mem_de) begin
+                    mem_io <= (func7 == FUNC7_WRITE) ? 1'b1 : 1'b0;
+                    mem_flag <= 1'b1;
+                    state <= STATE_EXECUTE_WAIT;
                 end
                 // branch ---------------------------
                 else if (branch_de) begin
+                    next_pc_ew <= (branch_jump) ? d_rs1_de : (pc_de + 'd2);
+                    write_ew <= 1'b0;
+                    state <= STATE_EXECUTE_WAIT;
                 end
                 // jump ---------------------------
                 else if (jump_de) begin
+                    next_pc_ew <= d_rs1_de;
+                    write_ew <= 1'b1;
+                    d_rd_ew <= pc_de + 'd2;
+                    state <= STATE_WRITE;
                 end
             end
             // execute_wait ---------------------------
             else if (state == STATE_EXECUTE_WAIT) begin
+                mem_flag <= 1'b0;
+                if (mem_accessed) begin
+                    write_ew <= (func7 == FUNC7_WRITE) ? 1'b1 : 1'b0;
+                    d_rd_ew <= d_dr_mem;
+                    next_pc_ew <= d_rs1_de;
+                    state <= STATE_WRITE;
+                end
             end
             // WRITE ---------------------------
             else if (state == STATE_WRITE) begin
+                if (write_ew) begin
+                    reg_flag <= 1'b1;
+                    reg_a_rd <= d_rd_ew;
+                    reg_d_rd <= a_rd_ew;
+                end
+                pc <= next_pc_ew;
+                state <= STATE_FETCH;
             end
         end
     end
