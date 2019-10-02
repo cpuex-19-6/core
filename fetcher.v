@@ -11,6 +11,9 @@ module fetch
 
      input  wire                     clk,
      input  wire                     rstn);
+
+    assign inst = 32'b0;
+    assign fetched = 1'b1;
     
 endmodule
 

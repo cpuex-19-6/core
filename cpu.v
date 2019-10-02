@@ -13,7 +13,8 @@
 
 module cpu
     (input wire clk,
-     input wire rstn);
+     input wire rstn,
+     output wire [`LEN_WORD-1:0] pc);
 
     reg [`LEN_MEM_ADDR-1:0] pc;
     reg [`STATE_NUM-1:0]    state;

@@ -15,6 +15,10 @@ module memory
 
      input  wire                     clk,
      input  wire                     rstn);
+
+    assign accepted = 1'b1;
+    assign accessed = 1'b1;
+    assign o_data = 32'b0;
     
 endmodule
 
