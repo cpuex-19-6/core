@@ -1,8 +1,8 @@
-`include include.vh
+`include "include.vh"
 
 `default_nettype none
 
-module single_reg #(LEN_REG = LEN_WORD)
+module single_reg #(LEN_REG = `LEN_WORD)
     (input wire  in,
 
      input  wire [LEN_REG-1:0] in_data,
@@ -25,16 +25,16 @@ module single_reg #(LEN_REG = LEN_WORD)
 endmodule
 
 module regs
-    #(LEN_REG     = LEN_WORD,
-      NUM_REG     = NUM_REG)
-    (input  wire                    in_flag,
-     input  wire [LEN_REG_ADDR-1:0] ard,
-     input  wire [LEN_REG_ADDR-1:0] ars1,
-     input  wire [LEN_REG_ADDR-1:0] ars2,
+    #(LEN_REG     = `LEN_WORD,
+      NUM_REG     = `NUM_REG)
+    (input  wire                     in_flag,
+     input  wire [`LEN_REG_ADDR-1:0] ard,
+     input  wire [`LEN_REG_ADDR-1:0] ars1,
+     input  wire [`LEN_REG_ADDR-1:0] ars2,
 
-     input  wire [REG_SIZE-1:0]     drd,
-     output wire [REG_SIZE-1:0]     drs1,
-     output wire [REG_SIZE-1:0]     drs2,
+     input  wire [LEN_REG-1:0]       drd,
+     output wire [LEN_REG-1:0]       drs1,
+     output wire [LEN_REG-1:0]       drs2,
 
      input wire clk,
      input wire rstn);

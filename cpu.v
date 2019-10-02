@@ -1,4 +1,4 @@
-`include include.vh
+`include "include.vh"
 
 `default_nettype none
 
@@ -15,34 +15,34 @@ module cpu
     (input wire clk,
      input wire rstn);
 
-    reg [LEN_MEM_ADDR-1:0] pc;
-    reg [STATE_NUM-1:0]    state;
+    reg [`LEN_MEM_ADDR-1:0] pc;
+    reg [`STATE_NUM-1:0]    state;
 
     // registers -------------------------------
     //  in
-    reg                     reg_flag;
-    reg  [LEN_REG_ADDR-1:0] reg_a_rd;
-    reg  [REG_SIZE-1:0]     reg_d_rd;
-    wire [LEN_REG_ADDR-1:0] reg_a_rs1;
-    wire [LEN_REG_ADDR-1:0] reg_a_rs2;
+    reg                      reg_flag;
+    reg  [`LEN_REG_ADDR-1:0] reg_a_rd;
+    reg  [`LEN_WORD-1:0]     reg_d_rd;
+    wire [`LEN_REG_ADDR-1:0] reg_a_rs1;
+    wire [`LEN_REG_ADDR-1:0] reg_a_rs2;
 
     //  out
-    wire [REG_SIZE-1:0]     reg_d_rs1;
-    wire [REG_SIZE-1:0]     reg_d_rs2;
+    wire [`LEN_WORD-1:0]     reg_d_rs1;
+    wire [`LEN_WORD-1:0]     reg_d_rs2;
 
-    regs #(LEN_WORD, NUM_REG) reg_i(
+    regs #(`LEN_WORD, `NUM_REG) reg_i(
         reg_flag, reg_a_rd, reg_a_rs1, reg_a_rs2,
         reg_d_rd, reg_d_rs1, reg_d_rs2,
         clk, rstn);
 
     // fetcher -------------------------------
     //  in
-    reg                 fetch_order;
+    reg                  fetch_order;
 
     //  out
-    wire                fetched;
-    reg  [LEN_INST-1:0] inst_fd;
-    wire [LEN_INST-1:0] inst_f;
+    wire                 fetched;
+    reg  [`LEN_INST-1:0] inst_fd;
+    wire [`LEN_INST-1:0] inst_f;
 
     fetcher fet(
         pc, fetch_order,
@@ -51,33 +51,33 @@ module cpu
 
     // decoder -------------------------------
     //  in
-    reg  [LEN_MEM_ADDR-1:0] pc_fd;
+    reg  [`LEN_MEM_ADDR-1:0] pc_fd;
 
     //  out
-    reg  [LEN_OPECODE-1:0]  opecode_de;
-    wire [LEN_OPECODE-1:0]  opecode_d;
-    reg                     alu_de;
-    wire                    alu_d;
-    reg                     mem_de;
-    wire                    mem_d;
-    reg                     branch_de;
-    wire                    branch_d;
-    reg                     jump_de;
-    wire                    jump_d;
-    reg                     subst_de;
-    wire                    subst_d;
-    reg  [LEN_WORD-1:0]     d_rs1_de;
-    wire [LEN_WORD-1:0]     d_rs1_d;
-    reg  [LEN_WORD-1:0]     d_rs2_de;
-    wire [LEN_WORD-1:0]     d_rs2_d;
-    reg  [LEN_WORD-1:0]     d_rs3_de;
-    wire [LEN_WORD-1:0]     d_rs3_d;
-    reg  [LEN_REG_ADDR-1:0] a_rd_de;
-    wire [LEN_REG_ADDR-1:0] a_rd_d;
-    reg  [LEN_FUNC3-1:0]    func3_de;
-    wire [LEN_FUNC3-1:0]    func3_d;
-    reg  [LEN_FUNC7-1:0]    func7_de;
-    wire [LEN_FUNC7-1:0]    func7_d;
+    reg  [`LEN_OPECODE-1:0]  opecode_de;
+    wire [`LEN_OPECODE-1:0]  opecode_d;
+    reg                      alu_de;
+    wire                     alu_d;
+    reg                      mem_de;
+    wire                     mem_d;
+    reg                      branch_de;
+    wire                     branch_d;
+    reg                      jump_de;
+    wire                     jump_d;
+    reg                      subst_de;
+    wire                     subst_d;
+    reg  [`LEN_WORD-1:0]     d_rs1_de;
+    wire [`LEN_WORD-1:0]     d_rs1_d;
+    reg  [`LEN_WORD-1:0]     d_rs2_de;
+    wire [`LEN_WORD-1:0]     d_rs2_d;
+    reg  [`LEN_WORD-1:0]     d_rs3_de;
+    wire [`LEN_WORD-1:0]     d_rs3_d;
+    reg  [`LEN_REG_ADDR-1:0] a_rd_de;
+    wire [`LEN_REG_ADDR-1:0] a_rd_d;
+    reg  [`LEN_FUNC3-1:0]    func3_de;
+    wire [`LEN_FUNC3-1:0]    func3_d;
+    reg  [`LEN_FUNC7-1:0]    func7_de;
+    wire [`LEN_FUNC7-1:0]    func7_d;
     decoder dec(
         inst_fd, pc_fd,
         reg_a_rs1, reg_a_rs2, reg_d_rs1, reg_d_rs2,
@@ -88,17 +88,17 @@ module cpu
 
     // executes -------------------------------
     //  in
-    reg  [LEN_MEM_ADDR-1:0] pc_de;
+    reg  [`LEN_MEM_ADDR-1:0] pc_de;
 
     //  out
-    reg                     write_ew;
-    reg  [LEN_REG_ADDR-1:0] a_rd_ew;
-    reg  [LEN_WORD-1:0]     d_rd_ew;
-    reg  [LEN_MEM_ADDR-1:0] ;
+    reg                      write_ew;
+    reg  [`LEN_REG_ADDR-1:0] a_rd_ew;
+    reg  [`LEN_WORD-1:0]     d_rd_ew;
+    reg  [`LEN_MEM_ADDR-1:0] next_pc_ew;
 
     // alu -------------------------------
     //  out
-    wire [LEN_WORD-1:0]     alu_rs;
+    wire [`LEN_WORD-1:0]     alu_rs;
     
     alu alu_m(
         func3_de, func7_de[5], d_rs1_de, d_rs2_de,
@@ -106,12 +106,12 @@ module cpu
 
     // mem -------------------------------
     //  in
-    reg                     mem_flag;
-    reg                     mem_io;
+    reg                  mem_flag;
+    reg                  mem_io;
     
     //  out
-    wire [LEN_WORD-1:0]     d_dr_mem;
-    wire                    mem_accessed;
+    wire [`LEN_WORD-1:0] d_dr_mem;
+    wire                 mem_accessed;
 
     memory mem(
         mem_flag, mem_io, func3_de,
@@ -136,7 +136,7 @@ module cpu
     always @(posedge clk) begin
         if (~rstn) begin
             pc <= 'b0;
-            state <= STATE_FETCH;
+            state <= `STATE_FETCH;
             reg_a_rd <= 5'b0;
             reg_d_rd <= 32'b0;
 
@@ -164,25 +164,25 @@ module cpu
             next_pc_ew <= 32'b0;
             mem_flag <= 1'b0;
             mem_io <= 1'b0;
-        end else if (in) begin
+        end else begin
             reg_flag <= 1'b0;
             // fetch ---------------------------
-            if (state == STATE_FETCH) begin
+            if (state == `STATE_FETCH) begin
                 fetch_order <= 1'b1;
                 reg_flag <= 1'b0;
-                state <= STATE_FETCH_WAIT;
+                state <= `STATE_FETCH_WAIT;
             end
             // fetch_wait ---------------------------
-            else if (state == STATE_FETCH_WAIT) begin
+            else if (state == `STATE_FETCH_WAIT) begin
                 fetch_order <= 1'b0;
                 if (fetched) begin
                     inst_fd <= inst_f;
                     pc_fd <= pc;
-                    state <= STATE_DECODE;
+                    state <= `STATE_DECODE;
                 end
             end
             // decode ---------------------------
-            else if (state == STATE_DECODE) begin
+            else if (state == `STATE_DECODE) begin
                 alu_de <= alu_d;
                 mem_de <= mem_d;
                 branch_de <= branch_d;
@@ -197,64 +197,64 @@ module cpu
                 func7_de <= func7_d;
                 pc_de <= pc_fd;
                 if (mem_d)
-                state <= STATE_EXECUTE;
+                state <= `STATE_EXECUTE;
             end
             // execute ---------------------------
-            else if (state == STATE_EXECUTE) begin
+            else if (state == `STATE_EXECUTE) begin
                 a_rd_ew <= a_rd_de;
                 // alu ---------------------------
                 if (alu_de) begin
                     d_rd_ew <= alu_rs;
                     next_pc_ew <= pc_de + 32'd2;
                     write_ew <= 1'b1;
-                    state <= STATE_WRITE;
+                    state <= `STATE_WRITE;
                 end
                 // mem ---------------------------
                 else if (mem_de) begin
-                    mem_io <= (opecode_de == OP_MEMS) ? 1'b1 : 1'b0;
+                    mem_io <= (opecode_de == `OP_MEMS) ? 1'b1 : 1'b0;
                     mem_flag <= 1'b1;
-                    state <= STATE_EXECUTE_WAIT;
+                    state <= `STATE_EXECUTE_WAIT;
                 end
                 // branch ---------------------------
                 else if (branch_de) begin
                     next_pc_ew <= (branch_jump) ? d_rs3_de : (pc_de + 32'd2);
                     write_ew <= 1'b0;
-                    state <= STATE_EXECUTE_WAIT;
+                    state <= `STATE_EXECUTE_WAIT;
                 end
                 // jump ---------------------------
                 else if (jump_de) begin
                     next_pc_ew <= d_rs3_de;
                     write_ew <= 1'b1;
                     d_rd_ew <= pc_de + 32'd2;
-                    state <= STATE_WRITE;
+                    state <= `STATE_WRITE;
                 end
                 // subst ---------------------------
-                else if (subst) begin
+                else if (subst_de) begin
                     next_pc_ew <= pc_de + 32'd2;
                     write_ew <= 1'b1;
                     d_rd_ew <= d_rs3_de;
-                    state <= STATE_WRITE;
+                    state <= `STATE_WRITE;
                 end
             end
             // execute_wait ---------------------------
-            else if (state == STATE_EXECUTE_WAIT) begin
+            else if (state == `STATE_EXECUTE_WAIT) begin
                 mem_flag <= 1'b0;
                 if (mem_accessed) begin
-                    write_ew <= (func7 == FUNC7_WRITE) ? 1'b1 : 1'b0;
+                    write_ew <= opecode_de[5];
                     d_rd_ew <= d_dr_mem;
                     next_pc_ew <= d_rs1_de;
-                    state <= STATE_WRITE;
+                    state <= `STATE_WRITE;
                 end
             end
             // WRITE ---------------------------
-            else if (state == STATE_WRITE) begin
+            else if (state == `STATE_WRITE) begin
                 if (write_ew) begin
                     reg_flag <= 1'b1;
                     reg_a_rd <= d_rd_ew;
                     reg_d_rd <= a_rd_ew;
                 end
                 pc <= next_pc_ew;
-                state <= STATE_FETCH;
+                state <= `STATE_FETCH;
             end
         end
     end
