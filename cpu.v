@@ -44,7 +44,7 @@ module cpu
     reg  [`LEN_INST-1:0] inst_fd;
     wire [`LEN_INST-1:0] inst_f;
 
-    fetche fet(
+    fetch fet(
         pc, fetch_order,
         inst_f, fetched,
         clk, rstn);
