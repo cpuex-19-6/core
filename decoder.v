@@ -26,12 +26,12 @@ module decode
      output wire [LEN_FUNC3-1:0]    func3,
      output wire [LEN_FUNC3-1:0]    func7);
 
-    assign opecode   = inst[ 6: 0];
-    assign a_rd      = inst[11: 7];
+    assign opecode    = inst[ 6: 0];
+    assign a_rd       = inst[11: 7];
     assign regi_a_rs1 = inst[19:15];
     assign regi_a_rs2 = inst[24:20];
-    assign func3     = inst[14:12];
-    assign func7     = inst[31:25];
+    assign func3      = inst[14:12];
+    assign func7      = inst[31:25];
 
     assign alu    = (opecode == OP_ALU)
                   | (opecode == OP_ALUI);

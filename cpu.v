@@ -169,6 +169,7 @@ module cpu
             // fetch ---------------------------
             if (state == STATE_FETCH) begin
                 fetch_order <= 1'b1;
+                reg_flag <= 1'b0;
                 state <= STATE_FETCH_WAIT;
             end
             // fetch_wait ---------------------------
@@ -195,6 +196,7 @@ module cpu
                 func3_de <= func3_d;
                 func7_de <= func7_d;
                 pc_de <= pc_fd;
+                if (mem_d)
                 state <= STATE_EXECUTE;
             end
             // execute ---------------------------
@@ -227,7 +229,7 @@ module cpu
                     state <= STATE_WRITE;
                 end
                 // subst ---------------------------
-                else if (jump_de) begin
+                else if (subst) begin
                     next_pc_ew <= pc_de + 32'd2;
                     write_ew <= 1'b1;
                     d_rd_ew <= d_rs3_de;
