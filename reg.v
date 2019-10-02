@@ -38,31 +38,23 @@ module regs
 
      input wire clk,
      input wire rstn);
-    
-    wire [NUM_REG*LEN_REG-1:0] rs1s;
-    wire [NUM_REG*LEN_REG-1:0] rs2s;
 
-    assign drs1 = rs1s[0+:LEN_REG];
-    assign drs2 = rs2s[0+:LEN_REG];
-    assign rs1s[(NUM_REG-1)*LEN_REG+:LEN_REG] = 0;
-    assign rs2s[(NUM_REG-1)*LEN_REG+:LEN_REG] = 0;
-    
-    genvar i;
-    generate
-        for (i = 1; i < NUM_REG; i = i + 1) begin
-            wire           in;
-            wire [LEN_REG] out_data;
-            single_reg #(LEN_REG) rg(
-                in, drd, out_data,
-                clk, rstn);
+    reg  [LEN_REG-1:0] registers[NUM_REG];
 
-            assign in = inflag & (ard == i);
-            assign rs1s[(i-1)*LEN_REG+:LEN_REG] =
-                ars1 == i ? out_data : rs1s[i*LEN_REG+:LEN_REG];
-            assign rs2s[(i-1)*LEN_REG+:LEN_REG] =
-                ars2 == i ? out_data : rs2s[i*LEN_REG+:LEN_REG];
+    assign drs1 = (|drs1) ? registers[drs1] : 32'b0;
+
+    always @(posedge clk) begin
+        if (~rstn) begin
+            genvar i;
+            generate
+                for (i=0;i<NUM_REG;++i) begin]
+                    register[i] <= 32'b0;
+                end
+            endgenerate
+        end else if (in_flag && |drs1) begin
+            registers[ard] <= drd;
         end
-    endgenerate
+    end
 endmodule
 
 `default_nettype wire

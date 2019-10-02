@@ -115,7 +115,7 @@ module cpu
     wire                 mem_accessed;
 
     memory mem(
-        mem_flag, mem_io, func3_de,
+        mem_flag, mem_io,
         d_rs2_de, d_rs1_de,
         mem_accessed, d_dr_mem,
         clk, rstn);
