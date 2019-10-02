@@ -44,7 +44,7 @@ module cpu
     reg  [`LEN_INST-1:0] inst_fd;
     wire [`LEN_INST-1:0] inst_f;
 
-    fetcher fet(
+    fetche fet(
         pc, fetch_order,
         inst_f, fetched,
         clk, rstn);
@@ -78,7 +78,7 @@ module cpu
     wire [`LEN_FUNC3-1:0]    func3_d;
     reg  [`LEN_FUNC7-1:0]    func7_de;
     wire [`LEN_FUNC7-1:0]    func7_d;
-    decoder dec(
+    decode dec(
         inst_fd, pc_fd,
         reg_a_rs1, reg_a_rs2, reg_d_rs1, reg_d_rs2,
         alu_d, mem_d, jump_d, branch_d, subst_d,
