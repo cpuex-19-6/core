@@ -14,7 +14,10 @@
 module cpu
     (input wire clk,
      input wire rstn,
-     output wire [`LEN_WORD-1:0] pc);
+     output wire [`LEN_WORD-1:0] pc,
+
+     output wire [`LEN_MEM_ADDR-3:0] a_inst,
+     input  wire [`LEN_WORD-1:1]     d_inst);
 
     reg [`LEN_MEM_ADDR-1:0] pc;
     reg [`STATE_NUM-1:0]    state;
@@ -48,6 +51,7 @@ module cpu
     fetch fet(
         pc, fetch_order,
         inst_f, fetched,
+        a_inst, d_inst,
         clk, rstn);
 
     // decoder -------------------------------

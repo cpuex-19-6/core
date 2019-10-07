@@ -9,6 +9,9 @@ module fetch
      output wire [`LEN_INST-1:0]     inst,
      output wire                     fetched,
 
+     output wire [`LEN_MEM_ADDR-3:0] a_inst_mem,
+     output wire [`LEN_INST-1:0]     d_inst_mem,
+     
      input  wire                     clk,
      input  wire                     rstn);
 
