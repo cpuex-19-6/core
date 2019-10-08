@@ -14,13 +14,15 @@
 module cpu
     (input wire clk,
      input wire rstn,
-     output wire [`LEN_WORD-1:0] pc,
+     output wire [`STATE_NUM-1:0] stat,
 
      output wire [`LEN_MEMISTR_ADDR-1:0] a_inst,
      input  wire [`LEN_WORD-1:0]         d_inst);
 
     reg [`LEN_MEM_ADDR-1:0] pc;
     reg [`STATE_NUM-1:0]    state;
+
+    assign stat = state;
 
     // registers -------------------------------
     //  in
@@ -144,6 +146,8 @@ module cpu
             state <= `STATE_FETCH;
             reg_a_rd <= 5'b0;
             reg_d_rd <= 32'b0;
+            
+            reg_flag <= 1'b0;
 
             fetch_order <= 1'b0;
             inst_fd <= 32'b0;
@@ -170,7 +174,6 @@ module cpu
             mem_flag <= 1'b0;
             mem_io <= 1'b0;
         end else begin
-            reg_flag <= 1'b0;
             // fetch ---------------------------
             if (state == `STATE_FETCH) begin
                 fetch_order <= 1'b1;
@@ -201,7 +204,6 @@ module cpu
                 func3_de <= func3_d;
                 func7_de <= func7_d;
                 pc_de <= pc_fd;
-                if (mem_d)
                 state <= `STATE_EXECUTE;
             end
             // execute ---------------------------
@@ -255,8 +257,8 @@ module cpu
             else if (state == `STATE_WRITE) begin
                 if (write_ew) begin
                     reg_flag <= 1'b1;
-                    reg_a_rd <= d_rd_ew;
-                    reg_d_rd <= a_rd_ew;
+                    reg_a_rd <= a_rd_ew;
+                    reg_d_rd <= d_rd_ew;
                 end
                 pc <= next_pc_ew;
                 state <= `STATE_FETCH;
