@@ -16,8 +16,8 @@ module cpu
      input wire rstn,
      output wire [`LEN_WORD-1:0] pc,
 
-     output wire [`LEN_MEM_ADDR-3:0] a_inst,
-     input  wire [`LEN_WORD-1:1]     d_inst);
+     output wire [`LEN_MEMISTR_ADDR-1:0] a_inst,
+     input  wire [`LEN_WORD-1:0]         d_inst);
 
     reg [`LEN_MEM_ADDR-1:0] pc;
     reg [`STATE_NUM-1:0]    state;
@@ -210,7 +210,7 @@ module cpu
                 // alu ---------------------------
                 if (alu_de) begin
                     d_rd_ew <= alu_rs;
-                    next_pc_ew <= pc_de + 32'd2;
+                    next_pc_ew <= pc_de + 32'd4;
                     write_ew <= 1'b1;
                     state <= `STATE_WRITE;
                 end
@@ -218,11 +218,12 @@ module cpu
                 else if (mem_de) begin
                     mem_io <= (opecode_de == `OP_MEMS) ? 1'b1 : 1'b0;
                     mem_flag <= 1'b1;
+                    next_pc_ew <= pc_de + 32'd4;
                     state <= `STATE_EXECUTE_WAIT;
                 end
                 // branch ---------------------------
                 else if (branch_de) begin
-                    next_pc_ew <= (branch_jump) ? d_rs3_de : (pc_de + 32'd2);
+                    next_pc_ew <= (branch_jump) ? d_rs3_de : (pc_de + 32'd4);
                     write_ew <= 1'b0;
                     state <= `STATE_EXECUTE_WAIT;
                 end
@@ -230,12 +231,12 @@ module cpu
                 else if (jump_de) begin
                     next_pc_ew <= d_rs3_de;
                     write_ew <= 1'b1;
-                    d_rd_ew <= pc_de + 32'd2;
+                    d_rd_ew <= pc_de + 32'd4;
                     state <= `STATE_WRITE;
                 end
                 // subst ---------------------------
                 else if (subst_de) begin
-                    next_pc_ew <= pc_de + 32'd2;
+                    next_pc_ew <= pc_de + 32'd4;
                     write_ew <= 1'b1;
                     d_rd_ew <= d_rs3_de;
                     state <= `STATE_WRITE;
@@ -247,7 +248,6 @@ module cpu
                 if (mem_accessed) begin
                     write_ew <= opecode_de[5];
                     d_rd_ew <= d_dr_mem;
-                    next_pc_ew <= d_rs1_de;
                     state <= `STATE_WRITE;
                 end
             end

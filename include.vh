@@ -5,6 +5,8 @@
 `define LEN_MEM_ADDR 32
 `define LEN_REG_ADDR 7
 
+`define LEN_MEMISTR_ADDR 14
+
 `define LEN_OPECODE 7
 `define LEN_IMM12 12
 `define LEN_IMM13 13
