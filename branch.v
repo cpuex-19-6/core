@@ -13,7 +13,7 @@ module branch
         (func3 == `FUNC3_BEQ ) ? (rs1 == rs2) :
         (func3 == `FUNC3_BNE ) ? (rs1 != rs2) :
         (func3 == `FUNC3_BLT ) ? ($signed(rs1) <  $signed(rs2)) :
-        (func3 == `FUNC3_BLT ) ? ($signed(rs1) >= $signed(rs2)) :
+        (func3 == `FUNC3_BGE ) ? ($signed(rs1) >= $signed(rs2)) :
         (func3 == `FUNC3_BLTU) ? (rs1 <  rs2) :
                                  (rs1 >= rs2);
 

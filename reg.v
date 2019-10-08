@@ -19,8 +19,8 @@ module regs
 
     reg [LEN_REG-1:0] registers [NUM_REG-1:0];
 
-    assign drs1 = (|drs1) ? registers[ars1] : 32'b0;
-    assign drs2 = (|drs2) ? registers[ars2] : 32'b0;
+    assign drs1 = (|ars1) ? registers[ars1] : 32'b0;
+    assign drs2 = (|ars2) ? registers[ars2] : 32'b0;
 
     always @(posedge clk) begin
         registers[0] <= 32'b0;

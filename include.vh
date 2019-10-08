@@ -3,7 +3,7 @@
 `define LEN_WORD 32
 `define LEN_INST 32
 `define LEN_MEM_ADDR 32
-`define LEN_REG_ADDR 7
+`define LEN_REG_ADDR 5
 
 `define LEN_MEMISTR_ADDR 14
 

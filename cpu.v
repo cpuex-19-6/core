@@ -227,7 +227,7 @@ module cpu
                 else if (branch_de) begin
                     next_pc_ew <= (branch_jump) ? d_rs3_de : (pc_de + 32'd4);
                     write_ew <= 1'b0;
-                    state <= `STATE_EXECUTE_WAIT;
+                    state <= `STATE_WRITE;
                 end
                 // jump ---------------------------
                 else if (jump_de) begin
