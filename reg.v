@@ -19,8 +19,8 @@ module regs
 
     reg [LEN_REG-1:0] registers [NUM_REG-1:0];
 
-    assign drs1 = (|drs1) ? registers[drs1] : 32'b0;
-    assign drs2 = (|drs2) ? registers[drs2] : 32'b0;
+    assign drs1 = (|drs1) ? registers[ars1] : 32'b0;
+    assign drs2 = (|drs2) ? registers[ars2] : 32'b0;
 
     always @(posedge clk) begin
         registers[0] <= 32'b0;
@@ -33,7 +33,7 @@ module regs
                     registers[i] <= 32'b0;
                 end
                 else if (in_flag && ard == i) begin
-                    registers[ard] <= drd;
+                    registers[i] <= drd;
                 end
             end
         end
