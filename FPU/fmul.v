@@ -19,46 +19,36 @@ module fmul
   wire [8:0] e1a;
   wire [8:0] e2a;
 
-  wire [9:0] esum;
-  assign esum = e1a + e2a;
-
   assign m1a = (e1 == 0) ? {1'b0, m1} : {1'b1, m1};
   assign m2a = (e2 == 0) ? {1'b0, m2} : {1'b1, m2};
   assign e1a = (e1 == 0) ? 8'b1 : e1;
   assign e2a = (e2 == 0) ? 8'b1 : e2; 
-  
-  // ビット乗算の幅制限があったら以下のように分解する必要があるが、
-  // 多分不要・・・？
 
-  //wire [12:0] m1as = m1a[23:11];
-  //wire [12:0] m2as = m2a[23:11];
-  //wire [10:0] m1ai = m1a[10:0];
-  //wire [10:0] m2ai = m2a[10:0];
+  wire [9:0] esum;
+  assign esum = e1a + e2a;
 
-  //wire [25:0] mss;
-  //wire [21:0] msi;
-  //wire [21:0] mis;
-  //assign mss = m1as * m2as;
-  //assign msi = m1as * m2ai;
-  //assign mis = m1ai * m2as;
-
+  // 符号部
   wire sy;
   assign sy = (!s1 && s2) || (s1 && !s2);
 
+  // 指数部
   wire [7:0] eyd;
   assign eyd = e1a + e2a + 8'b10000010;
 
+  // アンダーフロー検知（非正規化数対応）
   wire udf = 9'b010000000 > (e1a + e2a);
   wire udf_just = (8'b01111111 == (e1a + e2a));
   wire [8:0] shifts = 8'b01111111 - (e1a + e2a);
 
+  // 仮数部
   wire [47:0] myd;
   wire [47:0] myd_shifts;
   assign myd = m1a * m2a;
-
   assign myd_shifts = myd >>> shifts;
 
+  // オーバーフロー検知
   wire ovf = (esum >= 9'b101111110);
+  wire ovf_just = (esum == 9'b101111101) && (myd[47] == 1);
 
   wire [5:0] se;
   assign se = (myd[47] == 1) ? 6'd0 :
@@ -109,8 +99,6 @@ module fmul
               (myd[2] == 1) ? 6'd45 :
               (myd[1] == 1) ? 6'd46 :
               (myd[0] == 1) ? 6'd47 : 6'd48;
-
-  wire ovf_just = (esum == 9'b101111101) && (myd[47] == 1);
 
   wire signed [8:0] eyf;
   wire [7:0] eyr;
