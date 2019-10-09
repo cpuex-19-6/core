@@ -42,6 +42,9 @@
 // FUNC3
 
 `define FUNC3_ADD 3'b000
+`define FUNC3_SL  3'b001
+`define FUNC3_XOR 3'b100
+`define FUNC3_SR  3'b101
 `define FUNC3_OR  3'b110
 `define FUNC3_AND 3'b111
 
