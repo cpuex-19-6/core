@@ -15,9 +15,15 @@ module cpu
     (input wire clk,
      input wire rstn,
      output wire [`STATE_NUM-1:0] stat,
+     output wire clk_o,
 
      output wire [`LEN_MEMISTR_ADDR-1:0] a_inst,
-     input  wire [`LEN_WORD-1:0]         d_inst);
+     input  wire [`LEN_WORD-1:0]         d_inst,
+     
+     output wire [`LEN_MEMDATA_ADDR-1:0] a_mem,
+     output wire [`LEN_WORD-1:0]         sd_mem,
+     input  wire [`LEN_WORD-1:0]         ld_mem,
+     output wire                         mem_write_flag);
 
     reg [`LEN_MEM_ADDR-1:0] pc;
     reg [`STATE_NUM-1:0]    state;
@@ -124,6 +130,7 @@ module cpu
         mem_flag, mem_io,
         d_rs2_de, d_rs1_de,
         mem_accessed, d_dr_mem,
+        a_mem, sd_mem, ld_mem, mem_write_flag,
         clk, rstn);
 
     // jump -------------------------------
@@ -248,7 +255,7 @@ module cpu
             else if (state == `STATE_EXECUTE_WAIT) begin
                 mem_flag <= 1'b0;
                 if (mem_accessed) begin
-                    write_ew <= opecode_de[5];
+                    write_ew <= ~opecode_de[5];
                     d_rd_ew <= d_dr_mem;
                     state <= `STATE_WRITE;
                 end

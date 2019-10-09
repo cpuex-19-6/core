@@ -13,12 +13,20 @@ module memory
      output wire                     accessed,
      output wire [`LEN_WORD-1:0]     o_data,
 
+     output wire [`LEN_MEMDATA_ADDR-1:0] a_mem,
+     output wire [`LEN_WORD-1:0]         sd_mem,
+     input  wire [`LEN_WORD-1:0]         ld_mem,
+     output wire                         mem_write_flag,
+
      input  wire                     clk,
      input  wire                     rstn);
 
     assign accepted = 1'b1;
     assign accessed = 1'b1;
-    assign o_data = 32'b0;
+    assign o_data = ld_mem;
+    assign sd_mem = i_data;
+    assign mem_write_flag = order & io;
+    assign a_mem = address[`LEN_MEMDATA_ADDR+2-1:2];
     
 endmodule
 
