@@ -42,10 +42,12 @@ module cpu
     wire [`LEN_WORD-1:0]     reg_d_rs1;
     wire [`LEN_WORD-1:0]     reg_d_rs2;
 
-    regs #(`LEN_WORD, `NUM_REG) reg_i(
+    regs reg_i(
         reg_flag, reg_a_rd, reg_a_rs1, reg_a_rs2,
         reg_d_rd, reg_d_rs1, reg_d_rs2,
         clk, rstn);
+    
+    assign clk_o = clk;
 
     // fetcher -------------------------------
     //  in
@@ -124,12 +126,13 @@ module cpu
     
     //  out
     wire [`LEN_WORD-1:0] d_dr_mem;
+    wire                 mem_accepted;
     wire                 mem_accessed;
 
     memory mem(
         mem_flag, mem_io,
         d_rs2_de, d_rs1_de,
-        mem_accessed, d_dr_mem,
+        mem_accepted, mem_accessed, d_dr_mem,
         a_mem, sd_mem, ld_mem, mem_write_flag,
         clk, rstn);
 
