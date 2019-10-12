@@ -59,8 +59,8 @@ module cpu
     wire [`LEN_INST-1:0] inst_f;
 
     fetch fet(
-        pc, fetch_order,
-        inst_f, fetched,
+        fetch_order, fetched,
+        pc, inst_f,
         a_inst, d_inst,
         clk, rstn);
 
