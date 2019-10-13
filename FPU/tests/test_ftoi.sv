@@ -25,7 +25,7 @@ module test_ftoi();
       $display("actual   : result(float) sign(bit),exponent(decimal),mantissa(bit)");
 
       // 実装基準によると -2^31 + 1 ~ 2^31 - 1 に対して正しく値を返せばよいので
-      // この範囲でテストをすればよい。
+      // この範囲でテストをすれば十分。
       for (i=120; i<159; i++) begin
             for (s1=0; s1<2; s1++) begin
                   for (it=0; it<10; it++) begin
@@ -58,6 +58,42 @@ module test_ftoi();
                         $display("%b", y);
                         $display("%d\n", y);
                   end
+            end
+      end
+
+      // 元の浮動小数点が0の場合を一応テストする
+      for (s1=0; s1<2; s1++) begin
+            for (it=0; it<10; it++) begin
+                  #1;
+
+                  i = 0;
+
+                  case (it)
+                     0 : m1 = 23'b0;
+                     1 : m1 = {22'b0,1'b1};
+                     2 : m1 = {21'b0,2'b10};
+                     3 : m1 = {1'b0,3'b111,19'b0};
+                     4 : m1 = {1'b1,22'b0};
+                     5 : m1 = {2'b10,{21{1'b1}}};
+                     6 : m1 = {23{1'b1}};
+                     7 : m1 = {19'b0,4'b1111};
+                     8 : m1 = {17'b0,6'b110011};  
+                     default : begin
+                        if (i==256) begin
+                           {m1,dum1} = 0;
+                        end else begin
+                           {m1,dum1} = $urandom();
+                        end
+                     end
+                  endcase
+                  
+                  x1i = {s1[0],i[7:0],m1};
+
+                  #1;
+
+                  $display("%e %b,%3d,%b", $bitstoshortreal(x1), x1[31], x1[30:23], x1[22:0]);
+                  $display("%b", y);
+                  $display("%d\n", y);
             end
       end
 

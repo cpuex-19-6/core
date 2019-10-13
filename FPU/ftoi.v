@@ -13,14 +13,11 @@ module ftoi
   wire [23:0] m1a;
   assign m1a = {1'b1, m1};
 
-  // 指数部が0であれば0
-  wire iszero;
-  assign iszero = ~|(e1);
-
   // 指数部が126未満の場合、必ず0
   wire islittle;
   assign islittle = (e1 < 8'b01111110);
 
+  // 127引いた実際の指数を計算
   wire [4:0] se;
   assign se = (e1 - 8'b01111111);
 
