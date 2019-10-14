@@ -12,6 +12,7 @@ module decode
      input  wire [`LEN_WORD-1:0]     regi_d_rs2,
 
      output wire                    alu,
+     output wire                    alu_imm_flag,
      output wire                    mem,
      output wire                    jump,
      output wire                    branch,
@@ -26,13 +27,6 @@ module decode
      output wire [`LEN_FUNC3-1:0]    func3,
      output wire [`LEN_FUNC7-1:0]    func7);
 
-    assign opecode    = inst[ 6: 0];
-    assign a_rd       = inst[11: 7];
-    assign regi_a_rs1 = inst[19:15];
-    assign regi_a_rs2 = inst[24:20];
-    assign func3      = inst[14:12];
-    assign func7      = inst[31:25];
-
     assign alu    = (opecode == `OP_ALU)
                   | (opecode == `OP_ALUI);
     assign mem    = (opecode == `OP_MEML)
@@ -43,17 +37,26 @@ module decode
     assign subst  = (opecode == `OP_LUI)
                   | (opecode == `OP_AUIPC);
 
+    assign alu_imm_flag = (opecode == `OP_ALUI);
+
     wire [`LEN_IMM12-1:0] imm12i;
     wire [`LEN_IMM12-1:0] imm12s;
     wire [`LEN_IMM13-1:0] imm13;
     wire [`LEN_IMM21-1:0] imm21;
     wire [`LEN_IMM32-1:0] imm32;
 
-    assign imm12i = {func7, regi_a_rs2};
-    assign imm12s = {func7,                              a_rd};
-    assign imm32  = {func7, regi_a_rs2, regi_a_rs1, func3, 12'b0};
+    assign opecode    = inst[ 6: 0];
+    assign a_rd       = inst[11: 7];
+    assign regi_a_rs1 = inst[19:15];
+    assign regi_a_rs2 = inst[24:20];
+    assign func3      = inst[14:12];
+    assign func7      = inst[31:25];
+
+    assign imm12i = inst[31:20];
+    assign imm12s = {inst[31:25], inst[11: 7]};
+    assign imm32  = {inst[31:12], 12'b0};
     assign imm13  = {imm12s[6], imm12s[0], imm12s[10:1], 1'b0};
-    assign imm21  = {imm12i[11], regi_a_rs1, func3, imm12i[0], imm12i[10:1], 1'b0};
+    assign imm21  = {imm12i[11], inst[19:12], imm12i[0], imm12i[10:1], 1'b0};
 
     wire [`LEN_WORD-1:0] d_imm12i;
     wire [`LEN_WORD-1:0] d_imm12s;

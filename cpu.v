@@ -23,7 +23,8 @@ module cpu
      output wire [`LEN_MEMDATA_ADDR-1:0] a_mem,
      output wire [`LEN_WORD-1:0]         sd_mem,
      input  wire [`LEN_WORD-1:0]         ld_mem,
-     output wire                         mem_write_flag);
+     output wire [4-1:0]                 mem_write_flag,
+     output wire                         mem_read_flag);
 
     reg [`LEN_MEM_ADDR-1:0] pc;
     reg [`STATE_NUM-1:0]    state;
@@ -73,6 +74,8 @@ module cpu
     wire [`LEN_OPECODE-1:0]  opecode_d;
     reg                      alu_de;
     wire                     alu_d;
+    reg                      alu_imm_f_de;
+    wire                     alu_imm_f_d;
     reg                      mem_de;
     wire                     mem_d;
     reg                      branch_de;
@@ -96,7 +99,7 @@ module cpu
     decode dec(
         inst_fd, pc_fd,
         reg_a_rs1, reg_a_rs2, reg_d_rs1, reg_d_rs2,
-        alu_d, mem_d, jump_d, branch_d, subst_d,
+        alu_d, alu_imm_f_d, mem_d, jump_d, branch_d, subst_d,
         d_rs1_d, d_rs2_d, d_rs3_d, a_rd_d,
         opecode_d, func3_d, func7_d);
     
@@ -116,7 +119,8 @@ module cpu
     wire [`LEN_WORD-1:0]     alu_rs;
     
     alu alu_m(
-        func3_de, func7_de[5], d_rs1_de, d_rs2_de,
+        func3_de, func7_de[5], alu_imm_f_de,
+        d_rs1_de, d_rs2_de,
         alu_rs);
 
     // mem -------------------------------
@@ -131,9 +135,10 @@ module cpu
 
     memory mem(
         mem_flag, mem_io,
-        d_rs2_de, d_rs1_de,
-        mem_accepted, mem_accessed, d_dr_mem,
-        a_mem, sd_mem, ld_mem, mem_write_flag,
+        mem_accepted, mem_accessed,
+        d_rs1_de, d_rs2_de, d_dr_mem,
+        a_mem, sd_mem, ld_mem,
+        mem_write_flag, mem_read_flag,
         clk, rstn);
 
     // jump -------------------------------
@@ -164,6 +169,7 @@ module cpu
             pc_fd <= 32'b0;
 
             alu_de <= 1'b0;
+            alu_imm_f_de <= 1'b0;
             mem_de <= 1'b0;
             branch_de <= 1'b0;
             jump_de <= 1'b0;
@@ -202,6 +208,7 @@ module cpu
             // decode ---------------------------
             else if (state == `STATE_DECODE) begin
                 alu_de <= alu_d;
+                alu_imm_f_de <= alu_imm_f_d;
                 mem_de <= mem_d;
                 branch_de <= branch_d;
                 jump_de <= jump_d;
@@ -241,7 +248,7 @@ module cpu
                 end
                 // jump ---------------------------
                 else if (jump_de) begin
-                    next_pc_ew <= d_rs3_de;
+                    next_pc_ew <= d_rs1_de;
                     write_ew <= 1'b1;
                     d_rd_ew <= pc_de + 32'd4;
                     state <= `STATE_WRITE;
