@@ -12,17 +12,20 @@ module alu
      output wire [`LEN_WORD-1:0] rd);
 
     assign rd =
-        (func3 == `FUNC3_ADD) ?
-            ((mode_flag && ~imm_flag) ? (rs1 - rs2) :
-                         (rs1 + rs2)) :
-        (func3 == `FUNC3_SL ) ? (rs1 << rs2[4:0]) :
-        (func3 == `FUNC3_XOR) ? (rs1 ^ rs2) :
-        (func3 == `FUNC3_SR ) ?
-            (mode_flag ? (rs1 >>> rs2[4:0]) :
-                         (rs1 >> rs2[4:0])) :
-        (func3 == `FUNC3_OR ) ? (rs1 | rs2) :
-        (func3 == `FUNC3_AND) ? (rs1 & rs2) :
-        32'b0;
+        (
+            (func3 == `FUNC3_ADD) ?
+                ((mode_flag && ~imm_flag) ? (rs1 - rs2) :
+                            (rs1 + rs2)) :
+            (func3 == `FUNC3_SL ) ? (rs1 << rs2[4:0]) :
+            (func3 == `FUNC3_XOR) ? (rs1 ^ rs2) :
+            (func3 == `FUNC3_SR ) ?
+                (mode_flag ? (rs1 >>> rs2[4:0]) :
+                            (rs1 >> rs2[4:0])) :
+            (func3 == `FUNC3_OR ) ? (rs1 | rs2) :
+            (func3 == `FUNC3_AND) ? (rs1 & rs2) :
+            32'b0
+        );
+
 endmodule
 
 `default_nettype wire
