@@ -13,6 +13,7 @@ module decode
 
      output wire                    alu,
      output wire                    alu_imm_flag,
+     output wire                    alu_extention_flag,
      output wire                    mem,
      output wire                    jump,
      output wire                    branch,
@@ -38,6 +39,7 @@ module decode
                   | (opecode == `OP_AUIPC);
 
     assign alu_imm_flag = (opecode == `OP_ALUI);
+    assign alu_extention_flag = (opecode == `OP_ALU) && inst[25];
 
     wire [`LEN_IMM12-1:0] imm12i;
     wire [`LEN_IMM12-1:0] imm12s;

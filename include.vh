@@ -48,6 +48,11 @@
 `define FUNC3_OR  3'b110
 `define FUNC3_AND 3'b111
 
+`define FUNC3_DIV  3'b100
+`define FUNC3_DIVU 3'b101
+`define FUNC3_REM  3'b110
+`define FUNC3_REMU 3'b111
+
 `define FUNC3_BEQ  3'b000
 `define FUNC3_BNE  3'b001
 `define FUNC3_BLT  3'b100
