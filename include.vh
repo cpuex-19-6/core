@@ -39,6 +39,9 @@
 `define OP_FMEML  7'b0000111
 `define OP_FMEMS  7'b0100111
 
+`define OP_INPUT  7'b0001011
+`define OP_OUTPUT 7'b0101011
+
 // FUNC3
 
 `define FUNC3_ADD 3'b000

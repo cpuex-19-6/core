@@ -37,6 +37,8 @@ module decode
     assign branch = (opecode == `OP_BRANCH);
     assign subst  = (opecode == `OP_LUI)
                   | (opecode == `OP_AUIPC);
+    assign io     = (opecode == `OP_INPUT)
+                  | (opecode == `OP_OUTPUT);
 
     assign alu_imm_flag = (opecode == `OP_ALUI);
     assign alu_extention_flag = (opecode == `OP_ALU) && inst[25];
