@@ -25,7 +25,7 @@ module memory
     reg r_accessed;
     reg r_accepted;
     reg [3:0] state;
-    reg r_mem_write_flag;
+    reg [3:0] r_mem_write_flag;
     reg r_mem_read_flag;
     reg [32-1:0] r_i_data;
     reg [32-1:0] r_address;
@@ -52,7 +52,7 @@ module memory
             if (order) begin
                 r_accessed <= 1'b0;
                 r_accepted <= 1'b1;
-                r_mem_write_flag <= {4{io}};
+                r_mem_write_flag <= 4'b0;
                 r_mem_read_flag <= 1'b1;
                 r_i_data <= i_data;
                 r_address <= address;
@@ -69,8 +69,8 @@ module memory
         else if (state == 4'b0010) begin
             r_accessed <= 1'b0;
             r_accepted <= 1'b0;
-            r_mem_write_flag <= 4'b0;
-            r_mem_read_flag <= 1'b0;
+            r_mem_write_flag <= {io, io, io, io};
+            r_mem_read_flag <= 1'b1;
             state <= 4'b0100;
         end
         else if (state == 4'b0100) begin
