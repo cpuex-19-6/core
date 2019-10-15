@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="test_wrapper_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="test_wrapper" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="641358990000fs"></ZoomStartTime>
+      <ZoomEndTime time="643358990001fs"></ZoomEndTime>
+      <Cursor1Time time="680217785000fs"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="159"></NameColumnWidth>
+      <ValueColumnWidth column_width="72"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="24" />
+   <wvobject fp_name="/test_wrapper/GPIO_LED" type="array">
+      <obj_property name="ElementShortName">GPIO_LED[7:0]</obj_property>
+      <obj_property name="ObjectShortName">GPIO_LED[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_wrapper/test_i/cpu_0/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_wrapper/test_i/cpu_0/rstn" type="logic">
+      <obj_property name="ElementShortName">rstn</obj_property>
+      <obj_property name="ObjectShortName">rstn</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_wrapper/test_i/cpu_0/a_inst" type="array">
+      <obj_property name="ElementShortName">a_inst[14:0]</obj_property>
+      <obj_property name="ObjectShortName">a_inst[14:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_wrapper/test_i/cpu_0/inst/pc" type="array">
+      <obj_property name="ElementShortName">pc[31:0]</obj_property>
+      <obj_property name="ObjectShortName">pc[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_wrapper/test_i/cpu_0/d_inst" type="array">
+      <obj_property name="ElementShortName">d_inst[31:0]</obj_property>
+      <obj_property name="ObjectShortName">d_inst[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_wrapper/test_i/cpu_0/inst/a_rd_de" type="array">
+      <obj_property name="ElementShortName">a_rd_de[4:0]</obj_property>
+      <obj_property name="ObjectShortName">a_rd_de[4:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_wrapper/test_i/cpu_0/inst/d_rs1_de" type="array">
+      <obj_property name="ElementShortName">d_rs1_de[31:0]</obj_property>
+      <obj_property name="ObjectShortName">d_rs1_de[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_wrapper/test_i/cpu_0/inst/d_rs2_de" type="array">
+      <obj_property name="ElementShortName">d_rs2_de[31:0]</obj_property>
+      <obj_property name="ObjectShortName">d_rs2_de[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_wrapper/test_i/cpu_0/inst/d_rs3_de" type="array">
+      <obj_property name="ElementShortName">d_rs3_de[31:0]</obj_property>
+      <obj_property name="ObjectShortName">d_rs3_de[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_wrapper/test_i/cpu_0/inst/jump_de" type="logic">
+      <obj_property name="ElementShortName">jump_de</obj_property>
+      <obj_property name="ObjectShortName">jump_de</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_wrapper/test_i/cpu_0/inst/branch_de" type="logic">
+      <obj_property name="ElementShortName">branch_de</obj_property>
+      <obj_property name="ObjectShortName">branch_de</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_wrapper/test_i/cpu_0/inst/reg_i/registers[1]" type="array">
+      <obj_property name="ElementShortName">[1][31:0]</obj_property>
+      <obj_property name="ObjectShortName">[1][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_wrapper/test_i/cpu_0/inst/reg_i/registers[2]" type="array">
+      <obj_property name="ElementShortName">[2][31:0]</obj_property>
+      <obj_property name="ObjectShortName">[2][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_wrapper/test_i/cpu_0/inst/reg_i/registers[3]" type="array">
+      <obj_property name="ElementShortName">[3][31:0]</obj_property>
+      <obj_property name="ObjectShortName">[3][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_wrapper/test_i/cpu_0/inst/reg_i/registers[4]" type="array">
+      <obj_property name="ElementShortName">[4][31:0]</obj_property>
+      <obj_property name="ObjectShortName">[4][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_wrapper/test_i/cpu_0/inst/reg_i/registers[5]" type="array">
+      <obj_property name="ElementShortName">[5][31:0]</obj_property>
+      <obj_property name="ObjectShortName">[5][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_wrapper/test_i/cpu_0/inst/reg_i/registers[31]" type="array">
+      <obj_property name="ElementShortName">[31][31:0]</obj_property>
+      <obj_property name="ObjectShortName">[31][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_wrapper/test_i/cpu_0/inst/mem_de" type="logic">
+      <obj_property name="ElementShortName">mem_de</obj_property>
+      <obj_property name="ObjectShortName">mem_de</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_wrapper/test_i/cpu_0/mem_write_flag" type="array">
+      <obj_property name="ElementShortName">mem_write_flag[3:0]</obj_property>
+      <obj_property name="ObjectShortName">mem_write_flag[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_wrapper/test_i/cpu_0/mem_read_flag" type="logic">
+      <obj_property name="ElementShortName">mem_read_flag</obj_property>
+      <obj_property name="ObjectShortName">mem_read_flag</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_wrapper/test_i/cpu_0/a_mem" type="array">
+      <obj_property name="ElementShortName">a_mem[18:0]</obj_property>
+      <obj_property name="ObjectShortName">a_mem[18:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_wrapper/test_i/cpu_0/sd_mem" type="array">
+      <obj_property name="ElementShortName">sd_mem[31:0]</obj_property>
+      <obj_property name="ObjectShortName">sd_mem[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_wrapper/test_i/cpu_0/ld_mem" type="array">
+      <obj_property name="ElementShortName">ld_mem[31:0]</obj_property>
+      <obj_property name="ObjectShortName">ld_mem[31:0]</obj_property>
+   </wvobject>
+</wave_config>
