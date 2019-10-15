@@ -79,6 +79,8 @@ module cpu
     wire                     alu_d;
     reg                      alu_imm_f_de;
     wire                     alu_imm_f_d;
+    reg                      alu_extention_f_de;
+    wire                     alu_extention_f_d;
     reg                      mem_de;
     wire                     mem_d;
     reg                      branch_de;
@@ -102,7 +104,8 @@ module cpu
     decode dec(
         inst_fd, pc_fd,
         reg_a_rs1, reg_a_rs2, reg_d_rs1, reg_d_rs2,
-        alu_d, alu_imm_f_d, mem_d, jump_d, branch_d, subst_d,
+        alu_d, alu_imm_f_d, alu_extention_f_d,
+        mem_d, jump_d, branch_d, subst_d,
         d_rs1_d, d_rs2_d, d_rs3_d, a_rd_d,
         opecode_d, func3_d, func7_d);
     
@@ -122,7 +125,8 @@ module cpu
     wire [`LEN_WORD-1:0]     alu_rs;
     
     alu alu_m(
-        func3_de, func7_de[5], alu_imm_f_de,
+        func3_de, func7_de[5],
+        alu_imm_f_de, alu_extention_f_de,
         d_rs1_de, d_rs2_de,
         alu_rs);
 
@@ -173,6 +177,7 @@ module cpu
 
             alu_de <= 1'b0;
             alu_imm_f_de <= 1'b0;
+            alu_extention_f_de <= 1'b0;
             mem_de <= 1'b0;
             branch_de <= 1'b0;
             jump_de <= 1'b0;
@@ -212,6 +217,7 @@ module cpu
             else if (state == `STATE_DECODE) begin
                 alu_de <= alu_d;
                 alu_imm_f_de <= alu_imm_f_d;
+                alu_extention_f_de <= alu_extention_f_d;
                 mem_de <= mem_d;
                 branch_de <= branch_d;
                 jump_de <= jump_d;
