@@ -12,8 +12,8 @@
 `define STATE_WRITE        10'b0000100000
 
 module cpu
-    (input wire clk,
-     input wire rstn,
+    (input  wire clk,
+     input  wire rstn,
      output wire [`STATE_NUM-1:0] stat,
      output wire clk_o,
 
@@ -24,7 +24,10 @@ module cpu
      output wire [`LEN_WORD-1:0]         sd_mem,
      input  wire [`LEN_WORD-1:0]         ld_mem,
      output wire [4-1:0]                 mem_write_flag,
-     output wire                         mem_read_flag);
+     output wire                         mem_read_flag,
+     
+     input  wire uart_rx,
+     output wire uart_tx);
 
     reg [`LEN_MEM_ADDR-1:0] pc;
     reg [`STATE_NUM-1:0]    state;
