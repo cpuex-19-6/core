@@ -29,9 +29,9 @@ module cpu
      output wire [2-1:0]         uart_size,
      output wire [`LEN_WORD-1:0] uart_o_data,
      input  wire [`LEN_WORD-1:0] uart_i_data,
+     output wire uart_flag,
      output wire uart_write_flag,
-     output wire uart_read_flag,
-     input  wire uart_received);
+     input  wire uart_accessed);
 
     reg [`LEN_MEM_ADDR-1:0] pc;
     reg [`STATE_NUM-1:0]    state;
@@ -147,9 +147,9 @@ module cpu
     wire                 mem_accessed;
 
     memory mem(
-        mem_flag, mem_io,
-        mem_accepted, mem_accessed,
-        d_rs1_de, d_rs2_de, d_dr_mem,
+        mem_flag, mem_accepted, mem_accessed,
+        mem_io, d_rs1_de, d_rs2_de,
+        d_dr_mem,
         a_mem, sd_mem, ld_mem,
         mem_write_flag, mem_read_flag,
         clk, rstn);
@@ -176,8 +176,9 @@ module cpu
 
     io_core io_c(
         io_flag, io_accepted, io_accessed,
-        io_io, func3, func7, d_rs1_de, io_input,
-        io_io_flag, io_write_flag, io_accessed, 
+        io_io, func3, float_f, d_rs1_de, io_input,
+        uart_size, uart_o_data, uart_i_data,
+        uart_flag, uart_write_flag, uart_accessed, 
         clk, rstn);
 
     // main -------------------------------

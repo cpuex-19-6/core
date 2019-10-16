@@ -4,10 +4,10 @@
 
 module memory
     (input  wire                     order,
-     input  wire                     io,
      output wire                     accepted,
      output wire                     accessed,
 
+     input  wire                     io,
      input  wire [`LEN_MEM_ADDR-1:0] address,
      input  wire [`LEN_WORD-1:0]     i_data,
 
