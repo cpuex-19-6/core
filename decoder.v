@@ -18,6 +18,7 @@ module decode
      output wire                    jump,
      output wire                    branch,
      output wire                    subst,
+     output wire                    io,
 
      output wire [`LEN_WORD-1:0]     d_rs1,
      output wire [`LEN_WORD-1:0]     d_rs2,

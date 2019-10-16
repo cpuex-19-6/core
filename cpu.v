@@ -26,8 +26,12 @@ module cpu
      output wire [4-1:0]                 mem_write_flag,
      output wire                         mem_read_flag,
      
-     input  wire uart_rx,
-     output wire uart_tx);
+     output wire [2-1:0]         uart_size,
+     output wire [`LEN_WORD-1:0] uart_o_data,
+     input  wire [`LEN_WORD-1:0] uart_i_data,
+     output wire uart_write_flag,
+     output wire uart_read_flag,
+     input  wire uart_received);
 
     reg [`LEN_MEM_ADDR-1:0] pc;
     reg [`STATE_NUM-1:0]    state;
@@ -89,6 +93,8 @@ module cpu
     wire                     jump_d;
     reg                      subst_de;
     wire                     subst_d;
+    reg                      io_de;
+    wire                     io_d;
     reg  [`LEN_WORD-1:0]     d_rs1_de;
     wire [`LEN_WORD-1:0]     d_rs1_d;
     reg  [`LEN_WORD-1:0]     d_rs2_de;
@@ -105,7 +111,7 @@ module cpu
         inst_fd, pc_fd,
         reg_a_rs1, reg_a_rs2, reg_d_rs1, reg_d_rs2,
         alu_d, alu_imm_f_d, alu_extention_f_d,
-        mem_d, jump_d, branch_d, subst_d,
+        mem_d, jump_d, branch_d, subst_d, io_d,
         d_rs1_d, d_rs2_d, d_rs3_d, a_rd_d,
         opecode_d, func3_d, func7_d);
     
@@ -158,7 +164,21 @@ module cpu
         func3_de, d_rs1_de, d_rs2_de,
         branch_jump);
 
-    // write -------------------------------
+    // io -------------------------------
+    //  in
+    reg                  io_flag;
+    reg                  io_io;
+
+    //  out
+    wire [`LEN_WORD-1:0] io_input;
+    wire                 io_accepted;
+    wire                 io_accessed;
+
+    io_core io_c(
+        io_flag, io_accepted, io_accessed,
+        io_io, func3, func7, d_rs1_de, io_input,
+        io_io_flag, io_write_flag, io_accessed, 
+        clk, rstn);
 
     // main -------------------------------
 
@@ -182,6 +202,7 @@ module cpu
             branch_de <= 1'b0;
             jump_de <= 1'b0;
             subst_de <= 1'b0;
+            io_de <= 1'b0;
             d_rs1_de <= 32'b0;
             d_rs2_de <= 32'b0;
             d_rs3_de <= 32'b0;
@@ -197,6 +218,8 @@ module cpu
             next_pc_ew <= 32'b0;
             mem_flag <= 1'b0;
             mem_io <= 1'b0;
+            io_flag <= 1'b0;
+            io_io <= 1'b0;
         end else begin
             // fetch ---------------------------
             if (state == `STATE_FETCH) begin
@@ -222,6 +245,7 @@ module cpu
                 branch_de <= branch_d;
                 jump_de <= jump_d;
                 subst_de <= subst_d;
+                io_de <= io_d;
                 d_rs1_de <= d_rs1_d;
                 d_rs2_de <= d_rs2_d;
                 d_rs3_de <= d_rs3_d;
@@ -269,14 +293,24 @@ module cpu
                     d_rd_ew <= d_rs3_de;
                     state <= `STATE_WRITE;
                 end
+                else if (io_de) begin
+                    next_pc_ew <= pc_de + 32'd4;
+                    state <= `STATE_EXECUTE_WAIT;
+                end
             end
             // execute_wait ---------------------------
             else if (state == `STATE_EXECUTE_WAIT) begin
-                mem_flag <= 1'b0;
-                if (mem_accessed) begin
-                    write_ew <= ~opecode_de[5];
-                    d_rd_ew <= d_dr_mem;
-                    state <= `STATE_WRITE;
+                if(mem_de) begin
+                    if (mem_accessed) begin
+                        mem_flag <= 1'b0;
+                        write_ew <= ~opecode_de[5];
+                        d_rd_ew <= d_dr_mem;
+                        state <= `STATE_WRITE;
+                    end
+                end
+                else if (io_de) begin
+                    next_pc_ew <= pc_de + 32'd4;
+                    state <= `STATE_EXECUTE_WAIT;
                 end
             end
             // WRITE ---------------------------
