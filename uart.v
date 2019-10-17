@@ -1,10 +1,10 @@
+`include "include.vh"
+
 `default_nettype none
 
-`define LEN_CYCLE 4096
-
 module cycle_reg
-    #(DEPTH = `LEN_CYCLE,
-      LENGTH_ADDR = 12)
+    #(DEPTH = `LEN_CYCLE_REG,
+      LENGTH_ADDR = `LEN_CYCLE_REG_ADDR)
     (input  wire i_order;
      input  wire [8-1:0] i_data;
      output reg  i_done;
@@ -58,19 +58,61 @@ module cycle_reg
             o_done <= 1'b1;
         end
     end
-
 endmodule
 
+module uart_rx
+    (output reg  write_flag;
+     output reg  [8-1:0] read_data;
+
+     input  wire uart_rx;
+     input  wire clk;
+     input  wire rstn);
 endmodule
 
-module uart_mamage
+module uart_tx
     (input  wire order;
+     output wire sendable;
+     input  wire [8-1:0] write_data;
+
+     output reg  uart_tx;
+     input  wire clk;
+     input  wire rstn);
+endmodule
+
+module uart_inside
+    (input  wire order;
+     output wire accepted;
+     output wire done;
+
      input  wire write_flag;
      input  wire [32-1:0] write_data;
      output reg  [31-1:0] read_data;
 
+     output wire i_order;
+     input  wire [8-1:0] i_data;
+     input  wire i_done;
+
+     output wire o_order;
+     output wire [8-1:0] o_data;
+     input  wire  o_done;
+
+     input  wire clk;
+     input  wire rstn);
+endmodule
+
+module uart_manage
+    #(DEPTH = `LEN_CYCLE_REG,
+      LENGTH_ADDR = `LEN_CYCLE_REG_ADDR)
+    (input  wire order;
+     output wire accepted;
+     output wire done;
+
+     input  wire write_flag;
+     input  wire [32-1:0] write_data;
+     output wire [31-1:0] read_data;
+
      input  wire uart_rx;
-     output reg  uart_tx;
+     output wire uart_tx;
      input  wire clk;
      input  wire rstn);
 

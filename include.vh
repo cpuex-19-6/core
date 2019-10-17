@@ -18,6 +18,9 @@
 
 `define NUM_REG 32
 
+`define LEN_CYCLE_REG      4096
+`define LEN_CYCLE_REG_ADDR 12
+
 // opecode
 
 `define OP_ALU    7'b0110011
