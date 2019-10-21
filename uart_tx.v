@@ -6,7 +6,7 @@ module uart_tx
     #(BAUD = `DEFAULT_BAUD)
     (input  wire order,
      input  wire [8-1:0] write_data,
-     output reg  sendable,
+     output wire sendable,
 
      output reg  txd,
      input  wire clk,
@@ -17,6 +17,10 @@ module uart_tx
     localparam e_halfclk_bit = CLK_PER_HALF_BIT - 1;
     localparam e_clk_bit = CLK_PER_BIT - 1;
     localparam e_clk_stop_bit = (CLK_PER_BIT * 9) / 10 - 1;
+
+    reg r_sendable;
+
+    assign sendable = r_sendable & ~order;
 
     reg [31:0] counter;
     reg signal_bit;
@@ -73,7 +77,7 @@ module uart_tx
             status <= s_idle;
             rst_ctr <= 0;
             txd <= 1;
-            sendable <= 1;
+            r_sendable <= 1;
         end
         else begin
             rst_ctr <= 0;
@@ -84,14 +88,14 @@ module uart_tx
                     status <= s_start_bit;
                     rst_ctr <= 1;
                     txd <= 0;
-                    sendable <= 0;
+                    r_sendable <= 0;
                 end
             end
             else if (status == s_stop_bit) begin
                 if (signal_lastbit) begin
                     txd <= 1;
                     status <= s_idle;
-                    sendable <= 1;
+                    r_sendable <= 1;
                 end
             end
             else if (signal_bit) begin
