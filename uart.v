@@ -10,7 +10,7 @@ module uart_inside
      input  wire [2-1:0] size,
      input  wire write_flag,
      input  wire [32-1:0] write_data,
-     output reg  [32-1:0] read_data,
+     output wire [32-1:0] read_data,
 
      output wire i_order,
      input  wire [8-1:0] i_data,
@@ -18,10 +18,26 @@ module uart_inside
 
      output wire o_order,
      output wire [8-1:0] o_data,
-     input  wire  o_done,
+     input  wire o_done,
 
      input  wire clk,
      input  wire rstn);
+    
+    reg doing;
+    reg [32-1:0] data;
+
+    wire [32-1:0] write_formatted;
+    wire [32-1:0] next_write;
+
+    assign write_formatted =
+        (size == 2'b00) ? {data[ 7:0],24'b0} :
+        (size == 2'b01) ? {data[15:0],16'b0}
+                        : data;
+    assign next_write =
+        (~doing) ? write_formatted :
+        (i_done) ? {data[23:0],8'b0}
+                 : data;
+
 endmodule
 
 module uart_manage
