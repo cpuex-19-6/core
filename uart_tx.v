@@ -11,7 +11,7 @@ module uart_tx
      output reg  txd,
      input  wire clk,
      input  wire rstn);
-    
+
     localparam CLK_PER_HALF_BIT = `CLK_PER_BIT / BAUD / 2;
     localparam CLK_PER_BIT = CLK_PER_HALF_BIT * 2;
     localparam e_halfclk_bit = CLK_PER_HALF_BIT - 1;
