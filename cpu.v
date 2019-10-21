@@ -16,6 +16,7 @@ module cpu
      input  wire rstn,
      output wire [`STATE_NUM-1:0] stat,
      output wire clk_o,
+     output wire rstn_o,
 
      output wire [`LEN_MEMISTR_ADDR-1:0] a_inst,
      input  wire [`LEN_WORD-1:0]         d_inst,
@@ -29,14 +30,17 @@ module cpu
      output wire [2-1:0]         uart_size,
      output wire [`LEN_WORD-1:0] uart_o_data,
      input  wire [`LEN_WORD-1:0] uart_i_data,
-     output wire uart_flag,
      output wire uart_write_flag,
+     output wire uart_order,
+     input  wire uart_accepted,
      input  wire uart_accessed);
 
     reg [`LEN_MEM_ADDR-1:0] pc;
     reg [`STATE_NUM-1:0]    state;
 
     assign stat = state;
+    assign clk_o = clk;
+    assign rstn_o = rstn;
 
     // registers -------------------------------
     //  in
@@ -54,8 +58,6 @@ module cpu
         reg_flag, reg_a_rd, reg_a_rs1, reg_a_rs2,
         reg_d_rd, reg_d_rs1, reg_d_rs2,
         clk, rstn);
-    
-    assign clk_o = clk;
 
     // fetcher -------------------------------
     //  in
@@ -176,9 +178,9 @@ module cpu
 
     io_core io_c(
         io_flag, io_accepted, io_accessed,
-        io_io, func3, float_f, d_rs1_de, io_input,
-        uart_size, uart_o_data, uart_i_data,
-        uart_flag, uart_write_flag, uart_accessed, 
+        io_io, float_f, func3, d_rs1_de, io_input,
+        uart_write_flag, uart_size, uart_o_data, uart_i_data,
+        uart_flag, uart_accessed, 
         clk, rstn);
 
     // main -------------------------------
