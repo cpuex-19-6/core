@@ -58,15 +58,6 @@ module cycle_reg
     end
 endmodule
 
-module uart_rx
-    (output reg  write_flag,
-     output reg  [8-1:0] read_data,
-
-     input  wire uart_rx,
-     input  wire clk,
-     input  wire rstn);
-endmodule
-
 module uart_tx
     (input  wire order,
      output wire sendable,
@@ -100,7 +91,8 @@ endmodule
 
 module uart_manage
     #(DEPTH = `LEN_CYCLE_REG,
-      LENGTH_ADDR = `LEN_CYCLE_REG_ADDR)
+      LENGTH_ADDR = `LEN_CYCLE_REG_ADDR,
+      BAUD = `DEFAULT_BAUD)
     (input  wire order,
      output wire accepted,
      output wire done,
