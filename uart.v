@@ -17,8 +17,8 @@ module cycle_reg
      input  wire rstn);
     
     reg [8-1:0] d[DEPTH-1:0];
-    reg [LENGTH_ADDR-1:0] i_addr; /* 次に書き込�?場�? */
-    reg [LENGTH_ADDR-1:0] o_addr; /* 次に読み込�?場�? */
+    reg [LENGTH_ADDR-1:0] i_addr; /* 次に書き込む場所 */
+    reg [LENGTH_ADDR-1:0] o_addr; /* 次に読み込む場所 */
 
     integer i;
     
