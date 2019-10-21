@@ -323,7 +323,7 @@ module cpu
                     reg_a_rd <= a_rd_ew;
                     reg_d_rd <= d_rd_ew;
                 end
-                pc <= next_pc_ew;
+                pc <= {next_pc_ew[31:2],2'b00};
                 state <= `STATE_FETCH;
             end
         end
