@@ -3,7 +3,7 @@
 `default_nettype none
 
 module uart_rx
-   #(BAUD = `DEFAULT_BAUD)
+    #(BAUD = `DEFAULT_BAUD)
     (output reg  write_flag,
      output reg  [8-1:0] read_data,
 
@@ -14,7 +14,7 @@ module uart_rx
     localparam CLK_PER_HALF_BIT = `CLK_PER_BIT / BAUD / 2;
     localparam CLK_PER_BIT = CLK_PER_HALF_BIT * 2;
     localparam e_halfclk_bit = CLK_PER_HALF_BIT - 1;
-    localparam e_clk_bit = CLK_PER_HALF_BIT * 2 - 1;
+    localparam e_clk_bit = CLK_PER_BIT - 1;
     localparam e_clk_stop_bit = (CLK_PER_BIT * 4) / 9 - 1;
 
     reg [31:0] counter;
@@ -23,7 +23,7 @@ module uart_rx
     reg signal_lastbit;
 
     reg [3:0] status;
-    reg [7:0] txbuf;
+    reg [7:0] rxbuf;
     reg rst_ctr;
     reg count_wait;
 
@@ -85,7 +85,7 @@ module uart_rx
             read_data <= 8'b0;
             write_flag <= 1'b0;
             stateus <= s_wait;
-            txbuf <= 8'b0;
+            rxbuf <= 8'b0;
             rst_ctr <= 1'b0;
             count_wait <= 1'b0;
             chatter_check <= 5'b11111;
@@ -120,7 +120,7 @@ module uart_rx
                     rst_ctr <= 1'b1;
                     if (rxd_use) begin
                         rdata_ready <= 1'b1;
-                        rdata <= txbuf;
+                        rdata <= rxbuf;
                     end
                 end
                 else if (signal_bit && ~rxd_use_check) begin
@@ -129,7 +129,7 @@ module uart_rx
             end
             else if (signal_bit && rxd_use_check) begin
                 count_wait <= 1'b0;
-                txbuf[7] <= {rxd_use, txbuf[7:1]};
+                rxbuf[7] <= {rxd_use, rxbuf[7:1]};
                 status <= status + 1;
             end
             else if (signal_bit && ~rxd_use_check) begin

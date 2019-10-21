@@ -58,16 +58,6 @@ module cycle_reg
     end
 endmodule
 
-module uart_tx
-    (input  wire order,
-     output wire sendable,
-     input  wire [8-1:0] write_data,
-
-     output reg  uart_tx,
-     input  wire clk,
-     input  wire rstn);
-endmodule
-
 module uart_inside
     (input  wire order,
      output wire accepted,
