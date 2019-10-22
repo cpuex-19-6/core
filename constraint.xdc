@@ -1,3 +1,7 @@
+# Bank  84 VCCO -          - IO_L22P_T3U_N6_DBC_AD0P_64
+set_property PACKAGE_PIN AN8      [get_ports "CPU_RESET"] 
+set_property IOSTANDARD  LVCMOS18 [get_ports "CPU_RESET"] 
+
 # Bank  84 VCCO -          - IO_L22N_T3U_N7_DBC_AD0N_64
 set_property PACKAGE_PIN AP8      [get_ports "GPIO_LED[0]"] 
 set_property IOSTANDARD  LVCMOS18 [get_ports "GPIO_LED[0]"] 
