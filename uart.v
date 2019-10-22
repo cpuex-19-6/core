@@ -23,12 +23,71 @@ module uart_inside
      input  wire clk,
      input  wire rstn);
     
-    reg doing;
-    reg [32-1:0] data;
+    // regs
+    wire next_doing;
+    wire doing;
+    temp_reg #( 1, 1'b0) tr_doing(
+        1'b1, next_doing, doing, clk, rstn);
 
-    wire [32-1:0] write_formatted;
+    wire r_size;
+    temp_reg #( 1, 1'b0) tr_doing(
+        accepted, size, r_size, clk, rstn);
+
+    wire [3-1:0] next_stage;
+    wire [3-1:0] stage;
+    temp_reg #( 3, 3'b0) tr_stage(
+        1'b1, next_stage, stage, clk, rstn);
+
+    wire next_io;
+    wire io_flag;
+    temp_reg #( 1, 1'b0) tr_io(
+        1'b1, io_flag, next_io, clk, rstn);
+
     wire [32-1:0] next_write;
+    wire [32-1:0] r_i_data;
+    temp_reg #(32, 32'b0) tr_i_data(
+        1'b1, next_write, r_i_data, clk, rstn);
 
+    wire [32-1:0] next_read;
+    wire [32-1:0] r_o_data;
+    temp_reg #(32, 32'b0) tr_o_data(
+        1'b1, next_read, r_o_data, clk, rstn);
+
+    wire [32-1:0] next_return;
+    wire [32-1:0] return;
+    temp_reg #(32, 32'b0) tr_return(
+        1'b1, next_return, return, clk, rstn);
+
+    // input / output
+    assign accepted = ~doing & order;
+    assign done = doing & ~next_doing;
+    assign read_data = next_return;
+    assign i_order = next_doing & next_io;
+    assign o_order = next_doing & ~next_io;
+    assign o_data = next_write[31:24];
+
+    // next_stage
+    wire [3-1:0] size_stage;
+    assign size_stage =
+        (size == 2'b00) ? 3'd1 :
+        (size == 2'b01) ? 3'd2
+                        : 3'd4;
+    assign next_stage =
+        (doing) ? (i_done | o_done) ? (stage - 3'b1)
+                                    : stage
+                :
+        (order) ? size_stage
+                : stage;
+
+    // next_doing
+    assign next_doing = (next_stage != 3'b0);
+
+    // next_io
+    assign next_io =
+        (doing) ? io_flag : write_flag;
+
+    // next_write
+    wire [32-1:0] write_formatted;
     assign write_formatted =
         (size == 2'b00) ? {data[ 7:0],24'b0} :
         (size == 2'b01) ? {data[15:0],16'b0}
@@ -37,6 +96,19 @@ module uart_inside
         (~doing) ? write_formatted :
         (i_done) ? {data[23:0],8'b0}
                  : data;
+                 
+    // next_read
+    assign next_read =
+        (doing & o_done) ? {r_o_data[23:0],i_data}
+                         : r_o_data;
+    
+    // next_return
+    assign next_return =
+        (next_done) ?
+            (r_size == 2'b00) ? {{24{next_read[7]}},next_read[7:0]} :
+            (r_size == 2'b01) ? {{16{next_read[15]}},next_read[15:0]}
+                              : next_read
+                    : return;
 
 endmodule
 
