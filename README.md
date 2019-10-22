@@ -1,10 +1,11 @@
 # core
 
 # ISA
-RISC-Vサブセット(カスタム命令を一部使用)
+RISC-Vベース
 + RV32I
 + RV32M
 + RV32D
++ `froundrm`系(RV32Dに追加)
 + `in`系と`out`系(カスタム)
 
 # その他
