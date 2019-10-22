@@ -16,6 +16,7 @@ module temp_reg
         end
         else if (wen) begin
             o_data <= i_data;
+        end
     end
 endmodule
 
