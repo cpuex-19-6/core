@@ -2,6 +2,23 @@
 
 `default_nettype none
 
+module temp_reg
+    #(LEN = 32, DEFAULT = 32'b0)
+    (input  wire wen,
+     input  wire [LEN-1:0] i_data,
+     output reg  [LEN-1:0] o_data,
+     input  wire clk,
+     input  wire rstn);
+    
+    always @(posedge clk) begin
+        if (~rstn) begin
+            o_data <= DEFAULT;
+        end
+        else if (wen) begin
+            o_data <= i_data;
+    end
+endmodule
+
 module regs
     (input  wire                     in_flag,
      input  wire [`LEN_REG_ADDR-1:0] ard,
