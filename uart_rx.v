@@ -11,7 +11,7 @@ module uart_rx
      input  wire clk,
      input  wire rstn);
 
-    localparam CLK_PER_HALF_BIT = `CLK_PER_BIT / BAUD / 2;
+    localparam CLK_PER_HALF_BIT = `CLK_PER_SEC / BAUD / 2;
     localparam CLK_PER_BIT = CLK_PER_HALF_BIT * 2;
     localparam e_halfclk_bit = CLK_PER_HALF_BIT - 1;
     localparam e_clk_bit = CLK_PER_BIT - 1;
@@ -50,7 +50,7 @@ module uart_rx
             counter <= 0;
             signal_bit <= 0;
             signal_halfbit <= 0;
-            cflag_lastbit <= 0;
+            signal_lastbit <= 0;
         end
         else begin
             // increment of counter
@@ -84,7 +84,7 @@ module uart_rx
         if (~rstn) begin
             read_data <= 8'b0;
             write_flag <= 1'b0;
-            stateus <= s_wait;
+            status <= s_wait;
             rxbuf <= 8'b0;
             rst_ctr <= 1'b0;
             count_wait <= 1'b0;
@@ -101,7 +101,7 @@ module uart_rx
                 chatter_check[2] == chatter_check[3] &&
                 chatter_check[3] == chatter_check[4];
             if (status == s_wait) begin
-                rdata_ready <= 1'b0;
+                write_flag <= 1'b0;
                 if (~rxd_use && rxd_use_check) begin
                     status <= s_start_bit;
                     rst_ctr <= 1'b1;
@@ -119,8 +119,8 @@ module uart_rx
                     count_wait <= 1'b0;
                     rst_ctr <= 1'b1;
                     if (rxd_use) begin
-                        rdata_ready <= 1'b1;
-                        rdata <= rxbuf;
+                        write_flag <= 1'b1;
+                        read_data <= rxbuf;
                     end
                 end
                 else if (signal_bit && ~rxd_use_check) begin

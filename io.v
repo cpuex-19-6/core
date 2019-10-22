@@ -25,7 +25,7 @@ module io_core
      input  wire                  clk,
      input  wire                  rstn);
 
-    assign io_write_flag = io;
+    assign io_write_flag = write_flag;
     assign io_size = func3[1:0];
     assign io_o_data = o_data;
     assign i_data = io_i_data;

@@ -12,7 +12,7 @@ module uart_tx
      input  wire clk,
      input  wire rstn);
 
-    localparam CLK_PER_HALF_BIT = `CLK_PER_BIT / BAUD / 2;
+    localparam CLK_PER_HALF_BIT = `CLK_PER_SEC / BAUD / 2;
     localparam CLK_PER_BIT = CLK_PER_HALF_BIT * 2;
     localparam e_halfclk_bit = CLK_PER_HALF_BIT - 1;
     localparam e_clk_bit = CLK_PER_BIT - 1;
@@ -47,7 +47,7 @@ module uart_tx
         if (~rstn) begin
             counter <= 0;
             signal_bit <= 0;
-            signal_lastbit <=0;
+            signal_stopbit <=0;
         end
         else begin
             // increment of counter
@@ -92,7 +92,7 @@ module uart_tx
                 end
             end
             else if (status == s_stop_bit) begin
-                if (signal_lastbit) begin
+                if (signal_stopbit) begin
                     txd <= 1;
                     status <= s_idle;
                     r_sendable <= 1;

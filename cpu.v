@@ -180,7 +180,7 @@ module cpu
         io_flag, io_accepted, io_accessed,
         io_io, func7_de[5], func3_de, d_rs1_de, io_input,
         uart_write_flag, uart_size, uart_o_data, uart_i_data,
-        uart_order, uart_accessed, 
+        uart_order, uart_accepted, uart_accessed,
         clk, rstn);
 
     // main -------------------------------
@@ -276,6 +276,12 @@ module cpu
                     next_pc_ew <= pc_de + 32'd4;
                     state <= `STATE_EXECUTE_WAIT;
                 end
+                // io ---------------------------
+                else if (io_de) begin
+                    io_flag <= 1'b1;
+                    next_pc_ew <= pc_de + 32'd4;
+                    state <= `STATE_EXECUTE_WAIT;
+                end
                 // branch ---------------------------
                 else if (branch_de) begin
                     next_pc_ew <= (branch_jump) ? d_rs3_de : (pc_de + 32'd4);
@@ -296,24 +302,24 @@ module cpu
                     d_rd_ew <= d_rs3_de;
                     state <= `STATE_WRITE;
                 end
-                else if (io_de) begin
-                    next_pc_ew <= pc_de + 32'd4;
-                    state <= `STATE_EXECUTE_WAIT;
-                end
             end
             // execute_wait ---------------------------
             else if (state == `STATE_EXECUTE_WAIT) begin
                 if(mem_de) begin
+                    mem_flag <= 1'b0;
                     if (mem_accessed) begin
-                        mem_flag <= 1'b0;
                         write_ew <= ~opecode_de[5];
                         d_rd_ew <= d_dr_mem;
                         state <= `STATE_WRITE;
                     end
                 end
                 else if (io_de) begin
-                    next_pc_ew <= pc_de + 32'd4;
-                    state <= `STATE_EXECUTE_WAIT;
+                    io_flag <= 1'b0;
+                    if (io_accessed) begin
+                        write_ew <= ~opecode_de[5];
+                        d_rd_ew <= io_input;
+                        state <= `STATE_WRITE;
+                    end
                 end
             end
             // WRITE ---------------------------
