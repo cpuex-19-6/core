@@ -22,7 +22,7 @@ module ffloor
   wire [4:0] se;
   assign se = (e1 - 8'b01111111);
 
-　// 負の数の場合、floorで整数部の絶対値を1つ増やす必要があるので、その調整
+  // 負の数の場合、floorで整数部の絶対値を1つ増やす必要があるので、その調整
   wire [22:0] m1d;
   wire mark;
   assign m1d = m1 << se;
