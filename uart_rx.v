@@ -129,7 +129,7 @@ module uart_rx
             end
             else if (signal_bit && rxd_use_check) begin
                 count_wait <= 1'b0;
-                rxbuf[7] <= {rxd_use, rxbuf[7:1]};
+                rxbuf <= {rxd_use, rxbuf[7:1]};
                 status <= status + 1;
             end
             else if (signal_bit && ~rxd_use_check) begin
