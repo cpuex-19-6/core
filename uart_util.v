@@ -48,12 +48,22 @@ module cycle_reg
             end
         end
         else if ( i_order &&  o_order) begin
-            d[i_addr] <= i_data;
-            i_addr <= i_addr + 1'b1;
-            i_done <= 1'b1;
-            o_data <= d[o_addr];
-            o_addr <= o_addr + 1'b1;
-            o_done <= 1'b1;
+            if (i_addr == o_addr) begin
+                d[i_addr] <= i_data;
+                i_addr <= i_addr + 1'b1;
+                i_done <= 1'b1;
+                o_data <= i_data;
+                o_addr <= o_addr + 1'b1;
+                o_done <= 1'b1;
+            end
+            else begin
+                d[i_addr] <= i_data;
+                i_addr <= i_addr + 1'b1;
+                i_done <= 1'b1;
+                o_data <= d[o_addr];
+                o_addr <= o_addr + 1'b1;
+                o_done <= 1'b1;
+            end
         end
     end
 endmodule

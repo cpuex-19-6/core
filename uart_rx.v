@@ -27,6 +27,8 @@ module uart_rx
     reg rst_ctr;
     reg count_wait;
 
+    reg [7:0] read_data;
+
     (* ASYNC_REG = "true" *) reg [4:0] chatter_check;
     reg rxd_use_check;
 
@@ -102,7 +104,7 @@ module uart_rx
                 chatter_check[3] == chatter_check[4];
             if (status == s_wait) begin
                 write_flag <= 1'b0;
-                if (~rxd_use && rxd_use_check) begin
+                if (rxd_use_check && ~rxd_use) begin
                     status <= s_start_bit;
                     rst_ctr <= 1'b1;
                 end

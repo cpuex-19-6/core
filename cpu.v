@@ -278,6 +278,7 @@ module cpu
                 end
                 // io ---------------------------
                 else if (io_de) begin
+                    io_io <= (opecode_de == `OP_INPUT);
                     io_flag <= 1'b1;
                     next_pc_ew <= pc_de + 32'd4;
                     state <= `STATE_EXECUTE_WAIT;

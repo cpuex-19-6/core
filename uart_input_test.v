@@ -11,7 +11,16 @@ module uart_input_generate
 
     wire [32-1:0] send_data;
 
-    assign send_data = SEND_DATA;
+    temp_reg #(32, SEND_DATA) tr_st(
+        1'b0, SEND_DATA, send_data, clk, rstn);
+    
+    wire [10-1:0] counter;
+
+    temp_reg #(10) tr_c100(
+        1'b1,
+        (counter<10'd100) ? counter+10'd1 : 10'd100,
+        counter,
+        clk, rstn);
 
     wire [8-1:0] all_data[4-1:0];
 
@@ -21,16 +30,24 @@ module uart_input_generate
     assign all_data[3] = send_data[7:0];
     
     wire sendable;
+    wire r_sendable;
+
+    temp_reg #(1) tr_sendable(
+        1'b1, sendable, r_sendable, clk, rstn);
+
     wire [2-1:0] addr;
     wire [2-1:0] addr_next;
 
     temp_reg #(2, 2'd3) tr(
-      1'b1, addr_next, addr, clk, rstn);
+        1'b1, addr_next, addr, clk, rstn);
     
     assign addr_next = sendable + addr;
 
+    wire [8-1:0] data_byte;
+    assign data_byte = all_data[addr_next];
+
     uart_tx #(BAUD) tx(
-        1'b1, all_data[addr_next], sendable,
+        (counter < 10'd100) | r_sendable, data_byte, sendable,
         rx, clk, rstn);
 
 endmodule
