@@ -9,12 +9,16 @@ module uart_input_generate
      input  wire clk,
      input  wire rstn);
 
+    wire [32-1:0] send_data;
+
+    assign send_data = SEND_DATA;
+
     wire [8-1:0] all_data[4-1:0];
 
-    assign all_data[0] = SEND_DATA[31:24];
-    assign all_data[1] = SEND_DATA[23:16];
-    assign all_data[2] = SEND_DATA[15:8];
-    assign all_data[3] = SEND_DATA[7:0];
+    assign all_data[0] = send_data[31:24];
+    assign all_data[1] = send_data[23:16];
+    assign all_data[2] = send_data[15:8];
+    assign all_data[3] = send_data[7:0];
     
     wire sendable;
     wire [2-1:0] addr;
