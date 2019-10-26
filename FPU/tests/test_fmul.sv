@@ -26,8 +26,9 @@ module test_fmul();
       $display("expected : result(float) sign(bit),exponent(decimal),mantissa(bit)");
       $display("actual   : result(float) sign(bit),exponent(decimal),mantissa(bit)");
 
-      for (i=0; i<256; i++) begin
-         for (j=0; j<256; j++) begin
+      // NaN, Inf は無視
+      for (i=0; i<255; i++) begin
+         for (j=0; j<255; j++) begin
             for (s1=0; s1<2; s1++) begin
                for (s2=0; s2<2; s2++) begin
                   for (it=0; it<10; it++) begin
@@ -36,14 +37,15 @@ module test_fmul();
 
                         case (it)
                           0 : m1 = 23'b0;
-                          1 : m1 = {22'b0,1'b1};
-                          2 : m1 = {21'b0,2'b10};
-                          3 : m1 = {1'b0,3'b111,19'b0};
-                          4 : m1 = {1'b1,22'b0};
-                          5 : m1 = {2'b10,{21{1'b1}}};
-                          6 : m1 = {23{1'b1}};
+                          1 : m1 = (i==0) ? 23'b0 : {22'b0,1'b1};
+                          2 : m1 = (i==0) ? 23'b0 : {21'b0,2'b10};
+                          3 : m1 = (i==0) ? 23'b0 : {1'b0,3'b111,19'b0};
+                          4 : m1 = (i==0) ? 23'b0 : {1'b1,22'b0};
+                          5 : m1 = (i==0) ? 23'b0 : {2'b10,{21{1'b1}}};
+                          6 : m1 = (i==0) ? 23'b0 : {23{1'b1}};
                           default : begin
-                             if (i==256) begin
+                             // 非正規化数は対応しない
+                             if (i==0) begin
                                 {m1,dum1} = 0;
                              end else begin
                                 {m1,dum1} = $urandom();
@@ -53,14 +55,14 @@ module test_fmul();
 
                         case (jt)
                           0 : m2 = 23'b0;
-                          1 : m2 = {22'b0,1'b1};
-                          2 : m2 = {21'b0,2'b10};
-                          3 : m2 = {1'b0,3'b111,19'b0};
-                          4 : m2 = {1'b1,22'b0};
-                          5 : m2 = {2'b10,{21{1'b1}}};
-                          6 : m2 = {23{1'b1}};
+                          1 : m2 = (j==0) ? 23'b0 : {22'b0,1'b1};
+                          2 : m2 = (j==0) ? 23'b0 : {21'b0,2'b10};
+                          3 : m2 = (j==0) ? 23'b0 : {1'b0,3'b111,19'b0};
+                          4 : m2 = (j==0) ? 23'b0 : {1'b1,22'b0};
+                          5 : m2 = (j==0) ? 23'b0 : {2'b10,{21{1'b1}}};
+                          6 : m2 = (j==0) ? 23'b0 : {23{1'b1}};
                           default : begin
-                             if (i==256) begin
+                             if (j==0) begin
                                 {m2,dum2} = 0;
                              end else begin
                                 {m2,dum2} = $urandom();
@@ -79,7 +81,8 @@ module test_fmul();
                         #1;
 
                         // 末尾1bitの差を許容
-                        if ((y !== fybit) && ((y + 1'b1) !== fybit) && ((y - 1'b1) !== fybit)) begin
+                        if ((y !== fybit) && ((y + 1'b1) !== fybit) && ((y - 1'b1) !== fybit)
+                            && (fybit[30:23] != 255)) begin
                            $display("x1 = %b %b %b, %3d",
 				    x1[31], x1[30:23], x1[22:0], x1[30:23]);
                            $display("x2 = %b %b %b, %3d",
@@ -122,7 +125,8 @@ module test_fmul();
                      #1;
 
                      // 末尾1bitの差を許容
-                     if ((y !== fybit) && ((y + 1'b1) !== fybit) && ((y - 1'b1) !== fybit)) begin
+                     if ((y !== fybit) && ((y + 1'b1) !== fybit) && ((y - 1'b1) !== fybit)
+                         && (fybit[30:23] != 255)) begin
                         $display("x1 = %b %b %b, %3d",
 				 x1[31], x1[30:23], x1[22:0], x1[30:23]);
                         $display("x2 = %b %b %b, %3d",

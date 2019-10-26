@@ -24,7 +24,6 @@ module fadd
   assign e1a = (e1 == 0) ? 1 : e1;
   assign e2a = (e2 == 0) ? 1 : e2; 
 
-  // calculate how many shifts are needed
   wire [7:0] e2ai = ~e2a;
   wire [8:0] te;
   assign te = {1'b0, e1a} + {1'b0, e2ai};
@@ -39,7 +38,6 @@ module fadd
   assign tde = (te[8] == 1) ? tmp1[7:0] : tmp2[7:0];
   assign de = (tde > 5'b11111) ? 5'b11111 : tde[4:0];
 
-  // decide which is bigger
   wire sel = (de == 5'b00000) ? ((m1a > m2a) ? 1'b0 : 1'b1) : ce;
 
   wire [24:0] ms;
@@ -54,7 +52,6 @@ module fadd
   assign ei = (sel == 0) ? e2a : e1a;
   assign ss = (sel == 0) ? s1 : s2;
 
-  // shift smaller number
   wire [55:0] mie;
   assign mie = {mi, 31'b0};
   wire [55:0] mia;
@@ -62,11 +59,9 @@ module fadd
 
   wire tstck = |(mia[28:0]);
 
-  // calculate
   wire [26:0] mye;
   assign mye = (s1 == s2) ? ({ms,2'b0} + mia[55:29]) : ({ms,2'b0} - mia[55:29]);
 
-  // adjustment No.1 (?????)
   wire [7:0] esi;
   assign esi = es + 1'b1;
 
@@ -74,14 +69,10 @@ module fadd
   wire [26:0] myd;
   wire stck;
   
-  assign eyd = (mye[26] == 0) ? es :
-               ((esi == 8'd255) ? 8'd255 : esi);
-  assign myd = (mye[26] == 0) ? mye :
-               ((esi == 8'd255) ? {2'b01, 25'b0} : mye >> 1);
-  assign stck = (mye[26] == 0) ? tstck :
-               ((esi == 8'd255) ? 1'b0 : (tstck || mye[0]));
+  assign eyd = (mye[26] == 0) ? es : esi;
+  assign myd = (mye[26] == 0) ? mye : mye >> 1;
+  assign stck = (mye[26] == 0) ? tstck : (tstck || mye[0]);
 
-  // adjustment No.2 (Denormalized Number)
   wire [4:0] se;
   assign se = (myd[25] == 1) ? 5'd0 :
               (myd[24] == 1) ? 5'd1 :
@@ -122,7 +113,6 @@ module fadd
                ((myf[1] == 1) && (myf[0] == 0) && (s1 == s2) && (stck == 1))    ? (myf[26:2] + 25'b1) :
                ((myf[1] == 1) && (myf[0] == 1))                                 ? (myf[26:2] + 25'b1) : myf[26:2];
 
-  // Complete
   wire [7:0] eyri;
   assign eyri = eyr + 8'b1;
 
@@ -136,17 +126,7 @@ module fadd
               (myr[23:0] == 24'b0) ? 23'b0 : myr[22:0];
   assign sy = (ey == 0 && my == 0) ? (s1 && s2) : ss;
 
-  wire nzm1;
-  wire nzm2;
-  assign nzm1 = |(m1[22:0]);
-  assign nzm2 = |(m2[22:0]);
-
-  assign rd = (e1 == 8'd255 && e2 != 8'd255) ? {s1,8'd255,nzm1,m1[21:0]} :           // [NaN/Inf] + [not NaN/Inf]
-             (e2 == 8'd255 && e1 != 8'd255) ? {s2,8'd255,nzm2,m2[21:0]} :            // [not NaN/Inf] + [NaN/Inf]
-             (e1 == 8'd255 && e2 == 8'd255 && nzm2) ? {s2,8'd255,1'b1,m2[21:0]} :    // [NaN/Inf] + NaN
-             (e1 == 8'd255 && nzm1) ? {s1,8'd255,1'b1,m1[21:0]} :                    // NaN + Inf
-             (e1 == 8'd255 && e2 == 8'd255 && (s1 == s2)) ? {s1,8'd255,23'b0} :      // Inf + Inf (Same Sign)
-             (e1 == 8'd255 && e2 == 8'd255) ? {1'b1,8'd255,1'b1,22'b0} : {sy,ey,my}; // Inf + Inf (Different Sign)
+  assign rd = {sy,ey,my};
 
 endmodule
 

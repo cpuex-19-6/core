@@ -122,10 +122,8 @@ module fdiv
   wire signed [9:0] eyff;
   wire signed [9:0] eyff_rev;
   wire signed [9:0] eyf;
-  wire [7:0] eyr;
   wire [7:0] ey;
   wire [47:0] myf;
-  wire [22:0] myr; 
   wire [22:0] my;
 
   // 仮の指数部
@@ -134,30 +132,16 @@ module fdiv
   assign eyff = 10'b0001111111 + {1'b0,e1a} - {1'b0,e2a} - {5'b0,te} - {4'b0,se};
   assign eyf = 10'b0001111111 + {1'b0,e1a} - {1'b0,e2a} - {5'b0,te} - {4'b0,se} + 5'd23;
 
-  // オーバーフロー判定
-  wire ovf;
-  assign ovf = (eyf > 0) && (eyf >= 10'b0011111111);
-
-  assign eyr = (eyf > 0) ? eyf[7:0] : 8'b0;
+  assign ey = (eyf > 0) ? eyf[7:0] : 8'b0;
   assign myf = (eyff > 0) ? (myd << se) : 
                (eyf > 0) ? (myd << (eyd[4:0] - eyff)) :
                ((e1 == 0) && (e2 == 8'b01111111)) ? (myd << (23 - te)) : 
                ((e1a + 9'b001111110) == e2a) ? (myd << 23) : 
                ((e1 == 0) && ((te + e2) == 8'b01111111)) ? (myd << 23) : (myd << (22 - eyd_rev));
-  assign myr = myf[46:24];
+  assign my = myf[46:24];
 
-  assign ey = (ovf == 1'b1) ? 8'b11111111 : eyr;
-  assign my = (ovf == 1'b1) ? 23'b0 : myr;
-
-  assign rd = ((e1 == 8'b0) && (m1 == 23'b0) && (e2 == 8'b0) && (m2 == 23'b0)) ? {10'b1111111111,22'b0} : // 0 / 0
-              ((e2 == 8'b0) && (m2 == 23'b0)) ? {sy,8'b11111111,23'b0} : // 割る数が0の場合
-              ((e1 == 8'b11111111) & (m1 == 23'b0)) ? {sy,e1,m1} : // 割られる数がinfの場合
-              (e1 == 8'b11111111) ? {s1,e1,1'b1,m1[21:0]} : // 割られる数がnanの場合
-              ((e2 == 8'b11111111) & (m2 == 23'b0)) ? {sy,8'b0,23'b0} : // 割る数がinfの場合
-              (e2 == 8'b11111111) ? {s2,e2,1'b1,m2[21:0]} : // 割る数がnanの場合
-              ((e1 == 8'b0) && (m1 == 23'b0)) ? {sy,8'b0,23'b0} : // 割られる数が0の場合
+  assign rd = ((e1 == 8'b0) && (m1 == 23'b0)) ? {sy,8'b0,23'b0} : // 割られる数が0の場合
               {sy, ey, my};
-  // nan/0, nan/nan, nan/inf, inf/nan, inf/inf では失敗する
 
 endmodule
 

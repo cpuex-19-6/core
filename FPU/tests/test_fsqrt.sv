@@ -78,8 +78,8 @@ module test_fsqrt();
    
                         #1;
 
-                        // 末尾3bitの差を許容
-                        if (y < (fybit - 3'b111) || y > (fybit + 3'b111)) begin
+                        // 末尾1bitの差を許容
+                        if ((y !== fybit) && ((y + 1'b1) !== fybit) && ((y - 1'b1) !== fybit)) begin
                            $display("%e", fx1);
                            $display("x1 = %b %b %b, %3d",
 				    x1[31], x1[30:23], x1[22:0], x1[30:23]);
@@ -119,7 +119,7 @@ module test_fsqrt();
 
                      #1;
 
-                     if (y < (fybit - 3'b111) || y > (fybit + 3'b111)) begin
+                     if ((y !== fybit) && ((y + 1'b1) !== fybit) && ((y - 1'b1) !== fybit)) begin
                         $display("%e", fx1);
                         $display("x1 = %b %b %b, %3d",
 				 x1[31], x1[30:23], x1[22:0], x1[30:23]);
