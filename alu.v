@@ -13,7 +13,7 @@ module alu
      output wire [`LEN_WORD-1:0] rd);
 
     assign rd =
-        extention_flag ? (
+        extention_flag ? (/* 
             (func3 == `FUNC3_DIV ) ?
                 ($signed(rs1) / $signed(rs2)) :
             (func3 == `FUNC3_DIVU) ?
@@ -21,7 +21,7 @@ module alu
             (func3 == `FUNC3_REM ) ?
                 ($signed(rs1) % $signed(rs2)) :
             (func3 == `FUNC3_REMU) ?
-                (rs1 % rs2) :
+                (rs1 % rs2) : */
             32'b0) : (
         // ~extention_flag
             (func3 == `FUNC3_ADD) ?
