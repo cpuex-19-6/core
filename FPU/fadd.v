@@ -1,11 +1,49 @@
 `default_nettype none
 
 module fadd
-  (input  wire [31:0] rs1,
+  (input  wire order,
+   output wire accepted,
+   output wire done,
+
+   input  wire [31:0] rs1,
    input  wire [31:0] rs2,
-   output wire [31:0] rd);
-   // input  wire        clk,
-   // input  wire        rstn
+   output wire [31:0] rd,
+   input  wire        clk,
+   input  wire        rstn);
+
+  // このクロック開始時にモジュール内で計算中かどうか
+  // 実行中で、現在のクロックで終了するなら次はやらない
+  // 何もやってなくて、orderが出ていたら仕事をする
+  wire doing;
+  wire next_doing = doing ? ^done : order;
+  temp_reg #(1) r_doing(1'b1, next_doing, doing, done, clk, rstn);
+
+  // 現在何も実行していなくて、orderが来ているなら、
+  // orderを受けて、計算を始める(acceptedを上げる)
+  assign accepted = ^doing & order;
+
+  // このクロック内で計算が終了するかどうか
+  // (すなわち、次のクロックの開始時にcpuのEWレジスタに値を格納できるかどうか)
+  localparam CLK_COUNT_LEN = 2;
+  localparam CLK_COUNT_INC = 2'd1;
+  localparam CLK_COUNT_ZERO = 2'd0;
+  localparam CLK_COUNT_MAX = 2'd2;
+  // (3クロック分割のとき)現在のカウンターが2になったら
+  // 次のクロックの間には実行していないので
+  // 1クロック目のとき0
+  // 2...1
+  // 3...2
+  wire [CLK_COUNT_LEN-1:0] done_counter;
+  wire [CLK_COUNT_LEN-1:0] next_done_counter =
+      (^doing) ? CLK_COUNT_ZERO :
+      (done_counter == CLK_COUNT_MAX) ? CLK_COUNT_ZERO :
+      (done_counter + CLK_COUNT_INC);
+  temp_reg #(CLK_COUNT_LEN) r_done_counter(1'b1, next_done_counter, done_counter, clk, rstn);
+
+  // done_counterがCLK_COUNT_MAXだったらそのクロックのうちに
+  // 終了するので、doneを上げておく
+  assign done = (done_counter == CLK_COUNT_MAX);
+
 
   wire s1 = rs1[31];
   wire s2 = rs2[31];

@@ -68,3 +68,7 @@
 `define FUNC3_BGE  3'b101
 `define FUNC3_BLTU 3'b110
 `define FUNC3_BGTU 3'b111
+
+// FUNC7
+
+`define FUNC7_FADD   7'b0000000

@@ -3,9 +3,9 @@
 `default_nettype none
 
 module fpu
-    (input  wire                  order, // the order for calculation
-     output wire                  accepted, // high at the clock when calculation starts
-     output wire                  done, // high at the clock when calculation completes
+    (input  wire                  order,
+     output wire                  accepted,
+     output wire                  done,
 
      input  wire [`LEN_FUNC3-1:0] func3,
      input  wire [`LEN_FUNC7-1:0] func7,
@@ -15,16 +15,44 @@ module fpu
      output wire [`LEN_WORD-1:0]  rd,
      
      input  wire                  clk,
-     input  wire                  rstn); // ~reset
+     input  wire                  rstn);
 
-    // start without storing data in registers before calculating
-    // (start calculation as soon as data come)
-    // (input data are through only a little calculation synchronized to the clock,
-    //  so fpu can calculate until the next clock.)
+    // このクロック開始時にモジュール内で計算中かどうか
+    // 実行中で、現在のクロックで終了するなら次はやらない
+    // 何もやってなくて、orderが出ていたら仕事をする
+    wire doing;
+    wire next_doing = doing ? ^done : order;
+    temp_reg #(1) r_doing(1'b1, next_doing, doing, done, clk, rstn);
+  
+    // 現在何も実行していなくて、orderが来ているなら
+    // orderを子モジュールに投げられる。
+    wire order_able = ^doing & order;
 
-    // fpu should not store data in registers after calculating
-    // and synchronize return data to the clock 
-    // (cpu has registers for the return data)
+    // 各子モジュール
+    // 基本入力と出力は垂れ流し
+    // orderはorder_ableが立っているときに命令の種類に従って個別に出す
+    // acceptedとdoneは後で一括管理する
+
+    // fadd
+    wire fadd_order = order_able &
+        (func7 == `FUNC7_FADD);
+    wire fadd_accepted;
+    wire fadd_done;
+    wire [32-1:0] fadd_rd;
+    wire fadd_rs2 = rs2; // 減算のための操作がいるならこの段階で
+    fadd m_fadd(
+        fadd_order, fadd_accepted, fadd_done,
+        rs1, fadd_rs2, fadd_rd,
+        clk, rstn);
+
+    // 誰かがacceptしてるならそれを伝える(acceptedを上げる)
+    assign accepted =
+        (fadd_accepted); // "|"でつなげる
+
+    // 子モジュールのうち誰かがdoneを上げていたそのクロックのうちに
+    // 終了するので、doneを上げておく
+    assign done =
+        (fadd_done); // "|"でつなげる
 
 endmodule
 
