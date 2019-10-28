@@ -21,12 +21,12 @@ module fpu
     // 実行中で、現在のクロックで終了するなら次はやらない
     // 何もやってなくて、orderが出ていたら仕事をする
     wire doing;
-    wire next_doing = doing ? ^done : order;
+    wire next_doing = doing ? ~done : order;
     temp_reg #(1) r_doing(1'b1, next_doing, doing, done, clk, rstn);
   
     // 現在何も実行していなくて、orderが来ているなら
     // orderを子モジュールに投げられる。
-    wire order_able = ^doing & order;
+    wire order_able = ~doing & order;
 
     // 各子モジュール
     // 基本入力と出力は垂れ流し
@@ -53,6 +53,15 @@ module fpu
     // 終了するので、doneを上げておく
     assign done =
         (fadd_done); // "|"でつなげる
+    
+    // doneがあがれば出力を更新する
+    // そうでなければ更新しない
+    assign [32-1:0] rd_buf;
+    assign [32-1:0] next_rd_buf =
+        fadd_done    ? fadd_rd :
+        fadd_done    ? fadd_rd
+                     : rd_buf;
+    temp_reg r_rd_buf(done, rd_buf, next_rd_buf, clk, rstn);
 
 endmodule
 
