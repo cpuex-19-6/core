@@ -15,12 +15,12 @@ module fadd
   // 実行中で、現在のクロックで終了するなら次はやらない
   // 何もやってなくて、orderが出ていたら仕事をする
   wire doing;
-  wire next_doing = doing ? ^done : order;
+  wire next_doing = doing ? ~done : order;
   temp_reg #(1) r_doing(1'b1, next_doing, doing, done, clk, rstn);
 
   // 現在何も実行していなくて、orderが来ているなら、
   // orderを受けて、計算を始める(acceptedを上げる)
-  assign accepted = ^doing & order;
+  assign accepted = ~doing & order;
 
   // このクロック内で計算が終了するかどうか
   // (すなわち、次のクロックの開始時にcpuのEWレジスタに値を格納できるかどうか)
@@ -35,7 +35,7 @@ module fadd
   // 3...2
   wire [CLK_COUNT_LEN-1:0] done_counter;
   wire [CLK_COUNT_LEN-1:0] next_done_counter =
-      (^doing) ? CLK_COUNT_ZERO :
+      (~doing) ? CLK_COUNT_ZERO :
       (done_counter == CLK_COUNT_MAX) ? CLK_COUNT_ZERO :
       (done_counter + CLK_COUNT_INC);
   temp_reg #(CLK_COUNT_LEN) r_done_counter(1'b1, next_done_counter, done_counter, clk, rstn);
