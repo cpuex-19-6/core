@@ -21,7 +21,7 @@ module fpu
     // 実行中で、現在のクロックで終了するなら次はやらない
     // 何もやってなくて、orderが出ていたら仕事をする
     wire doing;
-    wire next_doing = doing ? ~done : order;
+    wire next_doing = (~done) & (doing | order);
     temp_reg #(1) r_doing(1'b1, next_doing, doing, done, clk, rstn);
   
     // 現在何も実行していなくて、orderが来ているなら
