@@ -167,15 +167,32 @@ module fpu
         fcomp_order, fcomp_accepted, fcomp_done,
         rs1, rs2, fcomp_rd,
         func3, clk, rstn);
-
-
+    
+    // none-instruction
+    wire error_order = order_able &
+        (func7 != `FUNC7_FADD)  &
+        (func7 != `FUNC7_FSUB)  &
+        (func7 != `FUNC7_FMUL)  &
+        (func7 != `FUNC7_FDIV)  &
+        (func7 != `FUNC7_FSQRT) &
+        (func7 != `FUNC7_FSGNJ) &
+        (func7 != `FUNC7_FRM)   &
+        (func7 != `FUNC7_ITOF)  &
+        (func7 != `FUNC7_FTOI)  &
+        (func7 != `FUNC7_FMVI)  &
+        (func7 != `FUNC7_IMVF)  &
+        (func7 != `FUNC7_FCOMP);
+    wire error_accepted = error_order;
+    wire error_done = error_order;
+    wire [32-1:0] error_rd = 32'b0;
 
     // 誰かがacceptしてるならそれを伝える(acceptedを上げる)
     assign accepted =
         (fadd_accepted  | fsub_accepted  | fmul_accepted   | fdiv_accepted |
          fsqrt_accepted | fsgnj_accepted | ffloor_accepted |
          itof_accepted  | ftoi_accepted  | fmvi_accepted   | imvf_accepted |
-         fcomp_accepted); // "|"でつなげる
+         fcomp_accepted |
+         error_accepted); // "|"でつなげる
 
     // 子モジュールのうち誰かがdoneを上げていたそのクロックのうちに
     // 終了するので、doneを上げておく
@@ -183,7 +200,8 @@ module fpu
         (fadd_done  | fsub_done  | fmul_done   | fdiv_done |
          fsqrt_done | fsgnj_done | ffloor_done |
          itof_done  | ftoi_done  | fmvi_done   | imvf_done |
-         fcomp_done); // "|"でつなげる
+         fcomp_done |
+         error_done); // "|"でつなげる
     
     // doneがあがれば出力を更新する
     // そうでなければ更新しない
@@ -200,7 +218,8 @@ module fpu
         ftoi_done    ? ftoi_rd   :
         fmvi_done    ? fmvi_rd   :
         imvf_done    ? imvf_rd   :
-        fcomp_done   ? fcomp_rd  : rd_buf;
+        fcomp_done   ? fcomp_rd  :
+        error_done   ? error_rd  : rd_buf;
     temp_reg r_rd_buf(done, rd_buf, next_rd_buf, clk, rstn);
 
 endmodule
