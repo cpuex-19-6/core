@@ -336,7 +336,7 @@ module cpu
     end
 
     // LED output
-    assign led_stat = {clk, rstn, ~rstn, clock_counter[30:27]};
+    assign led_stat = {clk, rstn, clock_counter[28], state[3:0]};
 
 endmodule
 
