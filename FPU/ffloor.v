@@ -1,10 +1,15 @@
 `default_nettype none
 
 module ffloor
-  (input  wire [31:0] rs1,
-   output wire [31:0] rd);
-   // input  wire        clk,
-   // input  wire        rstn
+  (input  wire order,
+   output wire accepted,
+   output wire done,
+
+   input  wire [31:0] rs1,
+   output wire [31:0] rd,
+
+   input  wire        clk,
+   input  wire        rstn);
 
   wire s1 = rs1[31];
   wire [7:0] e1 = rs1[30:23];
@@ -40,6 +45,9 @@ module ffloor
               islittle ? ((s1 == 1'b0) ? 32'b0 : {1'b1,8'b01111111,23'b0}) :
               isbig ? rs1 :
               {s1,e1y,m1y};
+
+  assign accepted = order;
+  assign done = order;
  
 endmodule
 

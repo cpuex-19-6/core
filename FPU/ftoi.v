@@ -1,10 +1,15 @@
 `default_nettype none
 
 module ftoi
-  (input  wire [31:0] rs1,
-   output wire [31:0] rd);
-   // input  wire        clk,
-   // input  wire        rstn
+  (input  wire order,
+   output wire accepted,
+   output wire done,
+
+   input  wire [31:0] rs1,
+   output wire [31:0] rd,
+
+   input  wire        clk,
+   input  wire        rstn);
 
   wire s1 = rs1[31];
   wire [7:0] e1 = rs1[30:23];
@@ -45,6 +50,9 @@ module ftoi
               ((e1 == 8'b01111110) && (s1 == 1'b0)) ? 32'b1 :
               ((e1 == 8'b01111110) && (s1 == 1'b1)) ? 32'b11111111111111111111111111111111 :
               {s1,v};
+
+  assign accepted = order;
+  assign done = order;
 
 endmodule
 

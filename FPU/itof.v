@@ -1,10 +1,15 @@
 `default_nettype none
 
 module itof
-  (input  wire [31:0] rs1,
-   output wire [31:0] rd);
-   // input  wire        clk,
-   // input  wire        rstn
+  (input  wire order,
+   output wire accepted,
+   output wire done,
+
+   input  wire [31:0] rs1,
+   output wire [31:0] rd,
+
+   input  wire        clk,
+   input  wire        rstn);
 
   // 符号部の決定
   wire sy;
@@ -62,6 +67,9 @@ module itof
   assign rd = ((sy == 1'b0) && (nzm == 1'b0)) ? {32'b0} : // 0
               (nzm == 1'b0) ? {1'b1,8'b10011110,23'b0} : // - 2^31
               {sy,ey,my};
+
+  assign accepted = order;
+  assign done = order;
 
 endmodule
 
