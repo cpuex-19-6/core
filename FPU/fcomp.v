@@ -16,7 +16,7 @@ module fcomp
   wire eq;
   assign eq = ((rs1 == 32'b0) && (rs2 == {1'b1,31'b0})) ? 1'b1 : // +0 = -0
               ((rs1 == {1'b1,31'b0}) && (rs2 == 32'b0)) ? 1'b1 : // -0 = +0
-              (rs1 == rs2);　　
+              (rs1 == rs2);
               
   wire s1 = rs1[31];
   wire s2 = rs2[31];
@@ -41,7 +41,7 @@ module fcomp
               (s1 < s2) ? 1'b0 : // s2 が負
               (e1 < e2) ? (pos ? 1'b1 : 1'b0) :
               (e1 > e2) ? (pos ? 1'b0 : 1'b1) :
-              (pos ? (m1 < m2) : (m1 > m2));　　
+              (pos ? (m1 < m2) : (m1 > m2));
               
 
   assign rd = (func3 == 3'b010) ? eq :        // feq
