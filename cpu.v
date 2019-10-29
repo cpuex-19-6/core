@@ -14,9 +14,7 @@
 module cpu
     (input  wire clk,
      input  wire rstn,
-     output wire [`STATE_NUM-1:0] stat,
-     output wire clk_o,
-     output wire rstn_o,
+     output wire [7-1:0] led_stat,
 
      output wire [`LEN_MEMISTR_ADDR-1:0] a_inst,
      input  wire [`LEN_WORD-1:0]         d_inst,
@@ -37,6 +35,8 @@ module cpu
 
     reg [`LEN_MEM_ADDR-1:0] pc;
     reg [`STATE_NUM-1:0]    state;
+
+    assign led_stat = pc[6:0];
 
     assign stat = state;
     assign clk_o = clk;
