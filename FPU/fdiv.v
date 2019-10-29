@@ -1,11 +1,39 @@
 `default_nettype none
 
 module fdiv
-  (input  wire [31:0] rs1,
+  (input  wire order,
+   output wire accepted,
+   output wire done,
+
+   input  wire [31:0] rs1,
    input  wire [31:0] rs2,
-   output wire [31:0] rd);
-   // input  wire        clk,
-   // input  wire        rstn
+   output wire [31:0] rd,
+   input  wire        clk,
+   input  wire        rstn);
+
+
+  wire doing;
+  wire next_doing = doing ? ~done : order;
+  temp_reg #(1) r_doing(1'b1, next_doing, doing, done, clk, rstn);
+
+  assign accepted = ~doing & order;
+
+  localparam CLK_COUNT_LEN = 2;
+  localparam CLK_COUNT_INC = 2'd1;
+  localparam CLK_COUNT_ZERO = 2'd0;
+  localparam CLK_COUNT_MAX = 2'd2;
+
+  wire [CLK_COUNT_LEN-1:0] done_counter;
+  wire [CLK_COUNT_LEN-1:0] next_done_counter =
+      (~doing) ? CLK_COUNT_ZERO :
+      (done_counter == CLK_COUNT_MAX) ? CLK_COUNT_ZERO :
+      (done_counter + CLK_COUNT_INC);
+  temp_reg #(CLK_COUNT_LEN) r_done_counter(1'b1, next_done_counter, done_counter, clk, rstn);
+
+  assign done = (done_counter == CLK_COUNT_MAX);
+
+
+  
 
   wire s1 = rs1[31];
   wire s2 = rs2[31];
