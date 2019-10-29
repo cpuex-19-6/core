@@ -56,8 +56,8 @@ module fpu
     
     // doneがあがれば出力を更新する
     // そうでなければ更新しない
-    assign [32-1:0] rd_buf;
-    assign [32-1:0] next_rd_buf =
+    wire [32-1:0] rd_buf;
+    wire [32-1:0] next_rd_buf =
         fadd_done    ? fadd_rd :
         fadd_done    ? fadd_rd
                      : rd_buf;
