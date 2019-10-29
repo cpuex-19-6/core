@@ -36,9 +36,7 @@ module cpu
     reg [`LEN_MEM_ADDR-1:0] pc;
     reg [`STATE_NUM-1:0]    state;
 
-    assign stat = state;
-    assign clk_o = clk;
-    assign rstn_o = rstn;
+    reg [32-1:0] clock_counter;
 
     // registers -------------------------------
     //  in
@@ -186,7 +184,9 @@ module cpu
     always @(posedge clk) begin
         if (~rstn) begin
             pc <= 'b0;
+            clock_counter <= 32'b0;
             state <= `STATE_FETCH;
+
             reg_a_rd <= 5'b0;
             reg_d_rd <= 32'b0;
             
@@ -331,10 +331,12 @@ module cpu
                 pc <= {next_pc_ew[31:2],2'b00};
                 state <= `STATE_FETCH;
             end
+            clock_counter <= clock_counter + 32'b1;
         end
     end
 
-    assign led_stat = {clk, rstn, |state, pc[3:0]};
+    // LED output
+    assign led_stat = {clk, rstn, clock_counter[31:27]};
 
 endmodule
 
