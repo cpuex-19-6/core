@@ -29,10 +29,11 @@ module fadd
   localparam CLK_COUNT_ZERO = 2'd0;
   localparam CLK_COUNT_MAX = 2'd2;
   // (3クロック分割のとき)現在のカウンターが2になったら
-  // 次のクロックの間には実行していないので
+  // 次のクロックの間には実行していないので次は0にする
   // 1クロック目のとき0
   // 2...1
   // 3...2
+  // 最適化の状況によってはシフトにした方がいいかもしれない
   wire [CLK_COUNT_LEN-1:0] done_counter;
   wire [CLK_COUNT_LEN-1:0] next_done_counter =
       (~doing) ? CLK_COUNT_ZERO :
