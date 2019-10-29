@@ -36,8 +36,6 @@ module cpu
     reg [`LEN_MEM_ADDR-1:0] pc;
     reg [`STATE_NUM-1:0]    state;
 
-    assign led_stat = pc[6:0];
-
     assign stat = state;
     assign clk_o = clk;
     assign rstn_o = rstn;
@@ -335,6 +333,8 @@ module cpu
             end
         end
     end
+
+    assign led_stat = {clk, rstn, |state, pc[3:0]};
 
 endmodule
 
