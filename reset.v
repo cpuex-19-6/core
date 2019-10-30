@@ -17,7 +17,7 @@ module rst_gen
         end
     end
 
-    assign rstn = (sys_rstn & ~usr_rst) | state;
+    assign rstn = (sys_rstn & ~usr_rst) & state;
 
 endmodule
 
