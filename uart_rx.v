@@ -3,7 +3,8 @@
 `default_nettype none
 
 module uart_rx
-    #(BAUD = `DEFAULT_BAUD)
+    #(CLK_FREQ = `CLK_PER_SEC,
+      BAUD = `DEFAULT_BAUD)
     (output reg  write_flag,
      output reg  [8-1:0] read_data,
 
@@ -11,7 +12,7 @@ module uart_rx
      input  wire clk,
      input  wire rstn);
 
-    localparam CLK_PER_HALF_BIT = `CLK_PER_SEC / BAUD / 2;
+    localparam CLK_PER_HALF_BIT = CLK_FREQ / BAUD / 2;
     localparam CLK_PER_BIT = CLK_PER_HALF_BIT * 2;
     localparam e_halfclk_bit = CLK_PER_HALF_BIT - 1;
     localparam e_clk_bit = CLK_PER_BIT - 1;
