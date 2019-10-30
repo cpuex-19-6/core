@@ -8,7 +8,7 @@ module rst_gen
 
     reg state;
 
-    always @(sys_rst, usr_rst) begin
+    always @(sys_rstn, usr_rst) begin
         if (~sys_rstn) begin
             state <= 1'b0;
         end
@@ -17,7 +17,7 @@ module rst_gen
         end
     end
 
-    assign rstn = ~(sys_rst | usr_rst) | state;
+    assign rstn = ~(sys_rstn | usr_rst) | state;
 
 endmodule
 
