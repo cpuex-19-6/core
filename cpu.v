@@ -89,6 +89,8 @@ module cpu
     wire                     alu_extention_f_d;
     reg                      mem_de;
     wire                     mem_d;
+    reg                      fpu_de;
+    wire                     fpu_d;
     reg                      branch_de;
     wire                     branch_d;
     reg                      jump_de;
@@ -112,7 +114,7 @@ module cpu
     decode dec(
         inst_fd, pc_fd,
         reg_a_rs1, reg_a_rs2, reg_d_rs1, reg_d_rs2,
-        alu_d, alu_imm_f_d, alu_extention_f_d,
+        alu_d, alu_imm_f_d, alu_extention_f_d, fpu_d,
         mem_d, jump_d, branch_d, subst_d, io_d,
         d_rs1_d, d_rs2_d, d_rs3_d, a_rd_d,
         opecode_d, func3_d, func7_d);
@@ -156,6 +158,21 @@ module cpu
         mem_write_flag, mem_read_flag,
         clk, rstn);
 
+    // fpu -------------------------------
+
+    reg                  fpu_flag;
+    
+    //  out
+    wire [`LEN_WORD-1:0] d_rd_fpu;
+    wire                 fpu_accepted;
+    wire                 fpu_done;
+
+    fpu m_fpu(
+        fpu_flag, fpu_accepted, fpu_done,
+        func3_de, func7_de, d_rs1_de, d_rs2_de,
+        d_rd_fpu,
+        clk, rstn);
+
     // jump -------------------------------
 
     // branch -------------------------------
@@ -189,7 +206,7 @@ module cpu
         if (~rstn) begin
             pc <= 'b0;
             state <= `STATE_FETCH;
-            reg_a_rd <= 5'b0;
+            reg_a_rd <= 6'b0;
             reg_d_rd <= 32'b0;
             
             reg_flag <= 1'b0;
@@ -202,6 +219,7 @@ module cpu
             alu_imm_f_de <= 1'b0;
             alu_extention_f_de <= 1'b0;
             mem_de <= 1'b0;
+            fpu_de <= 1'b0;
             branch_de <= 1'b0;
             jump_de <= 1'b0;
             subst_de <= 1'b0;
@@ -209,14 +227,14 @@ module cpu
             d_rs1_de <= 32'b0;
             d_rs2_de <= 32'b0;
             d_rs3_de <= 32'b0;
-            a_rd_de <= 5'b0;
+            a_rd_de <= 6'b0;
             opecode_de <= 7'b0;
             func3_de <= 3'b0;
             func7_de <= 7'b0;
             pc_de <= 32'b0;
 
             write_ew <= 1'b0;
-            a_rd_ew <= 5'b0;
+            a_rd_ew <= 6'b0;
             d_rd_ew <= 32'b0;
             next_pc_ew <= 32'b0;
             mem_flag <= 1'b0;
@@ -245,6 +263,7 @@ module cpu
                 alu_imm_f_de <= alu_imm_f_d;
                 alu_extention_f_de <= alu_extention_f_d;
                 mem_de <= mem_d;
+                fpu_de <= fpu_d;
                 branch_de <= branch_d;
                 jump_de <= jump_d;
                 subst_de <= subst_d;
@@ -273,6 +292,12 @@ module cpu
                 else if (mem_de) begin
                     mem_io <= (opecode_de == `OP_MEMS) ? 1'b1 : 1'b0;
                     mem_flag <= 1'b1;
+                    next_pc_ew <= pc_de + 32'd4;
+                    state <= `STATE_EXECUTE_WAIT;
+                end
+                // fpu ---------------------------
+                else if (fpu_de) begin
+                    fpu_flag <= 1'b1;
                     next_pc_ew <= pc_de + 32'd4;
                     state <= `STATE_EXECUTE_WAIT;
                 end
@@ -314,6 +339,11 @@ module cpu
                         state <= `STATE_WRITE;
                     end
                 end
+                else if (fpu_de) begin
+                    fpu_flag <= 1'b0;
+                    if (fpu_done) begin
+                        write_ew <= 1'b1;
+                        d_rd_ew <= d_rd_fpu;
                 else if (io_de) begin
                     io_flag <= 1'b0;
                     if (io_accessed) begin
