@@ -80,8 +80,8 @@
 `define FUNC7_FRM    7'b0100000 
 `define FUNC7_ITOF   7'b1100000
 `define FUNC7_FTOI   7'b1101000
-`define FUNC7_FMVI   7'b1110000
-`define FUNC7_IMVF   7'b1111000
+`define FUNC7_IMVF   7'b1110000
+`define FUNC7_FMVI   7'b1111000
 `define FUNC7_FCOMP  7'b1010000
 
 // FUNC3
