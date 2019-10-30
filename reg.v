@@ -33,50 +33,29 @@ module regs
      input wire clk,
      input wire rstn);
 
-    reg [32-1:0] registers [`LEN_WORD-1:0];
+    localparam reg_num = 64;
+
+    reg [reg_num-1:0] registers [`LEN_WORD-1:0];
 
     assign drs1 = (|ars1) ? registers[ars1] : 32'b0;
     assign drs2 = (|ars2) ? registers[ars2] : 32'b0;
 
     always @(posedge clk) begin
         registers[0] <= 32'b0;
-        if (~rstn) begin
-            registers[1] <= 32'b0;
-            registers[2] <= 32'b0;
-            registers[3] <= 32'b0;
-            registers[4] <= 32'b0;
-            registers[5] <= 32'b0;
-            registers[6] <= 32'b0;
-            registers[7] <= 32'b0;
-            registers[8] <= 32'b0;
-            registers[9] <= 32'b0;
-            registers[10] <= 32'b0;
-            registers[11] <= 32'b0;
-            registers[12] <= 32'b0;
-            registers[13] <= 32'b0;
-            registers[14] <= 32'b0;
-            registers[15] <= 32'b0;
-            registers[16] <= 32'b0;
-            registers[17] <= 32'b0;
-            registers[18] <= 32'b0;
-            registers[19] <= 32'b0;
-            registers[20] <= 32'b0;
-            registers[21] <= 32'b0;
-            registers[22] <= 32'b0;
-            registers[23] <= 32'b0;
-            registers[24] <= 32'b0;
-            registers[25] <= 32'b0;
-            registers[26] <= 32'b0;
-            registers[27] <= 32'b0;
-            registers[28] <= 32'b0;
-            registers[29] <= 32'b0;
-            registers[30] <= 32'b0;
-            registers[31] <= 32'b0;
-        end
-        else if (|ard) begin
-            registers[ard] <= drd;
-        end
     end
+
+    genvar i;
+    generate
+        for (i = 1; i < reg_num; i = i+1) begin
+            always @(posedge clk) begin
+                if (~rstn) begin
+                    registers[i] <= 32'b0;
+                end
+                else if (ard == i) begin
+                    registers[i] <= drd;
+            end
+        end
+    endgenerate
 endmodule
 
 `default_nettype wire
