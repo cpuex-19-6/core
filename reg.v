@@ -53,6 +53,7 @@ module regs
                 end
                 else if (ard == i) begin
                     registers[i] <= drd;
+                end
             end
         end
     endgenerate
