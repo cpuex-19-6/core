@@ -34,11 +34,18 @@ module regs
      input wire rstn);
 
     localparam reg_num = 64;
+    localparam special_init_regs = 3;
 
     reg [reg_num-1:0] registers [`LEN_WORD-1:0];
 
     assign drs1 = (|ars1) ? registers[ars1] : 32'b0;
     assign drs2 = (|ars2) ? registers[ars2] : 32'b0;
+
+    wire [32-1:0] reg_init[special_init_regs-1:0];
+
+    assign reg_init[1-1] = 32'b0;
+    assign reg_init[2-1] = 32'b1 << `LEN_MEMDATA_ADDR;
+    assign reg_init[3-1] = `HEAP_POINTER_INIT;
 
     always @(posedge clk) begin
         registers[0] <= 32'b0;
@@ -46,7 +53,17 @@ module regs
 
     genvar i;
     generate
-        for (i = 1; i < reg_num; i = i+1) begin
+        for (i = 1; i <= special_init_regs; i = i+1) begin
+            always @(posedge clk) begin
+                if (~rstn) begin
+                    registers[i] <= reg_init[i-1];
+                end
+                else if (ard == i) begin
+                    registers[i] <= drd;
+                end
+            end
+        end
+        for (i = 1 + special_init_regs; i < reg_num; i = i+1) begin
             always @(posedge clk) begin
                 if (~rstn) begin
                     registers[i] <= 32'b0;
