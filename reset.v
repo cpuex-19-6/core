@@ -6,7 +6,7 @@ module rst_gen
      input  wire usr_rst,
      output wire state_out,
      output wire rstn);
-/*
+
     reg state;
 
     always @* begin
@@ -17,12 +17,6 @@ module rst_gen
             state <= 1'b1;
         end
     end
-*/
-    wire state;
-    wire staten;
-
-    assign staten = ~((sys_rstn & usr_rst) | state);
-    assign state  = ~(~sys_rstn | staten);
 
     assign state_out = state;
 
