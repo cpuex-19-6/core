@@ -290,7 +290,10 @@ module cpu
                 end
                 // mem ---------------------------
                 else if (mem_de) begin
-                    mem_io <= (opecode_de == `OP_MEMS) ? 1'b1 : 1'b0;
+                    mem_io <= 
+                        ((opecode_de == `OP_MEMS ) ||
+                         (opecode_de == `OP_FMEMS)   )
+                            ? 1'b1 : 1'b0;
                     mem_flag <= 1'b1;
                     next_pc_ew <= pc_de + 32'd4;
                     state <= `STATE_EXECUTE_WAIT;
