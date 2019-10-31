@@ -9,7 +9,7 @@ module rst_gen
 
     reg state;
 
-    always @(sys_rstn, usr_rst) begin
+    always @* begin
         if (~sys_rstn) begin
             state <= 1'b0;
         end
