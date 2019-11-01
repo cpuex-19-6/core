@@ -24,4 +24,13 @@ module rst_gen
 
 endmodule
 
+module simple_reset_gen  
+    (input  wire sys_rstn,
+     input  wire usr_rst,
+     output wire rstn);
+
+    assign rstn = sys_rstn & ~usr_rst;
+
+endmodule
+
 `default_nettype wire
