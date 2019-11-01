@@ -305,6 +305,7 @@ module cpu
                 // else ---------------------------
                 else begin
                     state <= `STATE_END;
+                end
             end
             // execute_wait ---------------------------
             else if (state == `STATE_EXECUTE_WAIT) begin
