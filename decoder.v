@@ -67,9 +67,19 @@ module decode
     wire [`LEN_IMM21-1:0] imm21;
     wire [`LEN_IMM32-1:0] imm32;
 
-    assign rd_float = float;
-    assign rs1_float = float;
-    assign rs2_float = float;
+    wire no_use_rd  = (opecode == `OP_MEMS)
+                    | (opecode == `OP_FMEMS)
+                    | (opecode == `OP_OUTPUT)
+                    | (opecode == `OP_BRANCH);
+    wire no_use_rs1 = (opecode == `OP_LUI)
+                    | (opecode == `OP_JAL)
+                    | (opecode == `OP_AUIPC);
+    wire no_use_rs2 = ~(
+                      (opecode == `OP_ALU)
+                    | (opecode == `OP_BRANCH)
+                    | (opecode == `OP_MEMS)
+                    | (opecode == `OP_FMEMS)
+                    |((opecode == `OP_FPU) & ~func7[5]));
 
     assign opecode    = inst[ 6: 0];
     assign a_rd       = {rd_float, inst[11: 7]};
