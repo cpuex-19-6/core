@@ -54,7 +54,7 @@ module decode
     assign alu_extention_flag = (opecode == `OP_ALU) && inst[25];
 
     wire rs1_float;
-    wire rs2_float;
+    wire rs2_float = float;
     wire rd_float;
 
     wire [`LEN_IMM12-1:0] imm12i;
