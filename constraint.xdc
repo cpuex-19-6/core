@@ -33,3 +33,6 @@ set_property IOSTANDARD  LVCMOS18 [get_ports "USB_UART_TX"]
 # Bank  84 VCCO -          - IO_L16P_T2U_N6_QBC_AD3P_64
 set_property PACKAGE_PIN AD10     [get_ports "GPIO_SW"] 
 set_property IOSTANDARD  LVCMOS18 [get_ports "GPIO_SW"] 
+# Bank  84 VCCO -          - IO_L15N_T2L_N5_AD11N_64
+set_property PACKAGE_PIN AF8      [get_ports "GPIO_SW_S"] 
+set_property IOSTANDARD  LVCMOS18 [get_ports "GPIO_SW_S"] 
