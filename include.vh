@@ -8,6 +8,8 @@
 `define LEN_MEMISTR_ADDR 15
 `define LEN_MEMDATA_ADDR 19
 
+`define HEAP_POINTER_INIT 32'b0
+
 `define LEN_OPECODE 7
 `define LEN_IMM12 12
 `define LEN_IMM13 13
