@@ -10,6 +10,7 @@
 `define STATE_EXECUTE      10'b0000001000
 `define STATE_EXECUTE_WAIT 10'b0000010000
 `define STATE_WRITE        10'b0000100000
+`define STATE_END          10'b1111111111
 
 module cpu
     (input  wire clk,
@@ -301,6 +302,9 @@ module cpu
                     d_rd_ew <= d_rs3_de;
                     state <= `STATE_WRITE;
                 end
+                // else ---------------------------
+                else begin
+                    state <= `STATE_END;
             end
             // execute_wait ---------------------------
             else if (state == `STATE_EXECUTE_WAIT) begin
