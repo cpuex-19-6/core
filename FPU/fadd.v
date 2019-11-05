@@ -96,19 +96,64 @@ module fadd
   wire [55:0] mia;
   assign mia = mie >> de;
 
-  wire tstck = |(mia[28:0]);
+
+  reg s1_0;
+  reg s1_1;
+  reg s2_0;
+  reg s2_1;
+  reg ss_0;
+  reg ss_1;
+  reg [24:0] ms_0;
+  reg [24:0] ms_1;
+  reg [7:0] es_0;
+  reg [7:0] es_1;
+  reg [55:0] mia_0;
+  reg [55:0] mia_1; 
+
+  always @(posedge clk) begin
+    if (~rstn) begin
+      s1_0  <= 1'b0;
+      s1_1  <= 1'b0;
+      s2_0  <= 1'b0;
+      s2_1  <= 1'b0;
+      ss_0  <= 1'b0;
+      ss_1  <= 1'b0;
+      ms_0  <= 25'b0;
+      ms_1  <= 25'b0;
+      es_0  <= 8'b0;
+      es_1  <= 8'b0;
+      mia_0 <= 56'b0;
+      mia_1 <= 56'b0;
+    end else begin
+      s1_0  <= s1;
+      s1_1  <= s1_0;
+      s2_0  <= s2;
+      s2_1  <= s2_0;
+      ss_0  <= ss;
+      ss_1  <= ss_0;
+      ms_0  <= ms;
+      ms_1  <= ms_0;
+      es_0  <= es;
+      es_1  <= es_0;
+      mia_0 <= mia;
+      mia_1 <= mia_0;
+    end
+  end
+
+
+  wire tstck = |(mia_1[28:0]);
 
   wire [26:0] mye;
-  assign mye = (s1 == s2) ? ({ms,2'b0} + mia[55:29]) : ({ms,2'b0} - mia[55:29]);
+  assign mye = (s1_1 == s2_1) ? ({ms_1,2'b0} + mia_1[55:29]) : ({ms_1,2'b0} - mia_1[55:29]);
 
   wire [7:0] esi;
-  assign esi = es + 1'b1;
+  assign esi = es_1 + 1'b1;
 
   wire [7:0] eyd;
   wire [26:0] myd;
   wire stck;
   
-  assign eyd = (mye[26] == 0) ? es : esi;
+  assign eyd = (mye[26] == 0) ? es_1 : esi;
   assign myd = (mye[26] == 0) ? mye : mye >> 1;
   assign stck = (mye[26] == 0) ? tstck : (tstck || mye[0]);
 
@@ -140,17 +185,68 @@ module fadd
               (myd[1] == 1) ? 5'd24 :
               (myd[0] == 1) ? 5'd25 : 5'd26; 
 
+
+  reg [7:0] eyd_1;
+  reg [7:0] eyd_2;
+  reg [26:0] myd_1;
+  reg [26:0] myd_2;
+  reg [4:0] se_1;
+  reg [4:0] se_2;
+  reg stck_1;
+  reg stck_2;
+  reg s1_1_tmp;
+  reg s1_2;
+  reg s2_1_tmp;
+  reg s2_2;
+  reg ss_1_tmp;
+  reg ss_2;
+
+  always @(posedge clk) begin
+    if (~rstn) begin
+      eyd_1    <= 8'b0;
+      eyd_2    <= 8'b0;
+      myd_1    <= 27'b0;
+      myd_2    <= 27'b0;
+      se_1     <= 5'b0;
+      se_2     <= 5'b0;
+      stck_1   <= 1'b0;
+      stck_2   <= 1'b0;
+      s1_1_tmp <= 1'b0;
+      s1_2     <= 1'b0;
+      s2_1_tmp <= 1'b0;
+      s2_2     <= 1'b0;
+      ss_1_tmp <= 1'b0;
+      ss_2     <= 1'b0;
+    end else begin
+      eyd_1    <= eyd;
+      eyd_2    <= eyd_1;
+      myd_1    <= myd;
+      myd_2    <= myd_1;
+      se_1     <= se;
+      se_2     <= se_1;
+      stck_1   <= stck;
+      stck_2   <= stck_1;
+      s1_1_tmp <= s1_1;
+      s1_2     <= s1_1_tmp;
+      s2_1_tmp <= s2_1;
+      s2_2     <= s2_1_tmp;
+      ss_1_tmp <= ss_1;
+      ss_2     <= ss_1_tmp;
+    end
+  end
+
+
   wire signed [8:0] eyf;
   wire [7:0] eyr;
   wire [26:0] myf;
   wire [24:0] myr;
 
-  assign eyf = {1'b0, eyd} - {4'b0, se};
+  assign eyf = {1'b0, eyd_2} - {4'b0, se_2};
   assign eyr = (eyf > 0) ? eyf[7:0] : 8'b0;
-  assign myf = (eyf > 0) ? (myd << se) : (myd << (eyd[4:0] - 1)); 
-  assign myr = ((myf[1] == 1) && (myf[0] == 0) && (stck == 0) && (myf[2] == 1)) ? (myf[26:2] + 25'b1) :
-               ((myf[1] == 1) && (myf[0] == 0) && (s1 == s2) && (stck == 1))    ? (myf[26:2] + 25'b1) :
-               ((myf[1] == 1) && (myf[0] == 1))                                 ? (myf[26:2] + 25'b1) : myf[26:2];
+  assign myf = (eyf > 0) ? (myd_2 << se_2) : (myd_2 << (eyd_2[4:0] - 1)); 
+  assign myr = ((myf[1] == 1) && (myf[0] == 0) && (stck_2 == 0) && (myf[2] == 1))     ? (myf[26:2] + 25'b1) :
+               ((myf[1] == 1) && (myf[0] == 0) && (s1_2 == s2_2) && (stck_2 == 1))    ? (myf[26:2] + 25'b1) :
+               ((myf[1] == 1) && (myf[0] == 1))                                       ? (myf[26:2] + 25'b1) : myf[26:2];
 
   wire [7:0] eyri;
   assign eyri = eyr + 8'b1;
@@ -163,7 +259,7 @@ module fadd
               (myr[23:0] == 24'b0) ? 0    : eyr;
   assign my = (myr[24] == 1)       ? 23'b0 :
               (myr[23:0] == 24'b0) ? 23'b0 : myr[22:0];
-  assign sy = (ey == 0 && my == 0) ? (s1 && s2) : ss;
+  assign sy = (ey == 0 && my == 0) ? (s1_2 && s2_2) : ss_2;
 
   assign rd = {sy,ey,my};
 
