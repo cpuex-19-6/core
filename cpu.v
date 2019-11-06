@@ -32,7 +32,7 @@ module cpu
      output wire uart_write_flag,
      output wire uart_order,
      input  wire uart_accepted,
-     input  wire uart_accessed);
+     input  wire uart_done);
 
     reg [`LEN_MEM_ADDR-1:0] pc;
     reg [`STATE_NUM-1:0]    state;
@@ -151,10 +151,10 @@ module cpu
     //  out
     wire [`LEN_WORD-1:0] d_dr_mem;
     wire                 mem_accepted;
-    wire                 mem_accessed;
+    wire                 mem_done;
 
     memory mem(
-        mem_flag, mem_accepted, mem_accessed,
+        mem_flag, mem_accepted, mem_done,
         mem_io, d_rs1_de, d_rs2_de,
         d_dr_mem,
         a_mem, sd_mem, ld_mem,
@@ -194,13 +194,13 @@ module cpu
     //  out
     wire [`LEN_WORD-1:0] io_input;
     wire                 io_accepted;
-    wire                 io_accessed;
+    wire                 io_done;
 
     io_core io_c(
-        io_flag, io_accepted, io_accessed,
+        io_flag, io_accepted, io_done,
         io_io, func7_de[5], func3_de, d_rs1_de, io_input,
         uart_write_flag, uart_size, uart_o_data, uart_i_data,
-        uart_order, uart_accepted, uart_accessed,
+        uart_order, uart_accepted, uart_done,
         clk, rstn);
 
     // main -------------------------------
@@ -342,7 +342,7 @@ module cpu
             else if (state == `STATE_EXECUTE_WAIT) begin
                 if(mem_de) begin
                     mem_flag <= 1'b0;
-                    if (mem_accessed) begin
+                    if (mem_done) begin
                         write_ew <= ~opecode_de[5];
                         d_rd_ew <= d_dr_mem;
                         state <= `STATE_WRITE;
@@ -357,7 +357,7 @@ module cpu
                 end
                 else if (io_de) begin
                     io_flag <= 1'b0;
-                    if (io_accessed) begin
+                    if (io_done) begin
                         write_ew <= ~opecode_de[5];
                         d_rd_ew <= io_input;
                         state <= `STATE_WRITE;
