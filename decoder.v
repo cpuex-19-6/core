@@ -90,7 +90,7 @@ module decode
                          : {rs1_float, inst[19:15]};
     assign regi_a_rs2 =
               no_use_rs1 ? 6'b0
-              　　　　　　: {rs2_float, inst[24:20]};
+                         : {rs2_float, inst[24:20]};
     assign func3      = inst[14:12];
     assign func7      = inst[31:25];
 
