@@ -128,14 +128,20 @@ module cpu
     reg  [`LEN_MEM_ADDR-1:0] next_pc_ew;
 
     // alu -------------------------------
+    //  in
+    reg                  alu_flag;
+
     //  out
-    wire [`LEN_WORD-1:0]     alu_rs;
+    wire [`LEN_WORD-1:0]     d_dr_alu;
+    wire                 alu_accepted;
+    wire                 alu_done;
     
     alu alu_m(
+        alu_flag, alu_accepted, alu_done,
         func3_de, func7_de[5],
         alu_imm_f_de, alu_extention_f_de,
-        d_rs1_de, d_rs2_de,
-        alu_rs);
+        d_rs1_de, d_rs2_de, d_dr_alu,
+        clk, rstn);
 
     // mem -------------------------------
     //  in
@@ -235,6 +241,7 @@ module cpu
             a_rd_ew <= 6'b0;
             d_rd_ew <= 32'b0;
             next_pc_ew <= 32'b0;
+            alu_flag <= 1'b0;
             mem_flag <= 1'b0;
             mem_io <= 1'b0;
             io_flag <= 1'b0;
@@ -281,7 +288,7 @@ module cpu
                 a_rd_ew <= a_rd_de;
                 // alu ---------------------------
                 if (alu_de) begin
-                    d_rd_ew <= alu_rs;
+                    d_rd_ew <= d_dr_alu;
                     next_pc_ew <= pc_de + 32'd4;
                     write_ew <= 1'b1;
                     state <= `STATE_WRITE;
