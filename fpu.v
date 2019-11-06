@@ -222,6 +222,8 @@ module fpu
         error_done   ? error_rd  : rd_buf;
     temp_reg r_rd_buf(done, rd_buf, next_rd_buf, clk, rstn);
 
+    assign rd = next_rd_buf;
+
 endmodule
 
 `default_nettype wire
