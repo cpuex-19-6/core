@@ -20,7 +20,7 @@ module alu
      input  wire rstn);
     
     assign accepted = order;
-    assign done     = orderl
+    assign done     = order;
 
     wire [32-1:0] rd_buf;
     wire [32-1:0] next_rd_buf =done ? (
