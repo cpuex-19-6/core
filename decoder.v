@@ -55,11 +55,11 @@ module decode
 
     wire rs1_float = float & ~mem &
                      (~func7[6] |
-                     (func7[3] ^ func[4]));
+                     (func7[3] ^ func7[4]));
     wire rs2_float = float;
     wire rd_float  = float &
                      (~func7[6] |
-                     ~(func7[3] ^ func[4]));
+                     ~(func7[3] ^ func7[4]));
 
     wire [`LEN_IMM12-1:0] imm12i;
     wire [`LEN_IMM12-1:0] imm12s;

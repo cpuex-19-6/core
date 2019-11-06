@@ -61,12 +61,13 @@ module cpu
     reg                  fetch_order;
 
     //  out
-    wire                 fetched;
+    wire                 fetch_accepted;
+    wire                 fetch_done;
     reg  [`LEN_INST-1:0] inst_fd;
     wire [`LEN_INST-1:0] inst_f;
 
     fetch fet(
-        fetch_order, fetched,
+        fetch_order, fetch_accepted, fetch_done,
         pc, inst_f,
         a_inst, d_inst,
         clk, rstn);
@@ -256,7 +257,7 @@ module cpu
             // fetch_wait ---------------------------
             else if (state == `STATE_FETCH_WAIT) begin
                 fetch_order <= 1'b0;
-                if (fetched) begin
+                if (fetch_done) begin
                     inst_fd <= inst_f;
                     pc_fd <= pc;
                     state <= `STATE_DECODE;
