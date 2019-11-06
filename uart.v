@@ -115,6 +115,7 @@ endmodule
 module uart_manage
     #(DEPTH = `LEN_CYCLE_REG,
       LENGTH_ADDR = `LEN_CYCLE_REG_ADDR,
+      CLK_FREQ = `CLK_PER_SEC,
       BAUD = `DEFAULT_BAUD)
     (input  wire order,
      output wire accepted,
@@ -133,7 +134,7 @@ module uart_manage
     wire urx_rr_flag;
     wire [8-1:0] urx_rr_data;
 
-    uart_rx #(BAUD) urx (
+    uart_rx #(CLK_FREQ, BAUD) urx (
         urx_rr_flag, urx_rr_data,
         rxd, clk, rstn);
     
@@ -142,7 +143,7 @@ module uart_manage
     wire [8-1:0] rr_ui_data;
     wire rr_ui_done;
 
-    cycle_reg #(`LEN_CYCLE_REG,`LEN_CYCLE_REG_ADDR)
+    cycle_reg #(DEPTH, LENGTH_ADDR)
     r_r_input(
         urx_rr_flag, urx_rr_data, rr_ignore,
         rr_ui_order, rr_ui_data, rr_ui_done,
@@ -163,13 +164,13 @@ module uart_manage
     wire [8-1:0]rt_utx_data;
     wire rt_utx_sendable;
 
-    cycle_reg #(`LEN_CYCLE_REG,`LEN_CYCLE_REG_ADDR)
+    cycle_reg #(DEPTH, LENGTH_ADDR)
     r_t_output(
         ui_rt_order, ui_rt_data, ui_rt_done,
         rt_utx_sendable, rt_utx_data, rt_utx_order,
         clk, rstn);
 
-    uart_tx #(BAUD) utx (
+    uart_tx #(CLK_FREQ, BAUD) utx (
         rt_utx_order, rt_utx_data, rt_utx_sendable,
         txd, clk, rstn);
 

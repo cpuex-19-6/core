@@ -10,13 +10,12 @@
 `define STATE_EXECUTE      10'b0000001000
 `define STATE_EXECUTE_WAIT 10'b0000010000
 `define STATE_WRITE        10'b0000100000
+`define STATE_END          10'b1111111111
 
 module cpu
     (input  wire clk,
      input  wire rstn,
-     output wire [`STATE_NUM-1:0] stat,
-     output wire clk_o,
-     output wire rstn_o,
+     output wire [7-1:0] led_stat,
 
      output wire [`LEN_MEMISTR_ADDR-1:0] a_inst,
      input  wire [`LEN_WORD-1:0]         d_inst,
@@ -38,9 +37,7 @@ module cpu
     reg [`LEN_MEM_ADDR-1:0] pc;
     reg [`STATE_NUM-1:0]    state;
 
-    assign stat = state;
-    assign clk_o = clk;
-    assign rstn_o = rstn;
+    reg [32-1:0] clock_counter;
 
     // registers -------------------------------
     //  in
@@ -205,6 +202,7 @@ module cpu
     always @(posedge clk) begin
         if (~rstn) begin
             pc <= 'b0;
+            clock_counter <= 32'b0;
             state <= `STATE_FETCH;
             reg_a_rd <= 6'b0;
             reg_d_rd <= 32'b0;
@@ -328,6 +326,10 @@ module cpu
                     d_rd_ew <= d_rs3_de;
                     state <= `STATE_WRITE;
                 end
+                // else ---------------------------
+                else begin
+                    state <= `STATE_END;
+                end
             end
             // execute_wait ---------------------------
             else if (state == `STATE_EXECUTE_WAIT) begin
@@ -363,8 +365,12 @@ module cpu
                 pc <= {next_pc_ew[31:2],2'b00};
                 state <= `STATE_FETCH;
             end
+            clock_counter <= clock_counter + 32'b1;
         end
     end
+
+    // LED output
+    assign led_stat = {clk, rstn, state[4:0]};
 
 endmodule
 
