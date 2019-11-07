@@ -14,7 +14,7 @@ module fdiv
 
   wire doing;
   wire next_doing = doing ? ~done : order;
-  temp_reg #(1) r_doing(1'b1, next_doing, doing, done, clk, rstn);
+  temp_reg #(1) r_doing(1'b1, next_doing, doing, clk, rstn);
 
   assign accepted = ~doing & order;
 

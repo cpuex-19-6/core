@@ -151,7 +151,7 @@ module uart_manage
     
     wire ui_rt_order;
     wire [8-1:0] ui_rt_data;
-    wire [8-1:0] ui_rt_done;
+    wire ui_rt_done;
 
     uart_inside uis(
         order, accepted, done,
