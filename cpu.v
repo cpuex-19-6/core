@@ -192,7 +192,7 @@ module cpu
 
     io_core io_c(
         io_flag, io_accepted, io_done,
-        io_io, func7_de[5], func3_de, d_rs1_de, io_input,
+        io_io, func3_de, d_rs1_de, io_input,
         uart_write_flag, uart_size, uart_o_data, uart_i_data,
         uart_order, uart_accepted, uart_done,
         clk, rstn);
