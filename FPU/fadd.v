@@ -16,7 +16,7 @@ module fadd
   // 何もやってなくて、orderが出ていたら仕事をする
   wire doing;
   wire next_doing = doing ? ~done : order;
-  temp_reg #(1) r_doing(1'b1, next_doing, doing, done, clk, rstn);
+  temp_reg #(1) r_doing(1'b1, next_doing, doing, clk, rstn);
 
   // 現在何も実行していなくて、orderが来ているなら、
   // orderを受けて、計算を始める(acceptedを上げる)
