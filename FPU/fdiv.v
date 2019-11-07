@@ -92,8 +92,71 @@ module fdiv
   assign m1ak = {m1aa, 24'b0};
   assign m2ak = {24'b0, m2a};
 
+
+  reg [47:0] m1ak_0;
+  reg [47:0] m1ak_1;
+  reg [47:0] m2ak_0;
+  reg [47:0] m2ak_1;
+  reg sy_0;
+  reg sy_1;
+  reg [7:0] e1_0;
+  reg [7:0] e1_1;
+  reg [7:0] e2_0;
+  reg [7:0] e2_1;
+  reg [22:0] m1_0;
+  reg [22:0] m1_1;
+  reg [8:0] e1a_0;
+  reg [8:0] e1a_1;
+  reg [8:0] e2a_0;
+  reg [8:0] e2a_1;
+  reg [4:0] te_0;
+  reg [4:0] te_1;
+
+  always @(posedge clk) begin
+    if (~rstn) begin
+      m1ak_0 <= 48'b0;
+      m1ak_1 <= 48'b0;
+      m2ak_0 <= 48'b0;
+      m2ak_1 <= 48'b0;
+      sy_0   <= 1'b0;
+      sy_1   <= 1'b0;
+      e1_0   <= 8'b0;
+      e1_1   <= 8'b0;
+      e2_0   <= 8'b0;
+      e2_1   <= 8'b0;
+      m1_0   <= 23'b0;
+      m1_1   <= 23'b0;
+      e1a_0  <= 9'b0;
+      e1a_1  <= 9'b0;
+      e2a_0  <= 9'b0;
+      e2a_1  <= 9'b0;
+      te_0   <= 5'b0;
+      te_1   <= 5'b0;
+    end else begin
+      m1ak_0 <= m1ak;
+      m1ak_1 <= m1ak_0;
+      m2ak_0 <= m2ak;
+      m2ak_1 <= m2ak_0;
+      sy_0   <= sy;
+      sy_1   <= sy_0;
+      e1_0   <= e1;
+      e1_1   <= e1_0;
+      e2_0   <= e2;
+      e2_1   <= e2_0;
+      m1_0   <= m1;
+      m1_1   <= m1_0;
+      e1a_0  <= e1a;
+      e1a_1  <= e1a_0;
+      e2a_0  <= e2a;
+      e2a_1  <= e2a_0;
+      te_0   <= te;
+      te_1   <= te_0;
+    end
+  end
+
+
   wire [47:0] myd;
-  assign myd = m1ak / m2ak;
+  assign myd = m1ak_1 / m2ak_1;
 
   wire [5:0] se;
   assign se = (myd[47] == 1) ? 6'd0 :
@@ -145,6 +208,69 @@ module fdiv
               (myd[1] == 1) ? 6'd46 :
               (myd[0] == 1) ? 6'd47 : 6'd48;
 
+
+  reg [47:0] myd_1;
+  reg [47:0] myd_2;
+  reg [5:0] se_1;
+  reg [5:0] se_2;
+  reg sy_1_tmp;
+  reg sy_2;
+  reg [7:0] e1_1_tmp;
+  reg [7:0] e1_2;
+  reg [7:0] e2_1_tmp;
+  reg [7:0] e2_2;
+  reg [22:0] m1_1_tmp;
+  reg [22:0] m1_2;
+  reg [8:0] e1a_1_tmp;
+  reg [8:0] e1a_2;
+  reg [8:0] e2a_1_tmp;
+  reg [8:0] e2a_2;
+  reg [4:0] te_1_tmp;
+  reg [4:0] te_2;
+
+  always @(posedge clk) begin
+    if (~rstn) begin
+      se_1      <= 6'b0;
+      se_2      <= 6'b0;
+      myd_1     <= 48'b0;
+      myd_2     <= 48'b0;
+      sy_1_tmp  <= 1'b0;
+      sy_2      <= 1'b0;
+      m1_1_tmp  <= 23'b0;
+      m1_2      <= 23'b0;
+      e1_1_tmp  <= 8'b0;
+      e1_2      <= 8'b0;
+      e2_1_tmp  <= 8'b0;
+      e2_2      <= 8'b0;
+      e1a_1_tmp <= 9'b0;
+      e1a_2     <= 9'b0;
+      e2a_1_tmp <= 9'b0;
+      e2a_2     <= 9'b0;
+      te_1_tmp  <= 5'b0;
+      te_2      <= 5'b0;
+    end else begin
+      se_1      <= se;
+      se_2      <= se_1;
+      myd_1     <= myd;
+      myd_2     <= myd_1;
+      sy_1_tmp  <= sy;
+      sy_2      <= sy_1_tmp;
+      m1_1_tmp  <= m1_1;
+      m1_2      <= m1_1_tmp;
+      e1_1_tmp  <= e1_1;
+      e1_2      <= e1_1_tmp;
+      e2_1_tmp  <= e2_1;
+      e2_2      <= e2_1_tmp;
+      e1a_1_tmp <= e1a_1;
+      e1a_2     <= e1a_1_tmp;
+      e2a_1_tmp <= e2a_1;
+      e2a_2     <= e2a_1_tmp;
+      te_1_tmp  <= te_1;
+      te_2      <= te_1_tmp;
+    end
+  end
+
+
   wire [8:0] eyd;
   wire [8:0] eyd_rev;
   wire signed [9:0] eyff;
@@ -155,21 +281,21 @@ module fdiv
   wire [22:0] my;
 
   // 仮の指数部
-  assign eyd = 9'b001111111 + e1a - e2a - {5'b0,te};
-  assign eyd_rev = e2a + {5'b0,te} - e1a - 9'b001111111;
-  assign eyff = 10'b0001111111 + {1'b0,e1a} - {1'b0,e2a} - {5'b0,te} - {4'b0,se};
-  assign eyf = 10'b0001111111 + {1'b0,e1a} - {1'b0,e2a} - {5'b0,te} - {4'b0,se} + 5'd23;
+  assign eyd = 9'b001111111 + e1a_2 - e2a_2 - {5'b0,te_2};
+  assign eyd_rev = e2a_2 + {5'b0,te_2} - e1a_2 - 9'b001111111;
+  assign eyff = 10'b0001111111 + {1'b0,e1a_2} - {1'b0,e2a_2} - {5'b0,te_2} - {4'b0,se_2};
+  assign eyf = 10'b0001111111 + {1'b0,e1a_2} - {1'b0,e2a_2} - {5'b0,te_2} - {4'b0,se_2} + 5'd23;
 
   assign ey = (eyf > 0) ? eyf[7:0] : 8'b0;
-  assign myf = (eyff > 0) ? (myd << se) : 
-               (eyf > 0) ? (myd << (eyd[4:0] - eyff)) :
-               ((e1 == 0) && (e2 == 8'b01111111)) ? (myd << (23 - te)) : 
-               ((e1a + 9'b001111110) == e2a) ? (myd << 23) : 
-               ((e1 == 0) && ((te + e2) == 8'b01111111)) ? (myd << 23) : (myd << (22 - eyd_rev));
+  assign myf = (eyff > 0) ? (myd_2 << se_2) : 
+               (eyf > 0) ? (myd_2 << (eyd[4:0] - eyff)) :
+               ((e1_2 == 0) && (e2_2 == 8'b01111111)) ? (myd_2 << (23 - te_2)) : 
+               ((e1a_2 + 9'b001111110) == e2a_2) ? (myd_2 << 23) : 
+               ((e1_2 == 0) && ((te_2 + e2_2) == 8'b01111111)) ? (myd_2 << 23) : (myd_2 << (22 - eyd_rev));
   assign my = myf[46:24];
 
-  assign rd = ((e1 == 8'b0) && (m1 == 23'b0)) ? {sy,8'b0,23'b0} : // 割られる数が0の場合
-              {sy, ey, my};
+  assign rd = ((e1_2 == 8'b0) && (m1_2 == 23'b0)) ? {sy_2,8'b0,23'b0} : // 割られる数が0の場合
+              {sy_2, ey, my};
 
 endmodule
 
