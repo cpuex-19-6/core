@@ -21,20 +21,17 @@ module uart_rx
     reg [31:0] counter;
     reg signal_bit;
     reg signal_halfbit;
-    reg signal_lastbit;
 
     reg [3:0] status;
     reg [7:0] rxbuf;
     reg rst_ctr;
     reg count_wait;
 
-    reg [7:0] read_data;
-
     (* ASYNC_REG = "true" *) reg [4:0] chatter_check;
     reg rxd_use_check;
 
     wire rxd_use = chatter_check[4];
-    
+
     localparam s_wait = 0;
     localparam s_start_bit = 1;
     localparam s_bit_0 = 2;
@@ -53,7 +50,6 @@ module uart_rx
             counter <= 0;
             signal_bit <= 0;
             signal_halfbit <= 0;
-            signal_lastbit <= 0;
         end
         else begin
             // increment of counter
@@ -73,12 +69,6 @@ module uart_rx
                 signal_halfbit <= 1;
             end else begin
                 signal_halfbit <= 0;
-            end
-            // for stop bit clock
-            if (~rst_ctr && counter == e_clk_stop_bit) begin
-                signal_lastbit <= 1;
-            end else begin
-                signal_lastbit <= 0;
             end
         end
     end

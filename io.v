@@ -8,7 +8,6 @@ module io_core
      output wire                  done,
 
      input  wire                  write_flag,
-     input  wire                  float_flag,
      input  wire [`LEN_FUNC3-1:0] func3,
      input  wire [`LEN_WORD-1:0]  o_data,
      output wire [`LEN_WORD-1:0]  i_data,

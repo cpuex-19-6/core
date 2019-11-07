@@ -14,7 +14,7 @@ module fmul
 
   wire doing;
   wire next_doing = doing ? ~done : order;
-  temp_reg #(1) r_doing(1'b1, next_doing, doing, done, clk, rstn);
+  temp_reg #(1) r_doing(1'b1, next_doing, doing, clk, rstn);
 
   assign accepted = ~doing & order;
 
@@ -63,16 +63,55 @@ module fmul
   wire [7:0] eyd;
   assign eyd = e1a + e2a + 8'b10000010;
 
-  // アンダーフロー検知（非正規化数対応）
-  wire udf = 9'b010000000 > (e1a + e2a);
-  wire udf_just = (8'b01111111 == (e1a + e2a));
   wire [8:0] shifts = 8'b01111111 - (e1a + e2a);
+
+
+  reg sy_1;
+  reg [7:0] e1_1;
+  reg [7:0] e2_1;
+  reg [22:0] m1_1;
+  reg [22:0] m2_1; 
+  reg [8:0] e1a_1;
+  reg [8:0] e2a_1;
+  reg [23:0] m1a_1;
+  reg [23:0] m2a_1;
+  reg [7:0] eyd_1;
+  reg [8:0] shifts_1;
+
+  always @(posedge clk) begin
+    if (~rstn) begin
+      sy_1     <= 1'b0;
+      e1_1     <= 8'b0;
+      e2_1     <= 8'b0;
+      m1_1     <= 23'b0;
+      m2_1     <= 23'b0;
+      e1a_1    <= 9'b0;
+      e2a_1    <= 9'b0;
+      m1a_1    <= 24'b0;
+      m2a_1    <= 24'b0;
+      eyd_1    <= 8'b0;
+      shifts_1 <= 9'b0;
+    end else begin
+      sy_1     <= sy;
+      e1_1     <= e1;
+      e2_1     <= e2;
+      m1_1     <= m1;
+      m2_1     <= m2;
+      e1a_1    <= e1a;
+      e2a_1    <= e2a;
+      m1a_1    <= m1a;
+      m2a_1    <= m2a;
+      eyd_1    <= eyd;
+      shifts_1 <= shifts;
+    end
+  end
+
 
   // 仮数部
   wire [47:0] myd;
   wire [47:0] myd_shifts;
-  assign myd = m1a * m2a;
-  assign myd_shifts = myd >>> shifts;
+  assign myd = m1a_1 * m2a_1;
+  assign myd_shifts = myd >>> shifts_1;
 
   wire [5:0] se;
   assign se = (myd[47] == 1) ? 6'd0 :
@@ -124,6 +163,48 @@ module fmul
               (myd[1] == 1) ? 6'd46 :
               (myd[0] == 1) ? 6'd47 : 6'd48;
 
+
+  reg sy_2;
+  reg [7:0] e1_2;
+  reg [7:0] e2_2;
+  reg [22:0] m1_2;
+  reg [22:0] m2_2; 
+  reg [8:0] e1a_2;
+  reg [8:0] e2a_2;
+  reg [7:0] eyd_2;
+  reg [47:0] myd_2;
+  reg [47:0] myd_shifts_2;
+  reg [5:0] se_2;
+
+  always @(posedge clk) begin
+    if (~rstn) begin
+      sy_2         <= 1'b0;
+      e1_2         <= 8'b0;
+      e2_2         <= 8'b0;
+      m1_2         <= 23'b0;
+      m2_2         <= 23'b0;
+      e1a_2        <= 9'b0;
+      e2a_2        <= 9'b0;
+      eyd_2        <= 32'b0;
+      myd_2        <= 48'b0;
+      myd_shifts_2 <= 48'b0;
+      se_2         <= 6'b0;
+    end else begin
+      sy_2         <= sy_1;
+      e1_2         <= e1_1;
+      e2_2         <= e2_1;
+      m1_2         <= m1_1;
+      m2_2         <= m2_1;
+      e1a_2        <= e1a_1;
+      e2a_2        <= e2a_1;   
+      eyd_2        <= eyd_1;
+      myd_2        <= myd;
+      myd_shifts_2 <= myd_shifts;
+      se_2         <= se;
+    end
+  end
+  
+
   wire signed [8:0] eyf;
   wire [7:0] eyr;
   wire [7:0] ey;
@@ -131,17 +212,20 @@ module fmul
   wire [22:0] myr; 
   wire [22:0] my;
 
-  assign eyf = {1'b0, eyd} - {3'b0, se};
+  assign eyf = {1'b0, eyd_2} - {3'b0, se_2};
   assign eyr = (eyf > 0) ? eyf[7:0] : 8'b0;
-  assign myf = (eyf > 0) ? (myd << se) : (myd << (eyd[4:0] - 1)); 
+  assign myf = (eyf > 0) ? (myd_2 << se_2) : (myd_2 << (eyd_2[4:0] - 1)); 
   assign myr = myf[46:24];
 
-  assign ey = (udf_just == 1'b1 && myd[47] == 1'b1) ? 8'b00000001 :
-              (udf == 1'b1) ? 8'b00000000 : eyr;
-  assign my = (udf == 1'b1) ? myd_shifts[46:24] : myr;
+  wire udf = 9'b010000000 > (e1a_2 + e2a_2);
+  wire udf_just = (8'b01111111 == (e1a_2 + e2a_2));
 
-  assign rd = (((e1 == 8'b0) && (m1 == 23'b0)) || ((e2 == 8'b0) && (m2 == 23'b0))) ? {sy,8'b0,23'b0} :   // 0をかける場合
-              {sy, ey, my};
+  assign ey = (udf_just == 1'b1 && myd_2[47] == 1'b1) ? 8'b00000001 :
+              (udf == 1'b1) ? 8'b00000000 : eyr;
+  assign my = (udf == 1'b1) ? myd_shifts_2[46:24] : myr;
+
+  assign rd = (((e1_2 == 8'b0) && (m1_2 == 23'b0)) || ((e2_2 == 8'b0) && (m2_2 == 23'b0))) ? {sy_2,8'b0,23'b0} :   // 0をかける場合
+              {sy_2, ey, my};
  
 endmodule
 
