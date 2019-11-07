@@ -14,37 +14,27 @@ module fadd
   // このクロック開始時にモジュール内で計算中かどうか
   // 実行中で、現在のクロックで終了するなら次はやらない
   // 何もやってなくて、orderが出ていたら仕事をする
-  wire doing;
-  wire next_doing = doing ? ~done : order;
-  temp_reg #(1) r_doing(1'b1, next_doing, doing, clk, rstn);
+  // ここでは内部のパイプライン止まることを避けたいだけなので、
+  // 内部でクロック周波数、クロック数が常に一定のときには
+  // busyが常に0でもよい
+  wire busy;
+  wire next_busy = busy ? ~done : order;
+  temp_reg #(1) r_busy(1'b1, next_busy, busy, clk, rstn);
 
   // 現在何も実行していなくて、orderが来ているなら、
   // orderを受けて、計算を始める(acceptedを上げる)
-  assign accepted = ~doing & order;
+  assign accepted = ~busy & order;
 
-  // このクロック内で計算が終了するかどうか
-  // (すなわち、次のクロックの開始時にcpuのEWレジスタに値を格納できるかどうか)
-  localparam CLK_COUNT_LEN = 2;
-  localparam CLK_COUNT_INC = 2'd1;
-  localparam CLK_COUNT_ZERO = 2'd0;
-  localparam CLK_COUNT_MAX = 2'd2;
-  // (3クロック分割のとき)現在のカウンターが2になったら
-  // 次のクロックの間には実行していないので次は0にする
-  // 1クロック目のとき0
-  // 2...1
-  // 3...2
-  // 最適化の状況によってはシフトにした方がいいかもしれない
-  wire [CLK_COUNT_LEN-1:0] done_counter;
-  wire [CLK_COUNT_LEN-1:0] next_done_counter =
-      (~doing) ? CLK_COUNT_ZERO :
-      (done_counter == CLK_COUNT_MAX) ? CLK_COUNT_ZERO :
-      (done_counter + CLK_COUNT_INC);
-  temp_reg #(CLK_COUNT_LEN) r_done_counter(1'b1, next_done_counter, done_counter, clk, rstn);
+  // 各ステージ境界において、そのステージで計算しているかどうかの
+  // 値を引き継いでいく
+  // (実質的にはシフトによるカウンタで、各ビットをステージに割っている)
+  // 最後のステージが実行中ならそのクロックのうちに
+  // モジュール全体で演算が終了するので、doneを上げておく
+  reg stage_1;
+  reg stage_2;
+  assign done = stage_2;
 
-  // done_counterがCLK_COUNT_MAXだったらそのクロックのうちに
-  // 終了するので、doneを上げておく
-  assign done = (done_counter == CLK_COUNT_MAX);
-
+  // stage 0
 
   wire s1 = rs1[31];
   wire s2 = rs2[31];
@@ -97,49 +87,34 @@ module fadd
   assign mia = mie >> de;
 
 
-  reg s1_0;
   reg s1_1;
-  reg s2_0;
   reg s2_1;
-  reg ss_0;
   reg ss_1;
-  reg [24:0] ms_0;
   reg [24:0] ms_1;
-  reg [7:0] es_0;
   reg [7:0] es_1;
-  reg [55:0] mia_0;
-  reg [55:0] mia_1; 
+  reg [55:0] mia_1;
 
   always @(posedge clk) begin
     if (~rstn) begin
-      s1_0  <= 1'b0;
-      s1_1  <= 1'b0;
-      s2_0  <= 1'b0;
-      s2_1  <= 1'b0;
-      ss_0  <= 1'b0;
-      ss_1  <= 1'b0;
-      ms_0  <= 25'b0;
-      ms_1  <= 25'b0;
-      es_0  <= 8'b0;
-      es_1  <= 8'b0;
-      mia_0 <= 56'b0;
-      mia_1 <= 56'b0;
+      s1_1    <= 1'b0;
+      s2_1    <= 1'b0;
+      ss_1    <= 1'b0;
+      ms_1    <= 25'b0;
+      es_1    <= 8'b0;
+      mia_1   <= 56'b0;
+      stage_1 <= 1'b0;
     end else begin
-      s1_0  <= s1;
-      s1_1  <= s1_0;
-      s2_0  <= s2;
-      s2_1  <= s2_0;
-      ss_0  <= ss;
-      ss_1  <= ss_0;
-      ms_0  <= ms;
-      ms_1  <= ms_0;
-      es_0  <= es;
-      es_1  <= es_0;
-      mia_0 <= mia;
-      mia_1 <= mia_0;
+      s1_1    <= s1;
+      s2_1    <= s2;
+      ss_1    <= ss;
+      ms_1    <= ms;
+      es_1    <= es;
+      mia_1   <= mia;
+      stage_1 <= accepted;
     end
   end
 
+  // stage 1
 
   wire tstck = |(mia_1[28:0]);
 
@@ -186,52 +161,33 @@ module fadd
               (myd[0] == 1) ? 5'd25 : 5'd26; 
 
 
-  reg [7:0] eyd_1;
   reg [7:0] eyd_2;
-  reg [26:0] myd_1;
   reg [26:0] myd_2;
-  reg [4:0] se_1;
   reg [4:0] se_2;
-  reg stck_1;
   reg stck_2;
-  reg s1_1_tmp;
   reg s1_2;
-  reg s2_1_tmp;
   reg s2_2;
-  reg ss_1_tmp;
   reg ss_2;
 
   always @(posedge clk) begin
     if (~rstn) begin
-      eyd_1    <= 8'b0;
       eyd_2    <= 8'b0;
-      myd_1    <= 27'b0;
       myd_2    <= 27'b0;
-      se_1     <= 5'b0;
       se_2     <= 5'b0;
-      stck_1   <= 1'b0;
       stck_2   <= 1'b0;
-      s1_1_tmp <= 1'b0;
       s1_2     <= 1'b0;
-      s2_1_tmp <= 1'b0;
       s2_2     <= 1'b0;
-      ss_1_tmp <= 1'b0;
       ss_2     <= 1'b0;
+      stage_2  <= 1'b0;
     end else begin
-      eyd_1    <= eyd;
-      eyd_2    <= eyd_1;
-      myd_1    <= myd;
-      myd_2    <= myd_1;
-      se_1     <= se;
-      se_2     <= se_1;
-      stck_1   <= stck;
-      stck_2   <= stck_1;
-      s1_1_tmp <= s1_1;
-      s1_2     <= s1_1_tmp;
-      s2_1_tmp <= s2_1;
-      s2_2     <= s2_1_tmp;
-      ss_1_tmp <= ss_1;
-      ss_2     <= ss_1_tmp;
+      eyd_2    <= eyd;
+      myd_2    <= myd;
+      se_2     <= se;
+      stck_2   <= stck;
+      s1_2     <= s1_1;
+      s2_2     <= s2_1;
+      ss_2     <= ss_1;
+      stage_2  <= stage_1;
     end
   end
 
