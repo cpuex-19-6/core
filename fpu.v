@@ -220,7 +220,7 @@ module fpu
         imvf_done    ? imvf_rd   :
         fcomp_done   ? fcomp_rd  :
         error_done   ? error_rd  : rd_buf;
-    temp_reg r_rd_buf(done, rd_buf, next_rd_buf, clk, rstn);
+    temp_reg r_rd_buf(done, next_rd_buf, rd_buf, clk, rstn);
 
     assign rd = next_rd_buf;
 
