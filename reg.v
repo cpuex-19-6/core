@@ -3,7 +3,7 @@
 `default_nettype none
 
 module temp_reg
-    #(LEN = 32, DEFAULT = 32'b0)
+    #(LEN = 32, DEFAULT = 'b0)
     (input  wire wen,
      input  wire [LEN-1:0] i_data,
      output reg  [LEN-1:0] o_data,
