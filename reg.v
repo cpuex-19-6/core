@@ -33,7 +33,7 @@ module regs
      input wire clk,
      input wire rstn);
 
-    localparam reg_num = 64;
+    localparam reg_num = 2 ** `LEN_REG_ADDR;
     localparam special_init_regs = 3;
 
     reg [reg_num-1:0] registers [`LEN_WORD-1:0];
