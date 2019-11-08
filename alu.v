@@ -47,7 +47,7 @@ module alu
             (func3 == `FUNC3_AND) ? (rs1 & rs2) :
             32'b0)
         ) : rd_buf;
-    temp_reg r_rd_buf(done, rd_buf, next_rd_buf, clk, rstn);
+    temp_reg r_rd_buf(done, next_rd_buf, rd_buf, clk, rstn);
 
     assign rd = next_rd_buf;
 
