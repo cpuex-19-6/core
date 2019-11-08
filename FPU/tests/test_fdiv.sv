@@ -28,8 +28,11 @@ module test_fdiv();
 
       // NaN, Inf は無視
       // 割られる数は0ではない
-      for (i=0; i<255; i++) begin
-         for (j=1; j<255; j++) begin
+      // 2^127 以上の数は考えなくていい
+      for (i=0; i<254; i++) begin
+         for (j=1; j<254; j++) begin
+            $display("i=%d j=%d", i, j);
+
             for (s1=0; s1<2; s1++) begin
                for (s2=0; s2<2; s2++) begin
                   for (it=0; it<10; it++) begin
@@ -80,8 +83,16 @@ module test_fdiv();
    
                         #1;
 
-                        // 末尾1bitの差を許容
-                        if ((y !== fybit) && ((y + 1'b1) !== fybit) && ((y - 1'b1) !== fybit)
+
+                        // 末尾3bitの差を許容
+                        if ((y !== fybit)
+                            && ((y + 3'b001) !== fybit) && ((y - 3'b001) !== fybit)
+                            && ((y + 3'b010) !== fybit) && ((y - 3'b010) !== fybit)
+                            && ((y + 3'b011) !== fybit) && ((y - 3'b011) !== fybit)
+                            && ((y + 3'b100) !== fybit) && ((y - 3'b100) !== fybit)
+                            && ((y + 3'b101) !== fybit) && ((y - 3'b101) !== fybit)
+                            && ((y + 3'b110) !== fybit) && ((y - 3'b110) !== fybit)
+                            && ((y + 3'b111) !== fybit) && ((y - 3'b111) !== fybit)
                             && (fybit[30:23] != 255)) begin
                            $display("x1 = %b %b %b, %3d",
 				    x1[31], x1[30:23], x1[22:0], x1[30:23]);
@@ -99,10 +110,11 @@ module test_fdiv();
          end
       end
 
-      for (i=1; i<255; i++) begin
+      for (i=1; i<254; i++) begin
          for (s1=0; s1<2; s1++) begin
             for (s2=0; s2<2; s2++) begin
                for (j=0;j<23;j++) begin
+                  $display("i=%d j=%d", i, j);
                   repeat(10) begin
                      #1;
 
@@ -124,8 +136,15 @@ module test_fdiv();
 
                      #1;
 
-                     // 末尾1bitの差を許容
-                        if ((y !== fybit) && ((y + 1'b1) !== fybit) && ((y - 1'b1) !== fybit)
+                     // 末尾3bitの差を許容
+                        if ((y !== fybit) 
+                            && ((y + 3'b001) !== fybit) && ((y - 3'b001) !== fybit)
+                            && ((y + 3'b010) !== fybit) && ((y - 3'b010) !== fybit)
+                            && ((y + 3'b011) !== fybit) && ((y - 3'b011) !== fybit)
+                            && ((y + 3'b100) !== fybit) && ((y - 3'b100) !== fybit)
+                            && ((y + 3'b101) !== fybit) && ((y - 3'b101) !== fybit)
+                            && ((y + 3'b110) !== fybit) && ((y - 3'b110) !== fybit)
+                            && ((y + 3'b111) !== fybit) && ((y - 3'b111) !== fybit)
                             && (fybit[30:23] != 255)) begin
                         $display("x1 = %b %b %b, %3d",
 				 x1[31], x1[30:23], x1[22:0], x1[30:23]);
