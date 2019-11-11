@@ -87,10 +87,11 @@ module fdiv
   wire [31:0] inv1_left;
   assign inv1_left = {s2,inv0[30:23]+1'b1,inv0[22:0]};
 
-  wire [31:0] inv1_right_tmp1;
+  wire u1_accepted;
+  wire u1_done;
+  reg u1_order; 
   reg [31:0] inv0_0;
   reg [31:0] inv1_left_0;
-  reg [31:0] inv1_right_tmp1_0;
   reg [31:0] rs1_0;
   reg [31:0] rs2_tmp_0;
   reg under_flg_0;
@@ -102,43 +103,45 @@ module fdiv
     if (~rstn) begin
       inv0_0            <= 32'b0;
       inv1_left_0       <= 32'b0;
-      inv1_right_tmp1_0 <= 32'b0;
       rs1_0             <= 32'b0;
       rs2_tmp_0         <= 32'b0;
       under_flg_0       <= 1'b0;
       e1_0              <= 8'b0;
       m1_0              <= 23'b0;
+      u1_order          <= 1'b0;
       stage_0           <= 1'b0;
     end else begin
-      inv0_0            <= inv0;
-      inv1_left_0       <= inv1_left;
-      inv1_right_tmp1_0 <= inv1_right_tmp1;
-      rs1_0             <= rs1;
-      rs2_tmp_0         <= rs2_tmp;
-      under_flg_0       <= under_flg;
-      e1_0              <= e1;
-      m1_0              <= m1;
-      stage_0           <= accepted;
+      u1_order <= (stage_0 & ~u1_accepted) | accepted;
+      if (u1_done | ~stage_0) begin
+        inv0_0            <= inv0;
+        inv1_left_0       <= inv1_left;
+        rs1_0             <= rs1;
+        rs2_tmp_0         <= rs2_tmp;
+        under_flg_0       <= under_flg;
+        e1_0              <= e1;
+        m1_0              <= m1;
+        stage_0           <= accepted;
+      end
     end
   end
 
-  // stage 1
-  
-  reg u1_accepted;
-  reg u1_done;
+  wire [31:0] inv1_right_tmp1;
 
   fmul u1(
-    .order    (stage_0),
+    .order    (u1_order),
     .accepted (u1_accepted),
     .done     (u1_done),
 
     .rs1      (rs2_tmp_0),
     .rs2      (inv0_0),
-    .rd       (inv1_right_tmp1_0),
+    .rd       (inv1_right_tmp1),
     .clk      (clk),
     .rstn     (rstn)
   );
 
+  wire u2_accepted;
+  wire u2_done;
+  reg u2_order;
   reg [31:0] inv0_1;
   reg [31:00 inv1_left_1;
   reg [31:0] inv1_right_tmp1_1;
@@ -158,28 +161,30 @@ module fdiv
       sy_1              <= 1'b0;
       e1_1              <= 8'b0;
       m1_1              <= 23'b0;
+      u2_order          <= 1'b0;
       stage_1           <= 1'b0;
-    end else if (u1_done == 1'b1) begin
-      inv0_1            <= inv0_0;
-      inv1_left_1       <= inv1_left_0;
-      inv1_right_tmp1_1 <= inv1_right_tmp1_0;
-      rs1_1             <= rs1_0;
-      under_flg_1       <= under_flg_0; 
-      sy_1              <= sy_0;
-      e1_1              <= e1_0;
-      m1_1              <= m1_0;
-      stage_1           <= stage_0;           
+    end else begin
+      u2_order <= (stage_1 & ~u2_accepted) | u1_done;
+      if (u2_done | ~stage_1) begin
+        inv0_1            <= inv0_0;
+        inv1_left_1       <= inv1_left_0;
+        inv1_right_tmp1_1 <= inv1_right_tmp1;
+        rs1_1             <= rs1_0;
+        under_flg_1       <= under_flg_0; 
+        sy_1              <= sy_0;
+        e1_1              <= e1_0;
+        m1_1              <= m1_0;
+        stage_1           <= u1_done;
+      end
     end
   end
 
   // stage 2
 
   wire [31:0] inv1_right_tmp2;
-  reg u2_accepted;
-  reg u2_done;
 
   fmul u2(
-    .order    (stage_1),
+    .order    (u2_order),
     .accepted (u2_accepted),
     .done     (u2_done),
 
@@ -190,6 +195,9 @@ module fdiv
     .rstn     (rstn)
   );
 
+  wire u3_accepted;
+  wire u3_done;
+  reg u3_order;
   reg [31:0] inv1_left_2;
   reg [31:0] inv1_right_tmp2_2;
   reg [31:0] rs1_2;
@@ -207,16 +215,20 @@ module fdiv
       sy_2              <= 1'b0;
       e1_2              <= 8'b0;
       m1_2              <= 23'b0;
+      u3_order          <= 1'b0;
       stage_2           <= 1'b0;
-    end else if (u2_done == 1'b1) begin
-      inv1_left_2       <= inv1_left_1;
-      inv1_right_tmp2_2 <= inv1_right_tmp2;
-      rs1_2             <= rs1_1;
-      under_flg_2       <= under_flg_1;
-      sy_2              <= sy_1;
-      e1_2              <= e1_1;
-      m1_2              <= m1_1;
-      stage_2           <= stage_1;
+    end else begin
+      u3_order <= (stage_2 & ~u3_accepted) | u2_done;
+      if (u3_done | ~stage_2) begin
+        inv1_left_2       <= inv1_left_1;
+        inv1_right_tmp2_2 <= inv1_right_tmp2;
+        rs1_2             <= rs1_1;
+        under_flg_2       <= under_flg_1;
+        sy_2              <= sy_1;
+        e1_2              <= e1_1;
+        m1_2              <= m1_1;
+        stage_2           <= u2_done;
+      end
     end
   end
 
@@ -226,11 +238,9 @@ module fdiv
   assign inv1_right = {~inv1_right_tmp2_2[31],inv1_right_tmp2_2[30:0]};
 
   wire [31:0] inv1;
-  reg u3_accepted;
-  reg u3_done;
 
   fadd u3(
-    .order    (stage_2),
+    .order    (u3_order),
     .accepted (u3_accepted),
     .done     (u3_done),    
 
@@ -241,6 +251,9 @@ module fdiv
     .rstn     (rstn)
   );
 
+  wire u4_accepted;
+  wire u4_done;
+  reg u4_order;
   reg [31:0] inv1_3;
   reg [31:0] rs1_3;
   reg under_flg_3;
@@ -256,15 +269,19 @@ module fdiv
       sy_3        <= 1'b0;
       e1_3        <= 8'b0;
       m1_3        <= 23'b0;
+      u4_order    <= 1'b0;
       stage_3     <= 1'b0;
     end else if (u3_done == 1'b1) begin
-      inv1_3      <= inv1;
-      rs1_3       <= rs1_2;
-      under_flg_3 <= under_flg_2;
-      sy_3        <= sy_2;
-      e1_3        <= e1_2;
-      m1_3        <= m1_2;
-      stage_3     <= stage_2;
+      u4_order <= (stage_3 & ~u4_accepted) | u3_done;
+      if (u4_done | ~stage_3) begin
+        inv1_3      <= inv1;
+        rs1_3       <= rs1_2;
+        under_flg_3 <= under_flg_2;
+        sy_3        <= sy_2;
+        e1_3        <= e1_2;
+        m1_3        <= m1_2;
+        stage_3     <= u3_done;
+      end
     end
   end  
 
@@ -272,8 +289,6 @@ module fdiv
 
   wire [31:0] rdy;
 
-  reg u4_accepted;
-  reg u4_done;  
 
   fmul u4(
     .order    (stage_3),
@@ -301,13 +316,13 @@ module fdiv
       e1_4        <= 8'b0:
       m1_4        <= 23'b0;
       stage_4     <= 1'b0;
-    end else if (u4_done == 1'b1) begin
+    end else begin
       rdy_4       <= rdy;
       under_flg_4 <= under_flg_3;
       sy_4        <= sy_3;
       e1_4        <= e1_3;
       m1_4        <= m1_3;
-      stage_4     <= stage_3;
+      stage_4     <= u4_done;
     end
   end  
   
