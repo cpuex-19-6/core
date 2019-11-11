@@ -291,7 +291,7 @@ module fdiv
 
 
   fmul u4(
-    .order    (stage_3),
+    .order    (u4_order),
     .accepted (u4_accepted),
     .done     (u4_done), 
 
