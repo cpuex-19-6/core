@@ -88,15 +88,37 @@ module fdiv
   assign inv1_left = {s2,inv0[30:23]+1'b1,inv0[22:0]};
 
   wire [31:0] inv1_right_tmp1;
-  wire [31:0] inv1_right_tmp2;
-  wire [31:0] inv1;
-
+  reg [31:0] inv0_0;
+  reg [31:0] inv1_left_0;
+  reg [31:0] inv1_right_tmp1_0;
+  reg [31:0] rs1_0;
+  reg [31:0] rs2_tmp_0;
+  reg under_flg_0;
+  reg sy_0;
+  reg [7:0] e1_0;
+  reg [22:0] m1_0;
 
   always @(posedge clk) begin
     if (~rstn) begin
-      stage_0 <= 1'b0;
+      inv0_0            <= 32'b0;
+      inv1_left_0       <= 32'b0;
+      inv1_right_tmp1_0 <= 32'b0;
+      rs1_0             <= 32'b0;
+      rs2_tmp_0         <= 32'b0;
+      under_flg_0       <= 1'b0;
+      e1_0              <= 8'b0;
+      m1_0              <= 23'b0;
+      stage_0           <= 1'b0;
     end else begin
-      stage_0 <= accepted;
+      inv0_0            <= inv0;
+      inv1_left_0       <= inv1_left;
+      inv1_right_tmp1_0 <= inv1_right_tmp1;
+      rs1_0             <= rs1;
+      rs2_tmp_0         <= rs2_tmp;
+      under_flg_0       <= under_flg;
+      e1_0              <= e1;
+      m1_0              <= m1;
+      stage_0           <= accepted;
     end
   end
 
@@ -110,9 +132,9 @@ module fdiv
     .accepted (u1_accepted),
     .done     (u1_done),
 
-    .rs1      (rs2_tmp),
-    .rs2      (inv0),
-    .rd       (inv1_right_tmp1),
+    .rs1      (rs2_tmp_0),
+    .rs2      (inv0_0),
+    .rd       (inv1_right_tmp1_0),
     .clk      (clk),
     .rstn     (rstn)
   );
@@ -138,20 +160,21 @@ module fdiv
       m1_1              <= 23'b0;
       stage_1           <= 1'b0;
     end else if (u1_done == 1'b1) begin
-      inv0_1            <= inv0;
-      inv1_left_1       <= inv1_left;
-      inv1_right_tmp1_1 <= inv1_right_tmp1;
-      rs1_1             <= rs1;
-      under_flg_1       <= under_flg; 
-      sy_1              <= sy;
-      e1_1              <= e1;
-      m1_1              <= m1;
+      inv0_1            <= inv0_0;
+      inv1_left_1       <= inv1_left_0;
+      inv1_right_tmp1_1 <= inv1_right_tmp1_0;
+      rs1_1             <= rs1_0;
+      under_flg_1       <= under_flg_0; 
+      sy_1              <= sy_0;
+      e1_1              <= e1_0;
+      m1_1              <= m1_0;
       stage_1           <= stage_0;           
     end
   end
 
   // stage 2
 
+  wire [31:0] inv1_right_tmp2;
   reg u2_accepted;
   reg u2_done;
 
@@ -202,6 +225,7 @@ module fdiv
   wire [31:0] inv1_right;
   assign inv1_right = {~inv1_right_tmp2_2[31],inv1_right_tmp2_2[30:0]};
 
+  wire [31:0] inv1;
   reg u3_accepted;
   reg u3_done;
 
