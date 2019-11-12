@@ -11,7 +11,7 @@ module divu_remu
      input  wire [`LEN_WORD-1:0] rs2,
      input  wire rem_flag,
 
-     output wire rd,
+     output wire [`LEN_WORD-1:0] rd,
 
      input  wire clk,
      input  wire rstn);
@@ -90,8 +90,8 @@ module divu_remu
 
     // stage_0
 
-    wire [32-1:0] div_init == 32'b0;
-    wire [64-1:0] rem_init == {32'b0,rs1};
+    wire [32-1:0] div_init = 32'b0;
+    wire [64-1:0] rem_init = {32'b0,rs1};
     wire [32-1:0] temp_div_init[2**base-1:0];
     wire [64-1:0] temp_rem_init[2**base-1:0];
     assign temp_div_init[0] = {div_init[32-base-1:0],base_zero};
@@ -111,8 +111,8 @@ module divu_remu
                     : temp_rem_init[i-1];
         end
     endgenerate
-    divs_out[0] = temp_div_init[2**base-1];
-    rems_out[0] = temp_rem_init[2**base-1];
+    assign divs_out[0] = temp_div_init[2**base-1];
+    assign rems_out[0] = temp_rem_init[2**base-1];
 
     // stage 1 ~ stage last-1
 
@@ -137,8 +137,8 @@ module divu_remu
                         ? {tt_rem[32-1:0], rem[32-base-1:0], base_zero}
                         : temp_rem[i-1];
             end
-            divs_out[l] = temp_div[2**base-1];
-            rems_out[l] = temp_rem[2**base-1];
+            assign divs_out[l] = temp_div[2**base-1];
+            assign rems_out[l] = temp_rem[2**base-1];
         end
     endgenerate
 
@@ -172,4 +172,4 @@ module divu_remu
 
 endmodule
 
-`default_nettype wire;
+`default_nettype wire
