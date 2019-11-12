@@ -9,14 +9,13 @@ module divu_remu
 
      input  wire [`LEN_WORD-1:0] rs1,
      input  wire [`LEN_WORD-1:0] rs2,
-     input  wire unsig,
      input  wire rem_flag,
 
      output wire rd,
 
      input  wire clk,
      input  wire rstn);
-    
+
     // このクロック開始時にモジュール内で計算中かどうか
     // 実行中で、現在のクロックで終了するなら次はやらない
     // 何もやってなくて、orderが出ていたら仕事をする
@@ -57,8 +56,14 @@ module divu_remu
     wire [64-1:0] rems_in[calc_stages-1:0];
     wire [64-1:0] rems_out[calc_stages-1:0];
 
+    // stage_n
+    wire [stage_size:0] stage;
+    assign stage[0] = stage_start;
+    assign stage_last = stage[stage_size];
+
     // 各divs等同士の連結
-    // 0 -/clock/- 1 - 2 -/clock/- ...
+    //    - 0 -/clock/- 1 - 2 -/clock/- 3 - 4 /clock/- ...
+    // stage_0    |    stage_1    |    stage_2   |
     genvar i;
     genvar l;
     generate
@@ -77,6 +82,9 @@ module divu_remu
                 assign small_mul[l*2][i] = small_mul[l*2-1][i];
                 temp_reg #(32+base) r_smml(1'b1,small_mul[l*2][i],small_mul[l*2+1][i],clk,rstn);
             end
+        end
+        for (l = 0; l < stage_size; l = l+1) begin
+            temp_reg #(1) r_stage(1'b1,stage[l],stage[l+1],clk,rstn);
         end
     endgenerate
 
@@ -160,7 +168,7 @@ module divu_remu
     wire [32-1:0] div_ret = temp_div_last[2**base-1];
     wire [64-1:0] rem_ret = temp_rem_last[2**base-1];
 
-    generate
+    assign rd = (rem_flag) ? (rem_ret[64-1:32]) : (div_ret);
 
 endmodule
 
