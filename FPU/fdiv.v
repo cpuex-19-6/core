@@ -143,7 +143,7 @@ module fdiv
   wire u2_done;
   reg u2_order;
   reg [31:0] inv0_1;
-  reg [31:00 inv1_left_1;
+  reg [31:0] inv1_left_1;
   reg [31:0] inv1_right_tmp1_1;
   reg [31:0] rs1_1;
   reg under_flg_1;
@@ -313,7 +313,7 @@ module fdiv
       rdy_4       <= 32'b0;
       under_flg_4 <= 1'b0;
       sy_4        <= 1'b0;
-      e1_4        <= 8'b0:
+      e1_4        <= 8'b0;
       m1_4        <= 23'b0;
       stage_4     <= 1'b0;
     end else begin
