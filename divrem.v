@@ -47,14 +47,14 @@ module divu_remu
     localparam base_zero = 4'b0;
     localparam stage_max = 32 / (base * 2);
 
-    wire [32+base-1:0] small_mul[stage_max:0][2**base-1:0];
+    wire [32+base-1:0] small_mul[stage_max:0][2**base-2:0];
 
     genvar i;
     genvar l;
 
     generate
-        for (i = 0; i < 2**base; i = i+1) begin
-            assign small_mul[0][i] = {base_zero,rs2} * i[base-1:0];
+        for (i = 1; i < 2**base; i = i+1) begin
+            assign small_mul[0][i-1] = {base_zero,rs2} * i[base-1:0];
             for (l = 0; l < stage_max; l = l+1) begin
                 temp_reg #(32+base) r_smml(1'b1,small_mul[l][i],small_mul[l+1][i],clk,rstn);
             end
@@ -63,25 +63,30 @@ module divu_remu
 
     // stage_0
 
-    wire [64-1:0] rs1_64_0 == {32'b0,rs1};
-    wire [32-1:0] div_0;
-    wire [64-1:0] rem_0;
+    wire [32-1:0] div_0 == 32'b0;
+    wire [64-1:0] rem_0 == {32'b0,rs1};
 
     wire [32-1:0] temp_div_0[2**base+1-1:0];
     wire [64-1:0] temp_rem_0[2**base+1-1:0];
-    assign div_rem_0[0] = {32'b0,rs1_64_0};
-    assign {div_0,rem_0} = div_rem_0[2**base];
+    assign temp_div_0[0] = {div_0[32-base-1:0],base_zero};
+    assign temp_rem_0[0] = {rem_0[64-base-1:0],base_zero};
+    
+    wire [32-1:0] div_1 = temp_div_0[2**base-1];
+    wire [64-1:0] rem_1 = temp_rem_0[2**base-1];
 
     generate
-        for (i = 0; i < 2**base; i = i+1) begin
-            assign temp_div_0[i+1] =
-                (rs1_64_0[64-1:32-base] >= small_mul[0][i])
-                    ? i : temp_div_0[i];
-            assign temp_rem_0[i+1] =
-                (rs1_64_0[64-1:32-base] >= small_mul[0][i])
-                    ? {(rs1_64_0[64-1:32-base] - small_mul[0][i]),
-                       rs1_64_0[32-base-1:0]}
-                    : temp_rem_0[i];
+        for (i = 1; i < 2**base; i = i+1) begin
+            assign temp_div_0[i] =
+                (rem_0[64-1:32-base] >= small_mul[0][i-1])
+                    ? {div_0[32-base-1:0],i[base-1:0]}
+                    : temp_div_0[i-1];
+
+            wire [32+base-1:0] temp_temp_rem_0 =
+                rem_0[64-1:32-base] - small_mul[0][i-1];
+            assign temp_rem_0[i] =
+                (rem_0[64-1:32-base] >= small_mul[0][i-1])
+                    ? {temp_temp_rem_0[32-1:0], rem_0[32-base-1:0], base_zero}
+                    : temp_rem_0[i-1];
         end
     end
 
