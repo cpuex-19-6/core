@@ -69,6 +69,7 @@ module fpu
         clk, rstn);
 
     // fdiv
+    /*
     wire fdiv_order = order_able &
         (func7 == `FUNC7_FDIV);
     wire fdiv_accepted;
@@ -89,6 +90,7 @@ module fpu
         fsqrt_order, fsqrt_accepted, fsqrt_done,
         rs1, fsqrt_rd,
         clk, rstn);
+    */
 
     // fsgnj, fsgnjn, fsgnjx
     wire fsgnj_order = order_able &
@@ -173,8 +175,10 @@ module fpu
         (func7 != `FUNC7_FADD)  &
         (func7 != `FUNC7_FSUB)  &
         (func7 != `FUNC7_FMUL)  &
+        /*
         (func7 != `FUNC7_FDIV)  &
         (func7 != `FUNC7_FSQRT) &
+        */
         (func7 != `FUNC7_FSGNJ) &
         (func7 != `FUNC7_FRM)   &
         (func7 != `FUNC7_ITOF)  &
@@ -188,8 +192,8 @@ module fpu
 
     // 誰かがacceptしてるならそれを伝える(acceptedを上げる)
     assign accepted =
-        (fadd_accepted  | fsub_accepted  | fmul_accepted   | fdiv_accepted |
-         fsqrt_accepted | fsgnj_accepted | ffloor_accepted |
+        (fadd_accepted  | fsub_accepted  | fmul_accepted   | /* fdiv_accepted |
+         fsqrt_accepted | */ fsgnj_accepted | ffloor_accepted |
          itof_accepted  | ftoi_accepted  | fmvi_accepted   | imvf_accepted |
          fcomp_accepted |
          error_accepted); // "|"でつなげる
@@ -197,8 +201,8 @@ module fpu
     // 子モジュールのうち誰かがdoneを上げていたそのクロックのうちに
     // 終了するので、doneを上げておく
     assign done =
-        (fadd_done  | fsub_done  | fmul_done   | fdiv_done |
-         fsqrt_done | fsgnj_done | ffloor_done |
+        (fadd_done  | fsub_done  | fmul_done   | /* fdiv_done |
+         fsqrt_done | */ fsgnj_done | ffloor_done |
          itof_done  | ftoi_done  | fmvi_done   | imvf_done |
          fcomp_done |
          error_done); // "|"でつなげる
@@ -210,8 +214,10 @@ module fpu
         fadd_done    ? fadd_rd   :
         fsub_done    ? fsub_rd   :
         fmul_done    ? fmul_rd   :
+        /*
         fdiv_done    ? fdiv_rd   :
         fsqrt_done   ? fsqrt_rd  :
+        */
         fsgnj_done   ? fsgnj_rd  :
         ffloor_done  ? ffloor_rd :
         itof_done    ? itof_rd   :
