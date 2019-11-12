@@ -42,11 +42,10 @@ module divu_remu
     localparam base = 4; // 2**n
 `define base_zero 4'b0
     localparam calc_stages = 32 / base - 1;
-    localparam stage_period = 4; // 2**m
-    localparam stage_mod = 3;
+    localparam stage_period = 3;
+    localparam stage_mod = 1;
     localparam stage_size =
-        (32 / (base * stage_period)) +
-        ((stage_mod == stage_period-1)?0:1);
+        (calc_stages + (stage_period-1) - stage_mod) / stage_period + 1;
 
     // 各ステージで必要になる値
 
