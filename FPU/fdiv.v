@@ -30,9 +30,12 @@ module fdiv
   // (実質的にはシフトによるカウンタで、各ビットをステージに割っている)
   // 最後のステージが実行中ならそのクロックのうちに
   // モジュール全体で演算が終了するので、doneを上げておく
+  reg stage_0;
   reg stage_1;
   reg stage_2;
-  assign done = stage_2;
+  reg stage_3;
+  reg stage_4;
+  assign done = stage_4;
 
 
   // stage 0  
@@ -48,7 +51,6 @@ module fdiv
   wire sy;
   assign sy = (!s1 && s2) || (s1 && !s2);
 
-  
   wire flg;
   assign flg = e2 >= 8'b01111111;
 
@@ -84,94 +86,252 @@ module fdiv
   assign rs2_tmp = under_flg ? {rs2[31],rs2[30:23]-1'b1,rs2[22:0]} : rs2;
   wire [31:0] inv1_left;
   assign inv1_left = {s2,inv0[30:23]+1'b1,inv0[22:0]};
+
+  wire u1_accepted;
+  wire u1_done;
+  reg u1_order; 
+  reg [31:0] inv0_0;
+  reg [31:0] inv1_left_0;
+  reg [31:0] rs1_0;
+  reg [31:0] rs2_tmp_0;
+  reg under_flg_0;
+  reg sy_0;
+  reg [7:0] e1_0;
+  reg [22:0] m1_0;
+
+  always @(posedge clk) begin
+    if (~rstn) begin
+      inv0_0            <= 32'b0;
+      inv1_left_0       <= 32'b0;
+      rs1_0             <= 32'b0;
+      rs2_tmp_0         <= 32'b0;
+      under_flg_0       <= 1'b0;
+      e1_0              <= 8'b0;
+      m1_0              <= 23'b0;
+      u1_order          <= 1'b0;
+      stage_0           <= 1'b0;
+    end else begin
+      u1_order <= (stage_0 & ~u1_accepted) | accepted;
+      if (u1_done | ~stage_0) begin
+        inv0_0            <= inv0;
+        inv1_left_0       <= inv1_left;
+        rs1_0             <= rs1;
+        rs2_tmp_0         <= rs2_tmp;
+        under_flg_0       <= under_flg;
+        e1_0              <= e1;
+        m1_0              <= m1;
+        stage_0           <= accepted;
+      end
+    end
+  end
+
   wire [31:0] inv1_right_tmp1;
-  wire [31:0] inv1_right_tmp2;
-  wire [31:0] inv1_right;
-  wire [31:0] inv1;
-
-
-  reg u1_order;
-  reg u1_accepted;
-  reg u1_done;
-  reg u1_clk;
-  reg u1_rstn;
 
   fmul u1(
     .order    (u1_order),
     .accepted (u1_accepted),
     .done     (u1_done),
 
-    .rs1      (rs2_tmp),
-    .rs2      (inv0),
+    .rs1      (rs2_tmp_0),
+    .rs2      (inv0_0),
     .rd       (inv1_right_tmp1),
-    .clk      (u1_clk),
-    .rstn     (u1_rstn)
+    .clk      (clk),
+    .rstn     (rstn)
   );
 
+  wire u2_accepted;
+  wire u2_done;
   reg u2_order;
-  reg u2_accepted;
-  reg u2_done;
-  reg u2_clk;
-  reg u2_rstn;
+  reg [31:0] inv0_1;
+  reg [31:0] inv1_left_1;
+  reg [31:0] inv1_right_tmp1_1;
+  reg [31:0] rs1_1;
+  reg under_flg_1;
+  reg sy_1;
+  reg [7:0]  e1_1;
+  reg [22:0] m1_1;
+
+  always @(posedge clk) begin
+    if (~rstn) begin
+      inv0_1            <= 32'b0;
+      inv1_left_1       <= 32'b0;
+      inv1_right_tmp1_1 <= 32'b0;
+      rs1_1             <= 32'b0;
+      under_flg_1       <= 1'b0;
+      sy_1              <= 1'b0;
+      e1_1              <= 8'b0;
+      m1_1              <= 23'b0;
+      u2_order          <= 1'b0;
+      stage_1           <= 1'b0;
+    end else begin
+      u2_order <= (stage_1 & ~u2_accepted) | u1_done;
+      if (u2_done | ~stage_1) begin
+        inv0_1            <= inv0_0;
+        inv1_left_1       <= inv1_left_0;
+        inv1_right_tmp1_1 <= inv1_right_tmp1;
+        rs1_1             <= rs1_0;
+        under_flg_1       <= under_flg_0; 
+        sy_1              <= sy_0;
+        e1_1              <= e1_0;
+        m1_1              <= m1_0;
+        stage_1           <= u1_done;
+      end
+    end
+  end
+
+  // stage 2
+
+  wire [31:0] inv1_right_tmp2;
 
   fmul u2(
     .order    (u2_order),
     .accepted (u2_accepted),
     .done     (u2_done),
 
-    .rs1      (inv1_right_tmp1),
-    .rs2      (inv0),
+    .rs1      (inv1_right_tmp1_1),
+    .rs2      (inv0_1),
     .rd       (inv1_right_tmp2),
-    .clk      (u2_clk),
-    .rstn     (u2_rstn)
+    .clk      (clk),
+    .rstn     (rstn)
   );
 
-  assign inv1_right = {~inv1_right_tmp2[31],inv1_right_tmp2[30:0]};
-
+  wire u3_accepted;
+  wire u3_done;
   reg u3_order;
-  reg u3_accepted;
-  reg u3_done;
-  reg u3_clk;
-  reg u3_rstn;
+  reg [31:0] inv1_left_2;
+  reg [31:0] inv1_right_tmp2_2;
+  reg [31:0] rs1_2;
+  reg under_flg_2;
+  reg sy_2;
+  reg [7:0]  e1_2;
+  reg [22:0] m1_2;
+
+  always @(posedge clk) begin 
+    if (~rstn) begin 
+      inv1_left_2       <= 32'b0;
+      inv1_right_tmp2_2 <= 32'b0;
+      rs1_2             <= 32'b0;
+      under_flg_2       <= 1'b0;
+      sy_2              <= 1'b0;
+      e1_2              <= 8'b0;
+      m1_2              <= 23'b0;
+      u3_order          <= 1'b0;
+      stage_2           <= 1'b0;
+    end else begin
+      u3_order <= (stage_2 & ~u3_accepted) | u2_done;
+      if (u3_done | ~stage_2) begin
+        inv1_left_2       <= inv1_left_1;
+        inv1_right_tmp2_2 <= inv1_right_tmp2;
+        rs1_2             <= rs1_1;
+        under_flg_2       <= under_flg_1;
+        sy_2              <= sy_1;
+        e1_2              <= e1_1;
+        m1_2              <= m1_1;
+        stage_2           <= u2_done;
+      end
+    end
+  end
+
+  // stage 3
+
+  wire [31:0] inv1_right;
+  assign inv1_right = {~inv1_right_tmp2_2[31],inv1_right_tmp2_2[30:0]};
+
+  wire [31:0] inv1;
 
   fadd u3(
     .order    (u3_order),
     .accepted (u3_accepted),
     .done     (u3_done),    
 
-    .rs1      (inv1_left),
+    .rs1      (inv1_left_2),
     .rs2      (inv1_right),
     .rd       (inv1),
-    .clk      (u3_clk),
-    .rstn     (u3_rstn)
+    .clk      (clk),
+    .rstn     (rstn)
   );
+
+  wire u4_accepted;
+  wire u4_done;
+  reg u4_order;
+  reg [31:0] inv1_3;
+  reg [31:0] rs1_3;
+  reg under_flg_3;
+  reg sy_3;
+  reg [7:0]  e1_3;
+  reg [22:0] m1_3;
+
+  always @(posedge clk) begin 
+    if (~rstn) begin 
+      inv1_3      <= 32'b0; 
+      rs1_3       <= 32'b0;
+      under_flg_3 <= 1'b0;
+      sy_3        <= 1'b0;
+      e1_3        <= 8'b0;
+      m1_3        <= 23'b0;
+      u4_order    <= 1'b0;
+      stage_3     <= 1'b0;
+    end else if (u3_done == 1'b1) begin
+      u4_order <= (stage_3 & ~u4_accepted) | u3_done;
+      if (u4_done | ~stage_3) begin
+        inv1_3      <= inv1;
+        rs1_3       <= rs1_2;
+        under_flg_3 <= under_flg_2;
+        sy_3        <= sy_2;
+        e1_3        <= e1_2;
+        m1_3        <= m1_2;
+        stage_3     <= u3_done;
+      end
+    end
+  end  
+
+  // stage 3
 
   wire [31:0] rdy;
 
-  reg u4_order;
-  reg u4_accepted;
-  reg u4_done;
-  reg u4_clk;
-  reg u4_rstn;  
 
   fmul u4(
     .order    (u4_order),
     .accepted (u4_accepted),
     .done     (u4_done), 
 
-    .rs1      (rs1),
-    .rs2      (inv1),
+    .rs1      (rs1_3),
+    .rs2      (inv1_3),
     .rd       (rdy),
-    .clk      (u4_clk),
-    .rstn     (u4_rstn)
+    .clk      (clk),
+    .rstn     (rstn)
   );
+
+  reg under_flg_4;
+  reg sy_4;
+  reg [7:0]  e1_4;
+  reg [22:0] m1_4;
+  reg [31:0] rdy_4;
+
+  always @(posedge clk) begin 
+    if (~rstn) begin 
+      rdy_4       <= 32'b0;
+      under_flg_4 <= 1'b0;
+      sy_4        <= 1'b0;
+      e1_4        <= 8'b0;
+      m1_4        <= 23'b0;
+      stage_4     <= 1'b0;
+    end else begin
+      rdy_4       <= rdy;
+      under_flg_4 <= under_flg_3;
+      sy_4        <= sy_3;
+      e1_4        <= e1_3;
+      m1_4        <= m1_3;
+      stage_4     <= u4_done;
+    end
+  end  
   
-  assign rd = ((e1 == 8'b0) && (m1 == 23'b0)) ? {sy,8'b0,23'b0} : // 割られる数が0の場合
-              under_flg ? 
-              ((rdy[30:23] == 0) ? {rdy[31], 8'b0, {1'b0, rdy[22:1]}} : 
-               (rdy[30:23] == 1) ? {rdy[31], 8'b0, {1'b1, rdy[22:1]}} :
-               {rdy[31], rdy[30:23]-1'b1, rdy[22:0]}) 
-              : rdy;
+  assign rd = ((e1_4 == 8'b0) && (m1_4 == 23'b0)) ? {sy_4,8'b0,23'b0} : // 割られる数が0の場合
+              under_flg_4 ? 
+              ((rdy_4[30:23] == 0) ? {rdy_4[31], 8'b0, {1'b0, rdy_4[22:1]}} : 
+               (rdy_4[30:23] == 1) ? {rdy_4[31], 8'b0, {1'b1, rdy_4[22:1]}} :
+               {rdy_4[31], rdy_4[30:23]-1'b1, rdy_4[22:0]}) 
+              : rdy_4;
 
 endmodule
 
