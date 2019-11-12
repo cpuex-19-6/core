@@ -36,59 +36,135 @@ module divu_remu
     // (実質的にはシフトによるカウンタで、各ビットをステージに割っている)
     // 最後のステージが実行中ならそのクロックのうちに
     // モジュール全体で演算が終了するので、doneを上げておく
-    reg stage_01;
-    reg stage_12;
-    reg stage_23;
-    reg stage_34;
-    reg stage_45;
-    assign done = stage_45;
+    wire stage_start = accepted;
+    wire stage_last;
+    assign done = stage_last;
 
     localparam base = 4; // 2**n
     localparam base_zero = 4'b0;
-    localparam stage_max = 32 / (base * 2);
+    localparam stage_size = 32 / (base * 2);
+    localparam calc_stages = stage_size * 2 - 1;
 
-    wire [32+base-1:0] small_mul[stage_max:0][2**base-2:0];
+    // 各ステージで必要になる値
+
+    // (base)bit文の場合分けリスト
+    wire [32+base-1:0] small_mul[2*stage_size-1:0][(2**base-1)-1:0];
+
+    // i番目では、
+    // 前の入力 ~_in[i-1] -> 出力 ~_out[i]
+    wire [32-1:0] divs_in[calc_stages-1:0];
+    wire [32-1:0] divs_out[calc_stages-1:0];
+    wire [64-1:0] rems_in[calc_stages-1:0];
+    wire [64-1:0] rems_out[calc_stages-1:0];
 
     genvar i;
     genvar l;
-
     generate
+        temp_reg #(32) r_divs0(1'b1,divs_in[0],divs_out[0],clk,rstn);
+        temp_reg #(64) r_rems0(1'b1,rems_in[0],rems_out[0],clk,rstn);
         for (i = 1; i < 2**base; i = i+1) begin
             assign small_mul[0][i-1] = {base_zero,rs2} * i[base-1:0];
-            for (l = 0; l < stage_max; l = l+1) begin
-                temp_reg #(32+base) r_smml(1'b1,small_mul[l][i],small_mul[l+1][i],clk,rstn);
+            temp_reg #(32+base) r_smml(1'b1,small_mul[0][i-1],small_mul[1][i-1],clk,rstn);
+        end
+        for (l = 1; l < stage_size; l = l+1) begin
+            assign divs_out[l*2-1] = divs_in[l*2-1];
+            assign rems_out[l*2-1] = rems_in[l*2-1];
+            temp_reg #(32) r_divs(1'b1,divs_in[l*2],divs_out[l*2],clk,rstn);
+            temp_reg #(64) r_rems(1'b1,rems_in[l*2],rems_out[l*2],clk,rstn);
+            for (i = 0; i < 2**base-1; i = i+1) begin
+                assign small_mul[l*2][i] = small_mul[l*2-1][i];
+                temp_reg #(32+base) r_smml(1'b1,small_mul[l*2][i],small_mul[l*2+1][i],clk,rstn);
             end
         end
-    end
+    endgenerate
 
     // stage_0
 
-    wire [32-1:0] div_0 == 32'b0;
-    wire [64-1:0] rem_0 == {32'b0,rs1};
+    wire [32-1:0] div_init == 32'b0;
+    wire [64-1:0] rem_init == {32'b0,rs1};
 
-    wire [32-1:0] temp_div_0[2**base+1-1:0];
-    wire [64-1:0] temp_rem_0[2**base+1-1:0];
-    assign temp_div_0[0] = {div_0[32-base-1:0],base_zero};
-    assign temp_rem_0[0] = {rem_0[64-base-1:0],base_zero};
-    
-    wire [32-1:0] div_1 = temp_div_0[2**base-1];
-    wire [64-1:0] rem_1 = temp_rem_0[2**base-1];
+    wire [32-1:0] temp_div_init[2**base-1:0];
+    wire [64-1:0] temp_rem_init[2**base-1:0];
+    assign temp_div_init[0] = {div_init[32-base-1:0],base_zero};
+    assign temp_rem_init[0] = {rem_init[64-base-1:0],base_zero};
+
+    divs_out[0] = temp_div_init[2**base-1];
+    rems_out[0] = temp_rem_init[2**base-1];
 
     generate
         for (i = 1; i < 2**base; i = i+1) begin
-            assign temp_div_0[i] =
-                (rem_0[64-1:32-base] >= small_mul[0][i-1])
-                    ? {div_0[32-base-1:0],i[base-1:0]}
-                    : temp_div_0[i-1];
+            assign temp_div_init[i] =
+                (rem_init[64-1:32-base] >= small_mul[0][i-1])
+                    ? {div_init[32-base-1:0],i[base-1:0]}
+                    : temp_div_init[i-1];
 
-            wire [32+base-1:0] temp_temp_rem_0 =
-                rem_0[64-1:32-base] - small_mul[0][i-1];
-            assign temp_rem_0[i] =
-                (rem_0[64-1:32-base] >= small_mul[0][i-1])
-                    ? {temp_temp_rem_0[32-1:0], rem_0[32-base-1:0], base_zero}
-                    : temp_rem_0[i-1];
+            wire [32+base-1:0] temp_temp_rem_init =
+                rem_init[64-1:32-base] - small_mul[0][i-1];
+            assign temp_rem_init[i] =
+                (rem_init[64-1:32-base] >= small_mul[0][i-1])
+                    ? {temp_temp_rem_init[32-1:0], rem_init[32-base-1:0], base_zero}
+                    : temp_rem_init[i-1];
         end
-    end
+    endgenerate
+
+    // stage 1 ~ stage last-1
+
+    generate
+        for (l = 1; l < calc_stages - 1; l = l+1) begin
+            wire [32-1:0] div = divs_in[l];
+            wire [64-1:0] rem = rems_in[l];
+            wire [32-1:0] temp_div[2**base-1:0];
+            wire [64-1:0] temp_rem[2**base-1:0];
+            assign temp_div[0] = {div[32-base-1:0],base_zero};
+            assign temp_rem[0] = {rem[64-base-1:0],base_zero};
+            for (i = 1; i < 2**base; i = i+1) begin
+                assign temp_div[i] =
+                    (rem[64-1:32-base] >= small_mul[l][i-1])
+                        ? {div[32-base-1:0],i[base-1:0]}
+                        : temp_div[i-1];
+
+                wire [32+base-1:0] tt_rem =
+                    rem[64-1:32-base] - small_mul[0][i-1];
+                assign temp_rem[i] =
+                    (rem[64-1:32-base] >= small_mul[0][i-1])
+                        ? {tt_rem[32-1:0], rem[32-base-1:0], base_zero}
+                        : temp_rem[i-1];
+            end
+            divs_out[l] = temp_div[2**base-1];
+            rems_out[l] = temp_rem[2**base-1];
+        end
+    endgenerate
+
+    // last stage
+
+    wire [32-1:0] div_last = divs_in[stage_size-1];
+    wire [64-1:0] rem_last = rems_in[stage_size-1];
+
+    wire [32-1:0] temp_div_last[2**base+1-1:0];
+    wire [64-1:0] temp_rem_last[2**base+1-1:0];
+    assign temp_div_last[0] = {div_last[32-base-1:0],base_zero};
+    assign temp_rem_last[0] = {rem_last[64-base-1:0],base_zero};
+
+    wire [32-1:0] div_ret = temp_div_last[2**base-1];
+    wire [64-1:0] rem_ret = temp_rem_last[2**base-1];
+
+    generate
+        for (i = 1; i < 2**base; i = i+1) begin
+            assign temp_div_last[i] =
+                (rem_last[64-1:32-base] >= small_mul[stage_size-1][i-1])
+                    ? {div_last[32-base-1:0],i[base-1:0]}
+                    : temp_div_last[i-1];
+
+            wire [32+base-1:0] temp_temp_rem_last =
+                rem_last[64-1:32-base] - small_mul[stage_size-1][i-1];
+            assign temp_rem_0[i] =
+                (rem_0[64-1:32-base] >= small_mul[stage_size-1][i-1])
+                    ? {temp_temp_rem_last[32-1:0], rem_last[32-base-1:0], base_zero}
+                    : temp_rem_last[i-1];
+        end
+    endgenerate
+
+    generate
 
 endmodule
 
