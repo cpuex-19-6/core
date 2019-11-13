@@ -106,6 +106,7 @@ module fdiv
       rs1_0             <= 32'b0;
       rs2_tmp_0         <= 32'b0;
       under_flg_0       <= 1'b0;
+      sy_0              <= 1'b0;
       e1_0              <= 8'b0;
       m1_0              <= 23'b0;
       u1_order          <= 1'b0;
@@ -118,6 +119,7 @@ module fdiv
         rs1_0             <= rs1;
         rs2_tmp_0         <= rs2_tmp;
         under_flg_0       <= under_flg;
+        sy_0              <= sy;
         e1_0              <= e1;
         m1_0              <= m1;
         stage_0           <= accepted;
