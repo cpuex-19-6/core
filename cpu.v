@@ -341,7 +341,9 @@ module cpu
             // execute_wait ---------------------------
             else if (state == `STATE_EXECUTE_WAIT) begin
                 if(alu_de) begin
-                    alu_flag <= 1'b0;
+                    if (alu_accepted) begin
+                        alu_flag <= 1'b0;
+                    end
                     if (alu_done) begin
                         d_rd_ew <= d_dr_alu;
                         write_ew <= 1'b1;
@@ -349,7 +351,9 @@ module cpu
                     end
                 end
                 else if(mem_de) begin
-                    mem_flag <= 1'b0;
+                    if (mem_accepted) begin
+                        mem_flag <= 1'b0;
+                    end
                     if (mem_done) begin
                         write_ew <= ~opecode_de[5];
                         d_rd_ew <= d_dr_mem;
@@ -357,19 +361,26 @@ module cpu
                     end
                 end
                 else if (fpu_de) begin
-                    fpu_flag <= 1'b0;
+                    if (fpu_accepted) begin
+                        fpu_flag <= 1'b0;
+                    end
                     if (fpu_done) begin
                         write_ew <= 1'b1;
                         d_rd_ew <= d_rd_fpu;
                     end
                 end
                 else if (io_de) begin
-                    io_flag <= 1'b0;
+                    if (io_accepted) begin
+                        io_flag <= 1'b0;
+                    end
                     if (io_done) begin
                         write_ew <= ~opecode_de[5];
                         d_rd_ew <= io_input;
                         state <= `STATE_WRITE;
                     end
+                end
+                else begin
+                    state <= STATE_END;
                 end
             end
             // WRITE ---------------------------
