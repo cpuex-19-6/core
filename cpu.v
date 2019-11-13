@@ -4,6 +4,8 @@
 
 `define STATE_NUM 10
 
+`define STATE_NONE         10'b0000000000
+`define STATE_INIT         10'b1000000000
 `define STATE_FETCH        10'b0000000001
 `define STATE_FETCH_WAIT   10'b0000000010
 `define STATE_DECODE       10'b0000000100
@@ -15,6 +17,7 @@
 module cpu
     (input  wire clk,
      input  wire rstn,
+     input  wire usr_rst,
      output wire [7-1:0] led_stat,
 
      output wire [`LEN_MEMISTR_ADDR-1:0] a_inst,
@@ -191,6 +194,7 @@ module cpu
     //  in
     reg                  io_flag;
     reg                  io_io;
+    reg                  io_init;
 
     //  out
     wire [`LEN_WORD-1:0] io_input;
@@ -199,7 +203,7 @@ module cpu
 
     io_core io_c(
         io_flag, io_accepted, io_done,
-        io_io, func3_de, d_rs1_de, io_input,
+        io_io, io_init ? 3'b000 : func3_de, io_init ? 32'haa : d_rs1_de, io_input,
         uart_write_flag, uart_size, uart_o_data, uart_i_data,
         uart_order, uart_accepted, uart_done,
         clk, rstn);
@@ -210,7 +214,6 @@ module cpu
         if (~rstn) begin
             pc <= 'b0;
             clock_counter <= 32'b0;
-            state <= `STATE_FETCH;
             reg_a_rd <= 6'b0;
             reg_d_rd <= 32'b0;
             
@@ -245,11 +248,26 @@ module cpu
             alu_flag <= 1'b0;
             mem_flag <= 1'b0;
             mem_io <= 1'b0;
-            io_flag <= 1'b0;
-            io_io <= 1'b0;
+            
+            state <= rstn ? `STATE_INIT : `STATE_NONE;
+            io_flag <= rstn;
+            io_io <= rstn;
+            io_init <= rstn;
+
         end else begin
+            // init ---------------------------
+            if (state == `STATE_INIT) begin
+                if (io_accepted) begin
+                    io_flag <= 1'b0;
+                    io_io <= 1'b0;
+                    io_init <= 1'b0;
+                end
+                if (io_done) begin
+                    state <= `STATE_FETCH;
+                end
+            end
             // fetch ---------------------------
-            if (state == `STATE_FETCH) begin
+            else if (state == `STATE_FETCH) begin
                 fetch_order <= 1'b1;
                 reg_flag <= 1'b0;
                 state <= `STATE_FETCH_WAIT;
