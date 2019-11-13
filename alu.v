@@ -19,34 +19,61 @@ module alu
      input  wire clk,
      input  wire rstn);
     
-    assign accepted = order;
-    assign done     = order;
+    wire busy;
+    wire next_busy = (~done) & (doing | order);
+    temp_reg #(1) r_doing(1'b1, next_busy, busy, clk, rstn);
+    
+    wire order_able = ~doing & order;
 
-    wire [32-1:0] rd_buf;
-    wire [32-1:0] next_rd_buf =done ? (
-        extention_flag ? (/* 
-            (func3 == `FUNC3_DIV ) ?
-                ($signed(rs1) / $signed(rs2)) :
-            (func3 == `FUNC3_DIVU) ?
-                (rs1 / rs2) :
-            (func3 == `FUNC3_REM ) ?
-                ($signed(rs1) % $signed(rs2)) :
-            (func3 == `FUNC3_REMU) ?
-                (rs1 % rs2) : */
-            32'b0) : (
+    // using external module
+    
+    // divu_remu --------------------
+    wire divu_remu_order = order_able & extention_flag &
+        ((func3 == `FUNC3_REMU) | (func3 == `FUNC3_DIVU));
+    wire divu_remu_accepted;
+    wire divu_remu_done;
+    wire [32-1:0] divu_remu_rd;
+    divu_remu m_divu_remu(
+        divu_remu_order, divu_remu_accepted, divu_remu_done,
+        rs1, rs2, (func3 == `FUNC3_REM),
+        divu_remu_rd,
+        clk, rstn);
+
+    // calculate in module
+
+    assign internal_order = order_able &
+        (func3 != `FUNC3_DIVU) &
+        (func3 != `FUNC3_REMU);
+    assign internal_accepted = internal_order;
+    assign internal_done     = internal_order;
+
+    wire [32-1:0] internal_rd =
+        extention_flag ? (32'b0)
         // ~extention_flag
-            (func3 == `FUNC3_ADD) ?
+        : ( (func3 == `FUNC3_ADD) ?
                 ((mode_flag && ~imm_flag) ? (rs1 - rs2) :
-                            (rs1 + rs2)) :
+                                            (rs1 + rs2)) :
             (func3 == `FUNC3_SL ) ? (rs1 << rs2[4:0]) :
             (func3 == `FUNC3_XOR) ? (rs1 ^ rs2) :
             (func3 == `FUNC3_SR ) ?
                 (mode_flag ? ($signed(rs1) >>> $signed(rs2[4:0])) :
-                            (rs1 >> rs2[4:0])) :
+                             (rs1 >> rs2[4:0])) :
             (func3 == `FUNC3_OR ) ? (rs1 | rs2) :
             (func3 == `FUNC3_AND) ? (rs1 & rs2) :
-            32'b0)
-        ) : rd_buf;
+                                    32'b0);
+
+    assign accepted =
+        divu_remu_accepted |
+        internal_accepted;
+
+    assign done =
+        divu_remu_done |
+        internal_done;
+
+    wire [32-1:0] rd_buf;
+    wire [32-1:0] next_rd_buf =
+        divu_remu_done ? divu_remu_rd :
+        internal_done  ? internal_rd  : rd_buf;
     temp_reg r_rd_buf(done, next_rd_buf, rd_buf, clk, rstn);
 
     assign rd = next_rd_buf;
