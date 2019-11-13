@@ -133,7 +133,7 @@ module cpu
     reg                  alu_flag;
 
     //  out
-    wire [`LEN_WORD-1:0]     d_dr_alu;
+    wire [`LEN_WORD-1:0] d_dr_alu;
     wire                 alu_accepted;
     wire                 alu_done;
     
@@ -289,10 +289,9 @@ module cpu
                 a_rd_ew <= a_rd_de;
                 // alu ---------------------------
                 if (alu_de) begin
-                    d_rd_ew <= d_dr_alu;
+                    alu_flag <= 1'b1;
                     next_pc_ew <= pc_de + 32'd4;
-                    write_ew <= 1'b1;
-                    state <= `STATE_WRITE;
+                    state <= `STATE_EXECUTE_WAIT;
                 end
                 // mem ---------------------------
                 else if (mem_de) begin
@@ -341,7 +340,15 @@ module cpu
             end
             // execute_wait ---------------------------
             else if (state == `STATE_EXECUTE_WAIT) begin
-                if(mem_de) begin
+                if(alu_de) begin
+                    alu_flag <= 1'b0;
+                    if (alu_done) begin
+                        d_rd_ew <= d_dr_alu;
+                        write_ew <= 1'b1;
+                        state <= `STATE_WRITE;
+                    end
+                end
+                else if(mem_de) begin
                     mem_flag <= 1'b0;
                     if (mem_done) begin
                         write_ew <= ~opecode_de[5];
