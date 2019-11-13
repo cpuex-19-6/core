@@ -41,6 +41,7 @@ module alu
 
     // calculate in module
 
+    // internal
     assign internal_order = order_able &
         (func3 != `FUNC3_DIVU) &
         (func3 != `FUNC3_REMU);
@@ -62,6 +63,7 @@ module alu
             (func3 == `FUNC3_AND) ? (rs1 & rs2) :
                                     32'b0);
 
+    // accepted / done / rd -----------------
     assign accepted =
         divu_remu_accepted |
         internal_accepted;
