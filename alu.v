@@ -20,10 +20,10 @@ module alu
      input  wire rstn);
     
     wire busy;
-    wire next_busy = (~done) & (doing | order);
-    temp_reg #(1) r_doing(1'b1, next_busy, busy, clk, rstn);
+    wire next_busy = (~done) & (busy | order);
+    temp_reg #(1) r_busy(1'b1, next_busy, busy, clk, rstn);
     
-    wire order_able = ~doing & order;
+    wire order_able = ~busy & order;
 
     // using external module
     
@@ -42,11 +42,11 @@ module alu
     // calculate in module
 
     // internal
-    assign internal_order = order_able &
+    wire internal_order = order_able &
         (func3 != `FUNC3_DIVU) &
         (func3 != `FUNC3_REMU);
-    assign internal_accepted = internal_order;
-    assign internal_done     = internal_order;
+    wire internal_accepted = internal_order;
+    wire internal_done     = internal_order;
 
     wire [32-1:0] internal_rd =
         extention_flag ? (32'b0)

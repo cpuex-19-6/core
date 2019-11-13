@@ -367,6 +367,7 @@ module cpu
                     if (fpu_done) begin
                         write_ew <= 1'b1;
                         d_rd_ew <= d_rd_fpu;
+                        state <= `STATE_WRITE;
                     end
                 end
                 else if (io_de) begin
@@ -380,7 +381,7 @@ module cpu
                     end
                 end
                 else begin
-                    state <= STATE_END;
+                    state <= `STATE_END;
                 end
             end
             // WRITE ---------------------------
