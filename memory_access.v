@@ -28,9 +28,11 @@ module memory
 
     assign accepted = ~busy & order;
 
+    wire stage_0 = accepted & ~io;
     wire stage_1;
     wire stage_2;
-    assign done = stage_2;
+    wire stage_00 = accepted & io;
+    assign done = stage_2 | stage_00;
 
     assign a_mem = address;
     assign sd_mem = i_data;
@@ -40,7 +42,7 @@ module memory
 
     wire io_1;
     temp_reg #(1) r_io_1(1'b1, mem_w_f, io_1, clk, rstn);
-    temp_reg #(1) r_stage_1(1'b1, accepted, stage_1, clk, rstn);
+    temp_reg #(1) r_stage_1(1'b1, stage_0, stage_1, clk, rstn);
 
     wire io_2;
     temp_reg #(1) r_io_2(1'b1, io_1, io_2, clk, rstn);
