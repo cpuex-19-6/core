@@ -6,6 +6,7 @@
 
 `define STATE_NONE         10'b0000000000
 `define STATE_INIT         10'b1000000000
+`define STATE_INIT2        10'b0100000000
 `define STATE_FETCH        10'b0000000001
 `define STATE_FETCH_WAIT   10'b0000000010
 `define STATE_DECODE       10'b0000000100
@@ -17,6 +18,7 @@
 module cpu
     (input  wire clk,
      input  wire rstn,
+     input  wire native_rstn,
      input  wire usr_rst,
      output wire [7-1:0] led_stat,
 
@@ -202,8 +204,8 @@ module cpu
     wire                 io_done;
 
     io_core io_c(
-        io_flag, io_accepted, io_done,
-        io_io, io_init ? 3'b000 : func3_de, io_init ? 32'haa : d_rs1_de, io_input,
+        io_init | io_flag, io_accepted, io_done,
+        io_init | io_io, io_init ? 3'b000 : func3_de, io_init ? 32'haa : d_rs1_de, io_input,
         uart_write_flag, uart_size, uart_o_data, uart_i_data,
         uart_order, uart_accepted, uart_done,
         clk, rstn);
@@ -246,20 +248,23 @@ module cpu
             d_rd_ew <= 32'b0;
             next_pc_ew <= 32'b0;
             alu_flag <= 1'b0;
+            fpu_flag <= 1'b0;
             mem_flag <= 1'b0;
             mem_io <= 1'b0;
+            io_flag <= 1'b0;
+            io_io <= 1'b0;
             
-            state <= rstn ? `STATE_INIT : `STATE_NONE;
-            io_flag <= rstn;
-            io_io <= rstn;
-            io_init <= rstn;
+            state <= native_rstn ? `STATE_INIT : `STATE_NONE;
+            io_init <= 1'b0;
 
         end else begin
             // init ---------------------------
             if (state == `STATE_INIT) begin
+                io_init <= 1'b1;
+                state <= `STATE_FETCH;
+            end
+            else if (state == `STATE_INIT2) begin
                 if (io_accepted) begin
-                    io_flag <= 1'b0;
-                    io_io <= 1'b0;
                     io_init <= 1'b0;
                 end
                 if (io_done) begin
