@@ -3,4 +3,7 @@
 !/bin_code/*.ml
 !/bin_code/*.s
 
-/vivado-project/main_cpu
+/vivado-project/cpu_main/*
+!/vivado-project/cpu_main/*.tcl
+/publish.sh
+/cpu_main.tcl
