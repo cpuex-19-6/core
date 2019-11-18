@@ -10,4 +10,4 @@
 2. File -> Project -> Write Tcl
 3. `Copy sources to new project`と`Recreate Block Designs using Tcl`だけにチェックを入れて、ここのcpu_main.tclに出力
 4. 必要なら絶対パスを相対パスに変更するなどして、create_project.tclに名前を変更orコピー(3番でcreate_project.tclに名前を変更してもOK)
-5. 念のため、更新したブロックデザインを開き、Export -> Export Block Designで個々のディレクトリに作る。(こっちは絶対パスは最初から含まない)
+5. 念のため、更新したブロックデザインを開き、Export -> Export Block Designでこのディレクトリに作る。(こっちは絶対パスは最初から含まない)
