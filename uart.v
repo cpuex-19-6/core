@@ -62,8 +62,8 @@ module uart_inside
     assign accepted = ~doing & order;
     assign done = doing & ~next_doing;
     assign read_data = next_return;
-    assign i_order = next_doing & ~next_io;
-    assign o_order = next_doing & next_io;
+    assign i_order = next_doing & next_io;
+    assign o_order = next_doing & ~next_io;
     assign o_data = next_write[31:24];
 
     // next_stage

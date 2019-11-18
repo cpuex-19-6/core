@@ -36,7 +36,7 @@
 124	addi	x31, x0, 10		! 0
 128	blt 	x4, x31, 72		! 0
 132	addi	x5, x0, 10		! 0
-136	div	x5, x4, x5		! 0
+136	divu	x5, x4, x5		! 0
 140	sw	x2, x4, 0		! 0
 144	addi	x31, x1, 0		! 0
 148	addi	x4, x5, 0		! 0
@@ -48,7 +48,7 @@
 172	addi	x1, x31, 0		! 0
 176	addi	x4, x0, 10		! 0
 180	lw	x5, x2, 0		! 0
-184	rem	x4, x5, x4		! 0
+184	remu	x4, x5, x4		! 0
 188	addi	x4, x4, 48		! 0
 192	outb	x4		! 0
 196	jalr	x0, x1, 0		! 0

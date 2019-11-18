@@ -206,7 +206,7 @@ module cpu
 
     io_core io_c(
         io_init | io_flag, io_accepted, io_done,
-        io_init | io_io, io_init ? 3'b000 : func3_de, io_init ? 32'haa : d_rs1_de, io_input,
+        ~io_init & io_io, io_init ? 3'b000 : func3_de, io_init ? 32'haa : d_rs1_de, io_input,
         uart_write_flag, uart_size, uart_o_data, uart_i_data,
         uart_order, uart_accepted, uart_done,
         clk, rstn);
