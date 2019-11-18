@@ -7,6 +7,7 @@
 `define STATE_NONE         10'b0000000000
 `define STATE_INIT         10'b1000000000
 `define STATE_INIT2        10'b0100000000
+`define STATE_INIT3        10'b1100000000
 `define STATE_FETCH        10'b0000000001
 `define STATE_FETCH_WAIT   10'b0000000010
 `define STATE_DECODE       10'b0000000100
@@ -260,10 +261,13 @@ module cpu
         end else begin
             // init ---------------------------
             if (state == `STATE_INIT) begin
-                io_init <= 1'b1;
                 state <= `STATE_INIT2;
             end
             else if (state == `STATE_INIT2) begin
+                io_init <= 1'b1;
+                state <= `STATE_INIT3;
+            end
+            else if (state == `STATE_INIT3) begin
                 if (io_accepted) begin
                     io_init <= 1'b0;
                 end
@@ -422,7 +426,7 @@ module cpu
     end
 
     // LED output
-    assign led_stat = {clk, rstn, |state[9:8], state[4:2], |state[1:0]};
+    assign led_stat = {clk, rstn, io_init, state[9:8], state[4:3]};
 
 endmodule
 
