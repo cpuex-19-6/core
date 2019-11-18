@@ -261,7 +261,7 @@ module cpu
             // init ---------------------------
             if (state == `STATE_INIT) begin
                 io_init <= 1'b1;
-                state <= `STATE_FETCH;
+                state <= `STATE_INIT;
             end
             else if (state == `STATE_INIT2) begin
                 if (io_accepted) begin
