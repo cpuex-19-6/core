@@ -26,10 +26,14 @@ endmodule
 
 module simple_reset_gen  
     (input  wire sys_rstn,
-     input  wire usr_rst,
-     output wire rstn);
+     input  wire usr_rst_in,
+     output wire rstn,
+     output wire native_rstn,
+     output wire usr_rst_out);
 
-    assign rstn = sys_rstn & ~usr_rst;
+    assign native_rstn = sys_rstn;
+    assign usr_rst_out = usr_rst_in;
+    assign rstn = native_rstn & ~usr_rst_out;
 
 endmodule
 

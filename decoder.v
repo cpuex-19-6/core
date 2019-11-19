@@ -41,7 +41,8 @@ module decode
                   | (opecode == `OP_FMEMS);
     assign float  = (opecode == `OP_FPU)
                   | (opecode == `OP_FMEML)
-                  | (opecode == `OP_FMEMS);
+                  | (opecode == `OP_FMEMS)
+                  | (io & func7[5]);
     assign jump   = (opecode == `OP_JAL)
                   | (opecode == `OP_JALR);
     assign branch = (opecode == `OP_BRANCH);
@@ -55,11 +56,13 @@ module decode
 
     wire rs1_float = float & ~mem &
                      (~func7[6] |
-                     (func7[3] ^ func7[4]));
+                     (func7[3] ^ func7[4]) |
+                     (io));
     wire rs2_float = float;
     wire rd_float  = float &
                      (~func7[6] |
-                     ~(func7[3] ^ func7[4]));
+                     ~(func7[3] ^ func7[4]) |
+                     (io));
 
     wire [`LEN_IMM12-1:0] imm12i;
     wire [`LEN_IMM12-1:0] imm12s;
@@ -73,7 +76,8 @@ module decode
                     | (opecode == `OP_BRANCH);
     wire no_use_rs1 = (opecode == `OP_LUI)
                     | (opecode == `OP_JAL)
-                    | (opecode == `OP_AUIPC);
+                    | (opecode == `OP_AUIPC)
+                    | (opecode == `OP_INPUT);
     wire no_use_rs2 = ~(
                       (opecode == `OP_ALU)
                     | (opecode == `OP_BRANCH)
