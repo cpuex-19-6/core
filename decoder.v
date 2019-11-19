@@ -101,7 +101,7 @@ module decode
     assign imm12i = inst[31:20];
     assign imm12s = {inst[31:25], inst[11: 7]};
     assign imm32  = {inst[31:12], 12'b0};
-    assign imm13  = {imm12s[6], imm12s[0], imm12s[10:1], 1'b0};
+    assign imm13  = {imm12s[11], imm12s[0], imm12s[10:1], 1'b0};
     assign imm21  = {imm12i[11], inst[19:12], imm12i[0], imm12i[10:1], 1'b0};
 
     wire [`LEN_WORD-1:0] d_imm12i;
