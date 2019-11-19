@@ -23,7 +23,7 @@
 # 2. The following source(s) files that were local or imported into the original project.
 #    (Please see the '$orig_proj_dir' and '$origin_dir' variable setting below at the start of the script)
 #
-#    "C:/Users/screenflip/Documents/cpu/core/vivado-project/cpu_main/cpu_main.srcs/sources_1/bd/ver1/hdl/ver1_wrapper.v"
+#    "C:/Users/screenflip/Documents/cpu/core/vivado-project/ver1/hdl/ver1_wrapper.v"
 #
 # 3. The following remote source files that were added to the original project:-
 #
@@ -127,7 +127,7 @@ if { $::argc > 0 } {
 set orig_proj_dir "[file normalize "$origin_dir/cpu_main"]"
 
 # Create project
-create_project ${_xil_proj_name_} ./${_xil_proj_name_} -part xcku040-ffva1156-2-e
+create_project -force ${_xil_proj_name_} ./${_xil_proj_name_} -part xcku040-ffva1156-2-e
 
 # Set the directory path for the new project
 set proj_dir [get_property directory [current_project]]
@@ -201,7 +201,7 @@ add_files -norecurse -fileset $obj $files
 
 # Import local files from the original project
 set files [list \
- [file normalize "${origin_dir}/cpu_main/cpu_main.srcs/sources_1/bd/ver1/hdl/ver1_wrapper.v" ]\
+ [file normalize "${origin_dir}/ver1/hdl/ver1_wrapper.v" ]\
 ]
 set imported_files [import_files -fileset sources_1 $files]
 

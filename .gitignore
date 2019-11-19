@@ -3,18 +3,12 @@
 !/bin_code/*.ml
 !/bin_code/*.s
 
-/vivado-project/cpu_main/*
-!/vivado-project/cpu_main/cpu_main.srcs
-/vivado-project/cpu_main/cpu_main.srcs/*
-!/vivado-project/cpu_main/cpu_main.srcs/sources_1
-/vivado-project/cpu_main/cpu_main.srcs/sources_1/*
-!/vivado-project/cpu_main/cpu_main.srcs/sources_1/bd
-/vivado-project/cpu_main/cpu_main.srcs/sources_1/bd/*
-!/vivado-project/cpu_main/cpu_main.srcs/sources_1/bd/ver*
-/vivado-project/cpu_main/cpu_main.srcs/sources_1/bd/ver*/*
-!/vivado-project/cpu_main/cpu_main.srcs/sources_1/bd/ver*/hdl
-/vivado-project/cpu_main/cpu_main.srcs/sources_1/bd/ver*/hdl/*
-!/vivado-project/cpu_main/cpu_main.srcs/sources_1/bd/ver*/hdl/ver*_wrapper.v
+/vivado-project/cpu_main
+
+/vivado-project/ver*/*
+!/vivado-project/ver*/hdl
+/vivado-project/ver*/hdl/*
+!/vivado-project/ver*/hdl/ver*_wrapper.v
 
 /publish.sh
 /vivado-project/cpu_main.tcl
