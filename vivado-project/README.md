@@ -12,7 +12,10 @@
 2. cpu_main.tclに対して、
 `cpu_main/cpu_main.srcs/sources_1/bd/`を消去し、
 絶対パスをここのディレクトリからの相対パスに変え、
-`create_project`を`create_project -force`に変換して、crate_projectに名前を変更して、create_project.tclに保存する。
-1.のところでcpu_main.tclではなくcreate_project.tclに出力してからやっても大丈夫。
+`create_project`を`create_project -force`に変換して、create_project.tclに保存する。
+1.のところでcpu_main.tclではなくcreate_project.tclに直接出力してもいい。
 3. `cp -r cpu_main/cpu_main.srcs/sources_1/bd/ver* ./`を実行。
 必要なのはver*/hdl/ver*_wrapper.vだけなので、それだけコピーできればそれでもいい。
+
+coreディレクトリ直下のpublish.shを.gitignoreに入れていて、
+私はそこで2~3の処理をしています。
