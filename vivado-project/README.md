@@ -2,5 +2,17 @@
 
 ## プロジェクトの生成方法
 1. vivadoを起動する
-2. 下にあるTcl Consoleで`cd (ここのパス)`
+2. 下にあるTcl Consoleで`cd (ここのディレクトリ)`
 3. 下にあるTcl Consoleで`source create_project.tcl`
+
+## プロジェクト生成TCLの生成方法
+1. vivadoでFile -> Project -> Write Tclでこのディレクトリにcpu_main.tclを作る。
+オプションはCopy sources to new projectとRecreate Block Design using Tclだけチェックする。
+代わりに、下のTcl Consoleで`write_project_tcl (ここのディレクトリ)/cpu_main.tcl`でもいい。 
+2. cpu_main.tclに対して、
+`cpu_main/cpu_main.srcs/sources_1/bd/`を消去し、
+絶対パスをここのディレクトリからの相対パスに変え、
+`create_project`を`create_project -force`に変換して、crate_projectに名前を変更して、create_project.tclに保存する。
+1.のところでcpu_main.tclではなくcreate_project.tclに出力してからやっても大丈夫。
+3. `cp -r cpu_main/cpu_main.srcs/sources_1/bd/ver* ./`を実行。
+必要なのはver*/hdl/ver*_wrapper.vだけなので、それだけコピーできればそれでもいい。

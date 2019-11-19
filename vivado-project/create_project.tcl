@@ -23,39 +23,39 @@
 # 2. The following source(s) files that were local or imported into the original project.
 #    (Please see the '$orig_proj_dir' and '$origin_dir' variable setting below at the start of the script)
 #
-#    "C:/Users/screenflip/Documents/cpu/core/vivado-project/ver1/hdl/ver1_wrapper.v"
+#    "../vivado-project/ver1/hdl/ver1_wrapper.v"
 #
 # 3. The following remote source files that were added to the original project:-
 #
-#    "C:/Users/screenflip/Documents/cpu/core/include.vh"
-#    "C:/Users/screenflip/Documents/cpu/core/alu.v"
-#    "C:/Users/screenflip/Documents/cpu/core/branch.v"
-#    "C:/Users/screenflip/Documents/cpu/core/decoder.v"
-#    "C:/Users/screenflip/Documents/cpu/core/divrem.v"
-#    "C:/Users/screenflip/Documents/cpu/core/FPU/fadd.v"
-#    "C:/Users/screenflip/Documents/cpu/core/FPU/fcomp.v"
-#    "C:/Users/screenflip/Documents/cpu/core/FPU/fdiv.v"
-#    "C:/Users/screenflip/Documents/cpu/core/fetcher.v"
-#    "C:/Users/screenflip/Documents/cpu/core/FPU/ffloor.v"
-#    "C:/Users/screenflip/Documents/cpu/core/FPU/fmul.v"
-#    "C:/Users/screenflip/Documents/cpu/core/fpu.v"
-#    "C:/Users/screenflip/Documents/cpu/core/FPU/fsgnj.v"
-#    "C:/Users/screenflip/Documents/cpu/core/FPU/fsqrt.v"
-#    "C:/Users/screenflip/Documents/cpu/core/FPU/ftoi.v"
-#    "C:/Users/screenflip/Documents/cpu/core/io.v"
-#    "C:/Users/screenflip/Documents/cpu/core/FPU/itof.v"
-#    "C:/Users/screenflip/Documents/cpu/core/memory_access.v"
-#    "C:/Users/screenflip/Documents/cpu/core/reg.v"
-#    "C:/Users/screenflip/Documents/cpu/core/cpu.v"
-#    "C:/Users/screenflip/Documents/cpu/core/uart_rx.v"
-#    "C:/Users/screenflip/Documents/cpu/core/uart_tx.v"
-#    "C:/Users/screenflip/Documents/cpu/core/uart_util.v"
-#    "C:/Users/screenflip/Documents/cpu/core/uart.v"
-#    "C:/Users/screenflip/Documents/cpu/core/reset.v"
-#    "C:/Users/screenflip/Documents/cpu/core/uart_input_test.v"
-#    "C:/Users/screenflip/Documents/cpu/core/bin_code/uart_loopback.coe"
+#    "../include.vh"
+#    "../alu.v"
+#    "../branch.v"
+#    "../decoder.v"
+#    "../divrem.v"
+#    "../FPU/fadd.v"
+#    "../FPU/fcomp.v"
+#    "../FPU/fdiv.v"
+#    "../fetcher.v"
+#    "../FPU/ffloor.v"
+#    "../FPU/fmul.v"
+#    "../fpu.v"
+#    "../FPU/fsgnj.v"
+#    "../FPU/fsqrt.v"
+#    "../FPU/ftoi.v"
+#    "../io.v"
+#    "../FPU/itof.v"
+#    "../memory_access.v"
+#    "../reg.v"
+#    "../cpu.v"
+#    "../uart_rx.v"
+#    "../uart_tx.v"
+#    "../uart_util.v"
+#    "../uart.v"
+#    "../reset.v"
+#    "../uart_input_test.v"
+#    "../bin_code/uart_loopback.coe"
 #    "c:/Users/screenflip/Documents/cpu/core/bin_code/conversational_fib.coe"
-#    "C:/Users/screenflip/Documents/cpu/core/constraint.xdc"
+#    "../constraint.xdc"
 #
 #*****************************************************************************************
 
@@ -264,85 +264,85 @@ set obj [get_filesets utils_1]
 
 # Adding sources referenced in BDs, if not already added
 if { [get_files include.vh] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/include.vh
+  import_files -quiet -fileset sources_1 ../include.vh
 }
 if { [get_files alu.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/alu.v
+  import_files -quiet -fileset sources_1 ../alu.v
 }
 if { [get_files branch.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/branch.v
+  import_files -quiet -fileset sources_1 ../branch.v
 }
 if { [get_files decoder.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/decoder.v
+  import_files -quiet -fileset sources_1 ../decoder.v
 }
 if { [get_files divrem.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/divrem.v
+  import_files -quiet -fileset sources_1 ../divrem.v
 }
 if { [get_files fadd.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/FPU/fadd.v
+  import_files -quiet -fileset sources_1 ../FPU/fadd.v
 }
 if { [get_files fcomp.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/FPU/fcomp.v
+  import_files -quiet -fileset sources_1 ../FPU/fcomp.v
 }
 if { [get_files fdiv.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/FPU/fdiv.v
+  import_files -quiet -fileset sources_1 ../FPU/fdiv.v
 }
 if { [get_files fetcher.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/fetcher.v
+  import_files -quiet -fileset sources_1 ../fetcher.v
 }
 if { [get_files ffloor.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/FPU/ffloor.v
+  import_files -quiet -fileset sources_1 ../FPU/ffloor.v
 }
 if { [get_files fmul.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/FPU/fmul.v
+  import_files -quiet -fileset sources_1 ../FPU/fmul.v
 }
 if { [get_files fpu.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/fpu.v
+  import_files -quiet -fileset sources_1 ../fpu.v
 }
 if { [get_files fsgnj.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/FPU/fsgnj.v
+  import_files -quiet -fileset sources_1 ../FPU/fsgnj.v
 }
 if { [get_files fsqrt.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/FPU/fsqrt.v
+  import_files -quiet -fileset sources_1 ../FPU/fsqrt.v
 }
 if { [get_files ftoi.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/FPU/ftoi.v
+  import_files -quiet -fileset sources_1 ../FPU/ftoi.v
 }
 if { [get_files io.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/io.v
+  import_files -quiet -fileset sources_1 ../io.v
 }
 if { [get_files itof.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/FPU/itof.v
+  import_files -quiet -fileset sources_1 ../FPU/itof.v
 }
 if { [get_files memory_access.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/memory_access.v
+  import_files -quiet -fileset sources_1 ../memory_access.v
 }
 if { [get_files reg.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/reg.v
+  import_files -quiet -fileset sources_1 ../reg.v
 }
 if { [get_files cpu.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/cpu.v
+  import_files -quiet -fileset sources_1 ../cpu.v
 }
 if { [get_files include.vh] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/include.vh
+  import_files -quiet -fileset sources_1 ../include.vh
 }
 if { [get_files reg.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/reg.v
+  import_files -quiet -fileset sources_1 ../reg.v
 }
 if { [get_files uart_rx.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/uart_rx.v
+  import_files -quiet -fileset sources_1 ../uart_rx.v
 }
 if { [get_files uart_tx.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/uart_tx.v
+  import_files -quiet -fileset sources_1 ../uart_tx.v
 }
 if { [get_files uart_util.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/uart_util.v
+  import_files -quiet -fileset sources_1 ../uart_util.v
 }
 if { [get_files uart.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/uart.v
+  import_files -quiet -fileset sources_1 ../uart.v
 }
 if { [get_files reset.v] == "" } {
-  import_files -quiet -fileset sources_1 C:/Users/screenflip/Documents/cpu/core/reset.v
+  import_files -quiet -fileset sources_1 ../reset.v
 }
 
 
