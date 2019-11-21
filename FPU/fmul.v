@@ -12,25 +12,28 @@ module fmul
    input  wire        rstn);
 
 
-  wire doing;
-  wire next_doing = doing ? ~done : order;
-  temp_reg #(1) r_doing(1'b1, next_doing, doing, clk, rstn);
+  // このクロック開始時にモジュール内で計算中かどうか
+  // 実行中で、現在のクロックで終了するなら次はやらない
+  // 何もやってなくて、orderが出ていたら仕事をする
+  // ここでは内部のパイプライン止まることを避けたいだけなので、
+  // 内部でクロック周波数、クロック数が常に一定のときには
+  // busyが常に0でもよい
+  wire busy;
+  wire next_busy = busy ? ~done : order;
+  temp_reg #(1) r_busy(1'b1, next_busy, busy, clk, rstn);
 
-  assign accepted = ~doing & order;
+  // 現在何も実行していなくて、orderが来ているなら、
+  // orderを受けて、計算を始める(acceptedを上げる)
+  assign accepted = ~busy & order;
 
-  localparam CLK_COUNT_LEN = 2;
-  localparam CLK_COUNT_INC = 2'd1;
-  localparam CLK_COUNT_ZERO = 2'd0;
-  localparam CLK_COUNT_MAX = 2'd2;
-
-  wire [CLK_COUNT_LEN-1:0] done_counter;
-  wire [CLK_COUNT_LEN-1:0] next_done_counter =
-      (~doing) ? CLK_COUNT_ZERO :
-      (done_counter == CLK_COUNT_MAX) ? CLK_COUNT_ZERO :
-      (done_counter + CLK_COUNT_INC);
-  temp_reg #(CLK_COUNT_LEN) r_done_counter(1'b1, next_done_counter, done_counter, clk, rstn);
-
-  assign done = (done_counter == CLK_COUNT_MAX);
+  // 各ステージ境界において、そのステージで計算しているかどうかの
+  // 値を引き継いでいく
+  // (実質的にはシフトによるカウンタで、各ビットをステージに割っている)
+  // 最後のステージが実行中ならそのクロックのうちに
+  // モジュール全体で演算が終了するので、doneを上げておく
+  reg stage_1;
+  reg stage_2;
+  assign done = stage_2;
 
 
   
@@ -91,6 +94,7 @@ module fmul
       m2a_1    <= 24'b0;
       eyd_1    <= 8'b0;
       shifts_1 <= 9'b0;
+      stage_1  <= 1'b0;
     end else begin
       sy_1     <= sy;
       e1_1     <= e1;
@@ -103,6 +107,7 @@ module fmul
       m2a_1    <= m2a;
       eyd_1    <= eyd;
       shifts_1 <= shifts;
+      stage_1  <= accepted;
     end
   end
 
@@ -189,6 +194,7 @@ module fmul
       myd_2        <= 48'b0;
       myd_shifts_2 <= 48'b0;
       se_2         <= 6'b0;
+      stage_2      <= 1'b0;
     end else begin
       sy_2         <= sy_1;
       e1_2         <= e1_1;
@@ -201,6 +207,7 @@ module fmul
       myd_2        <= myd;
       myd_shifts_2 <= myd_shifts;
       se_2         <= se;
+      stage_2      <= stage_1;
     end
   end
   
