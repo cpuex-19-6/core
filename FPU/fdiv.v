@@ -96,7 +96,7 @@ module fdiv
   wire u1_order;
   wire next_u1_order;
   temp_reg #(1) r_u1_order(1'b1, next_u1_order, u1_order, clk, rstn);
-  assign next_u1_order = (stage_0 & ~u1_accepted) | accepted;
+  assign next_u1_order = (u1_order & ~u1_accepted) | accepted;
 
   temp_reg #(1) r_stage_0(update_0, accepted, stage_0, clk, rstn);
 
@@ -147,7 +147,7 @@ module fdiv
   wire u2_order;
   wire next_u2_order;
   temp_reg #(1) r_u2_order(1'b1, next_u2_order, u2_order, clk, rstn);
-  assign next_u2_order = (stage_1 & ~u2_accepted) | u1_done;
+  assign next_u2_order = (u2_order & ~u2_accepted) | u1_done;
 
   temp_reg #(1) r_stage_1(update_1, u1_done, stage_1, clk, rstn);
 
