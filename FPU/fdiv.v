@@ -112,7 +112,7 @@ module fdiv
       u1_order          <= 1'b0;
       stage_0           <= 1'b0;
     end else begin
-      u1_order <= (stage_0 & ~u1_accepted) | accepted;
+      u1_order <= (stage_0 & ~u1_done) | accepted;
       if (u1_done | ~stage_0) begin
         inv0_0            <= inv0;
         inv1_left_0       <= inv1_left;
@@ -166,7 +166,7 @@ module fdiv
       u2_order          <= 1'b0;
       stage_1           <= 1'b0;
     end else begin
-      u2_order <= (stage_1 & ~u2_accepted) | u1_done;
+      u2_order <= (stage_1 & ~u2_done) | u1_done;
       if (u2_done | ~stage_1) begin
         inv0_1            <= inv0_0;
         inv1_left_1       <= inv1_left_0;
@@ -220,7 +220,7 @@ module fdiv
       u3_order          <= 1'b0;
       stage_2           <= 1'b0;
     end else begin
-      u3_order <= (stage_2 & ~u3_accepted) | u2_done;
+      u3_order <= (stage_2 & ~u3_done) | u2_done;
       if (u3_done | ~stage_2) begin
         inv1_left_2       <= inv1_left_1;
         inv1_right_tmp2_2 <= inv1_right_tmp2;
@@ -273,8 +273,8 @@ module fdiv
       m1_3        <= 23'b0;
       u4_order    <= 1'b0;
       stage_3     <= 1'b0;
-    end else if (u3_done == 1'b1) begin
-      u4_order <= (stage_3 & ~u4_accepted) | u3_done;
+    end else begin
+      u4_order <= (stage_3 & ~u4_done) | u3_done;
       if (u4_done | ~stage_3) begin
         inv1_3      <= inv1;
         rs1_3       <= rs1_2;
