@@ -1,3 +1,6 @@
+print_int (int_of_float 3.5);
+print_char 10;
+print_char 10;
 print_int (int_of_float (3.5 +. 2.5));
 print_char 10;
 print_int (int_of_float (-3.5 +. 2.5));
