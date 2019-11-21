@@ -95,7 +95,7 @@ module fsqrt
       u1_order  <= 1'b0;
       stage_0   <= 1'b0;
     end else begin
-      u1_order <= (stage_0 & ~u1_accepted) | accepted;
+      u1_order <= (u1_order & ~u1_accepted) | (accepted & ~stage_0);
       if (u1_done | ~stage_0) begin
         a_0      <= a;
         rs1_0    <= rs1;
@@ -140,7 +140,7 @@ module fsqrt
       u2_order <= 1'b0;
       stage_1  <= 1'b0;
     end else begin
-      u2_order <= (stage_1 & ~u2_accepted) | u1_done;
+      u2_order <= (u2_order & ~u2_accepted) | (u1_done & ~stage_1);
       if (u2_done | ~stage_1) begin
         a_1     <= a_0;
         rs1_1   <= rs1_0;
@@ -189,7 +189,7 @@ module fsqrt
       rd3l_2   <= 32'b0;
       stage_2  <= 1'b0;
     end else begin 
-      u3_order <= (stage_2 & ~u3_accepted) | u2_done;
+      u3_order <= (u3_order & ~u3_accepted) | (u2_done & ~stage_2);
       if (u3_done | ~stage_2) begin
         a_2     <= a_1;
         rs1_2   <= rs1_1;
@@ -234,7 +234,7 @@ module fsqrt
       rd3r_3   <= 32'b0;
       stage_3  <= 1'b0;
     end else begin
-      u4_order <= (stage_3 & ~u4_accepted) | u3_done;
+      u4_order <= (u4_order & ~u4_accepted) | (u3_done & ~stage_3);
       if (u4_done | ~stage_3) begin
         a_3     <= a_2;
         rs1_3   <= rs1_2;
@@ -277,7 +277,7 @@ module fsqrt
       rs1_4    <= 32'b0;
       stage_4  <= 1'b0;
     end else begin
-      u5_order <= (stage_4 & ~u5_accepted) | u4_done;
+      u5_order <= (u5_order & ~u5_accepted) | (u4_done & ~stage_4);
       if (u5_done | ~stage_4) begin 
         a_4     <= a_3;
         rd3_4   <= rd3;
@@ -317,7 +317,7 @@ module fsqrt
       rs1_5    <= 32'b0;
       stage_5  <= 1'b0;
     end else begin
-      u6_order <= (stage_5 & ~u6_accepted) | u5_done;
+      u6_order <= (u6_order & ~u6_accepted) | (u5_done & ~stage_5);
       if (u6_done | ~stage_5) begin
         rd4r_5   <= rd4r;
         rs1_5    <= rs1_4;
