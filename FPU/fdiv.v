@@ -30,8 +30,8 @@ module fdiv
   // (実質的にはシフトによるカウンタで、各ビットをステージに割っている)
   // 最後のステージが実行中ならそのクロックのうちに
   // モジュール全体で演算が終了するので、doneを上げておく
-  reg stage_0;
-  reg stage_1;
+  wire stage_0;
+  wire stage_1;
   reg stage_2;
   reg stage_3;
   reg stage_4;
@@ -89,43 +89,40 @@ module fdiv
 
   wire u1_accepted;
   wire u1_done;
-  reg u1_order; 
-  reg [31:0] inv0_0;
-  reg [31:0] inv1_left_0;
-  reg [31:0] rs1_0;
-  reg [31:0] rs2_tmp_0;
-  reg under_flg_0;
-  reg sy_0;
-  reg [7:0] e1_0;
-  reg [22:0] m1_0;
+  wire update_0;
 
-  always @(posedge clk) begin
-    if (~rstn) begin
-      inv0_0            <= 32'b0;
-      inv1_left_0       <= 32'b0;
-      rs1_0             <= 32'b0;
-      rs2_tmp_0         <= 32'b0;
-      under_flg_0       <= 1'b0;
-      sy_0              <= 1'b0;
-      e1_0              <= 8'b0;
-      m1_0              <= 23'b0;
-      u1_order          <= 1'b0;
-      stage_0           <= 1'b0;
-    end else begin
-      u1_order <= (stage_0 & ~u1_accepted) | accepted;
-      if (u1_done | ~stage_0) begin
-        inv0_0            <= inv0;
-        inv1_left_0       <= inv1_left;
-        rs1_0             <= rs1;
-        rs2_tmp_0         <= rs2_tmp;
-        under_flg_0       <= under_flg;
-        sy_0              <= sy;
-        e1_0              <= e1;
-        m1_0              <= m1;
-        stage_0           <= accepted;
-      end
-    end
-  end
+  assign update_0 = u1_done | ~stage_0;
+
+  wire u1_order;
+  wire next_u1_order;
+  temp_reg #(1) r_u1_order(1'b1, next_u1_order, u1_order, clk, rstn);
+  assign next_u1_order = (stage_0 & ~u1_accepted) | accepted;
+
+  temp_reg #(1) r_stage_0(update_0, accepted, stage_0, clk, rstn);
+
+  wire [31:0] inv0_0;
+  temp_reg #(32) r_inv0_0(update_0, inv0, inv0_0, clk, rstn);
+
+  wire [31:0] inv1_left_0;
+  temp_reg #(32) r_inv1_left_0(update_0, inv1_left, inv1_left_0, clk, rstn);
+
+  wire [31:0] rs1_0;
+  temp_reg #(32) r_rs1_0(update_0, rs1, rs1_0, clk, rstn);
+  
+  wire [31:0] rs2_tmp_0;
+  temp_reg #(32) r_rs2_tmp_0(update_0, rs2_tmp, rs2_tmp_0, clk, rstn);
+  
+  wire under_flg_0;
+  temp_reg #(1) r_under_flg_0(update_0, under_flg, under_flg_0, clk, rstn);
+  
+  wire sy_0;
+  temp_reg #(1) r_sy_0(update_0, sy, sy_0, clk, rstn);
+  
+  wire [7:0] e1_0;
+  temp_reg #(8) r_e1_0(update_0, e1, e1_0, clk, rstn);
+  
+  wire [22:0] m1_0;
+  temp_reg #(23) r_m1_0(update_0, m1, m1_0, clk, rstn);
 
   wire [31:0] inv1_right_tmp1;
 
@@ -143,43 +140,40 @@ module fdiv
 
   wire u2_accepted;
   wire u2_done;
-  reg u2_order;
-  reg [31:0] inv0_1;
-  reg [31:0] inv1_left_1;
-  reg [31:0] inv1_right_tmp1_1;
-  reg [31:0] rs1_1;
-  reg under_flg_1;
-  reg sy_1;
-  reg [7:0]  e1_1;
-  reg [22:0] m1_1;
+  wire update_1;
 
-  always @(posedge clk) begin
-    if (~rstn) begin
-      inv0_1            <= 32'b0;
-      inv1_left_1       <= 32'b0;
-      inv1_right_tmp1_1 <= 32'b0;
-      rs1_1             <= 32'b0;
-      under_flg_1       <= 1'b0;
-      sy_1              <= 1'b0;
-      e1_1              <= 8'b0;
-      m1_1              <= 23'b0;
-      u2_order          <= 1'b0;
-      stage_1           <= 1'b0;
-    end else begin
-      u2_order <= (stage_1 & ~u2_accepted) | u1_done;
-      if (u2_done | ~stage_1) begin
-        inv0_1            <= inv0_0;
-        inv1_left_1       <= inv1_left_0;
-        inv1_right_tmp1_1 <= inv1_right_tmp1;
-        rs1_1             <= rs1_0;
-        under_flg_1       <= under_flg_0; 
-        sy_1              <= sy_0;
-        e1_1              <= e1_0;
-        m1_1              <= m1_0;
-        stage_1           <= u1_done;
-      end
-    end
-  end
+  assign update_1 = u1_done | ~stage_1;
+
+  wire u2_order;
+  wire next_u2_order;
+  temp_reg #(1) r_u2_order(1'b1, next_u2_order, u2_order, clk, rstn);
+  assign next_u2_order = (stage_1 & ~u2_accepted) | u1_done;
+
+  temp_reg #(1) r_stage_1(update_1, u1_done, stage_1, clk, rstn);
+
+  wire [31:0] inv0_1;
+  temp_reg #(32) r_inv0_1(update_1, inv0_0, inv0_1, clk, rstn);
+
+  wire [31:0] inv1_left_1;
+  temp_reg #(32) r_inv1_left_1(update_1, inv1_left_0, inv1_left_1, clk, rstn);
+
+  wire [31:0] inv1_right_tmp1_1;
+  temp_reg #(32) r_inv1_right_tmp1_1(update_1, inv1_right_tmp1, inv1_right_tmp1_1, clk, rstn);
+
+  wire [31:0] rs1_1;
+  temp_reg #(32) r_rs1_1(update_1, rs1_0, rs1_1, clk, rstn);
+
+  wire under_flg_1;
+  temp_reg #(1) r_under_flg_1(update_1, under_flg_0, under_flg_1, clk, rstn);
+
+  wire sy_1;
+  temp_reg #(1) r_sy_1(update_1, sy_0, sy_1, clk, rstn);
+
+  wire [7:0] e1_1;
+  temp_reg #(8) r_e1_1(update_1, e1_0, e1_1, clk, rstn);
+
+  wire [22:0] m1_1;
+  temp_reg #(23) r_m1_1(update_1, m1_0, m1_1, clk, rstn);
 
   // stage 2
 
