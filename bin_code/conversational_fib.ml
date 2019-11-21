@@ -7,7 +7,7 @@ let rec fib_inf lim =
     then
       ()
     else
-      let x = print_int (fib x) in
-      fib_inf lim
+      let _ = print_int (fib x) in
+      fib_inf x
 in
 fib_inf 0

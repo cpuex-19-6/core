@@ -35,7 +35,7 @@ module alu
     wire [32-1:0] divu_remu_rd;
     divu_remu m_divu_remu(
         divu_remu_order, divu_remu_accepted, divu_remu_done,
-        rs1, rs2, (func3 == `FUNC3_REM),
+        rs1, rs2, (func3 == `FUNC3_REMU),
         divu_remu_rd,
         clk, rstn);
 

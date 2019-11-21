@@ -3,12 +3,6 @@
 !/bin_code/*.ml
 !/bin_code/*.s
 
-/vivado-project/cpu_main
-
-/vivado-project/ver*/*
-!/vivado-project/ver*/hdl
-/vivado-project/ver*/hdl/*
-!/vivado-project/ver*/hdl/ver*_wrapper.v
-
 /publish.sh
 /vivado-project/cpu_main.tcl
+/vivado-project/cpu_main
