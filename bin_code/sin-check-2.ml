@@ -2,6 +2,7 @@
 let pi = 3.1415926535 in
 
 let rec pi_div e x = 
+     print_int 1; print_char 10;
      if (0. <= e) && e < (3.1415926535*.2.) then e 
      else if (e < 0.) && (x >= (-.e))then  pi_div (e+.x) (x/.2.)
      else if  (0. < e) &&  (x >= e)  then pi_div (e-.x/.2.) (x/.2.)
@@ -14,12 +15,14 @@ let rec pi4div x =
       else (3.1415927*.2.-.x,1.) in 
 
 let rec pi4div2 x = 
+      print_int 2; print_char 10;
       if x < (3.1415927/.2.) then (x,1.)
       else if x < 3.1415927 then (3.1415927-.x,1.)
       else if x < (3.1415927*.1.5) then (x-.3.1415927,-.1.)
       else (3.1415927*.2.-.x,-.1.) in 
   
 let rec tailor_cos y = 
+     print_int 4; print_char 10;
      let xx = y *. y in
      let t2 = xx /. 2. in
      let t4 = xx *. t2 /. 12. in
@@ -46,7 +49,7 @@ let rec cos x =
 
 let rec sin x = 
   let (a,b) = pi4div2(pi_div x (3.1415926535 *. 2.)) in
-  print_char 64;
+  print_int 3; print_char 10;
   b *. (tailor_cos ((pi/. 2.) -. a)) in
 
 let rec tailor_atan y = 
