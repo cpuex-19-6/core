@@ -279,6 +279,7 @@ module cpu
 
             state <= native_rstn ? (usr_rst ? `STATE_INIT1 : `STATE_PRO_LD1) : `STATE_NONE;
             io_init <= 1'b0;
+            io_pro_ld <= 1'b0;
 
         end else begin
             // pro_ld ---------------------------
