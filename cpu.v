@@ -283,7 +283,7 @@ module cpu
         end else begin
             // pro_ld ---------------------------
             if (state == `STATE_PRO_LD1) begin
-                state <= `STATE_INIT2;
+                state <= `STATE_PRO_LD2;
             end
             else if (state == `STATE_PRO_LD2) begin
                 io_pro_ld <= 1'b1;
