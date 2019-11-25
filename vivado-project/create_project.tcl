@@ -63,6 +63,7 @@
 #    "../bin_code/float_int_register_check.coe"
 #    "../bin_code/uart_add1_loopback.coe"
 #    "../bin_code/float-check-2.coe"
+#    "../bin_code/sin-check-2.coe"
 #    "../constraint.xdc"
 #
 #*****************************************************************************************
@@ -219,6 +220,7 @@ set files [list \
  [file normalize "${origin_dir}/../bin_code/float_int_register_check.coe"] \
  [file normalize "${origin_dir}/../bin_code/uart_add1_loopback.coe"] \
  [file normalize "${origin_dir}/../bin_code/float-check-2.coe"] \
+ [file normalize "${origin_dir}/../bin_code/sin-check-2.coe"] \
 ]
 add_files -norecurse -fileset $obj $files
 
@@ -542,7 +544,7 @@ proc cr_bd_ver1 { parentCell } {
   set inst_mem [ create_bd_cell -type ip -vlnv xilinx.com:ip:blk_mem_gen:8.4 inst_mem ]
   set_property -dict [ list \
    CONFIG.Byte_Size {9} \
-   CONFIG.Coe_File {../../../../../../../../bin_code/float-check-2.coe} \
+   CONFIG.Coe_File {../../../../../../../../bin_code/sin-check-2.coe} \
    CONFIG.EN_SAFETY_CKT {false} \
    CONFIG.Enable_32bit_Address {false} \
    CONFIG.Enable_A {Always_Enabled} \
