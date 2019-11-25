@@ -62,7 +62,6 @@
 #    "../bin_code/float-check.coe"
 #    "../bin_code/float_int_register_check.coe"
 #    "../bin_code/uart_add1_loopback.coe"
-#    "../bin_code/float-check-2.coe"
 #    "../bin_code/sin-check-2.coe"
 #    "../constraint.xdc"
 #
@@ -219,7 +218,6 @@ set files [list \
  [file normalize "${origin_dir}/../bin_code/float-check.coe"] \
  [file normalize "${origin_dir}/../bin_code/float_int_register_check.coe"] \
  [file normalize "${origin_dir}/../bin_code/uart_add1_loopback.coe"] \
- [file normalize "${origin_dir}/../bin_code/float-check-2.coe"] \
  [file normalize "${origin_dir}/../bin_code/sin-check-2.coe"] \
 ]
 add_files -norecurse -fileset $obj $files
