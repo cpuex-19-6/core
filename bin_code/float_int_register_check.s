@@ -16,4 +16,4 @@ outw x4
 addi x4  x0  0
 ftoi x4  f4
 outf f4
-outf x4
+outw x4
