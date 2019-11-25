@@ -33,10 +33,10 @@ module regs
      input wire clk,
      input wire rstn);
 
-    localparam reg_num = 2 ** `LEN_REG_ADDR;
+    localparam reg_num = (2 ** `LEN_REG_ADDR);
     localparam special_init_regs = 3;
 
-    reg [reg_num-1:0] registers [`LEN_WORD-1:0];
+    reg [`LEN_WORD-1:0] registers [reg_num-1:0];
 
     assign drs1 = (|ars1) ? registers[ars1] : 32'b0;
     assign drs2 = (|ars2) ? registers[ars2] : 32'b0;
