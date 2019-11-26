@@ -29,7 +29,7 @@ module cpu
      input  wire native_rstn,
      input  wire usr_rst,
      input  wire usr_load,
-     output wire [7-1:0] led_stat,
+     output wire [6-1:0] led_stat,
 
      output wire [`LEN_MEMISTR_ADDR-1:0] a_inst,
      input  wire [`LEN_WORD-1:0]         d_inst,
@@ -56,8 +56,9 @@ module cpu
     reg [32-1:0] clock_counter;
 
     // program load -------------------------------
-    reg pro_ld_write_flag;
+    reg r_prold_write_flag;
     reg [32-1:0] pro_ld_inst;
+    assign prold_write_flag = r_prold_write_flag;
     assign prold_set_address = pro_ld_inst;
 
     // registers -------------------------------
@@ -223,7 +224,7 @@ module cpu
     io_core io_c(
         io_init | io_pro_ld | io_flag, io_accepted, io_done,
         io_init | io_io,
-        io_init ? 3'b000 : io_pro_ld ? 3'b010 : func3_de,
+        io_init ? 3'b000 : (io_pro_ld ? 3'b010 : func3_de),
         io_init ? 32'haa : d_rs1_de, io_input,
         uart_write_flag, uart_size, uart_o_data, uart_i_data,
         uart_order, uart_accepted, uart_done,
@@ -236,7 +237,7 @@ module cpu
             pc <= 'b0;
             clock_counter <= 32'b0;
 
-            pro_ld_write_flag <= 1'b0;
+            r_prold_write_flag <= 1'b0;
             pro_ld_inst <= 32'b0;
 
             reg_a_rd <= 6'b0;
@@ -284,20 +285,20 @@ module cpu
         end else begin
             // pro_ld ---------------------------
             if (state == `STATE_PRO_LD1) begin
-                state <= `STATE_PRO_LD2;
-            end
-            else if (state == `STATE_PRO_LD2) begin
                 io_pro_ld <= 1'b1;
                 if (io_done) begin
-                    pro_ld_write_flag <= 1'b1;
+                    r_prold_write_flag <= 1'b1;
                     pro_ld_inst <= io_input;
-                    state <= `STATE_PRO_LD3;
+                    state <= `STATE_PRO_LD2;
                 end
             end
+            else if (state == `STATE_PRO_LD2) begin
+                state <= `STATE_PRO_LD3;
+            end
             else if (state == `STATE_PRO_LD3) begin
-                pro_ld_write_flag <= 1'b0;
+                r_prold_write_flag <= 1'b0;
                 pc <= pc + 4'b0;
-                state <= `STATE_PRO_LD2;
+                state <= `STATE_PRO_LD1;
             end
             // init ---------------------------
             else if (state == `STATE_INIT1) begin
@@ -466,7 +467,8 @@ module cpu
     end
 
     // LED output
-    assign led_stat = {rstn, ~|state, state[15], |state[14:13], |state[12:11], state[4:3]};
+    assign led_stat = {rstn, state[15], |state[14:13], |state[12:11], state[4:3]};
+    //                       end        pro-ld         init           exec-wait exec
 
 endmodule
 
