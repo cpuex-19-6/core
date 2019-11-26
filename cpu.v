@@ -293,9 +293,6 @@ module cpu
                 end
             end
             else if (state == `STATE_PRO_LD2) begin
-                state <= `STATE_PRO_LD3;
-            end
-            else if (state == `STATE_PRO_LD3) begin
                 r_prold_write_flag <= 1'b0;
                 pc <= pc + 32'd4;
                 state <= `STATE_PRO_LD1;
