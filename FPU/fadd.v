@@ -31,8 +31,7 @@ module fadd
   // 最後のステージが実行中ならそのクロックのうちに
   // モジュール全体で演算が終了するので、doneを上げておく
   reg stage_1;
-  reg stage_2;
-  assign done = stage_2;
+  assign done = stage_1;
 
   // stage 0
 
@@ -161,47 +160,17 @@ module fadd
               (myd[0] == 1) ? 5'd25 : 5'd26; 
 
 
-  reg [7:0] eyd_2;
-  reg [26:0] myd_2;
-  reg [4:0] se_2;
-  reg stck_2;
-  reg s1_2;
-  reg s2_2;
-  reg ss_2;
-
-  always @(posedge clk) begin
-    if (~rstn) begin
-      eyd_2    <= 8'b0;
-      myd_2    <= 27'b0;
-      se_2     <= 5'b0;
-      stck_2   <= 1'b0;
-      s1_2     <= 1'b0;
-      s2_2     <= 1'b0;
-      ss_2     <= 1'b0;
-      stage_2  <= 1'b0;
-    end else begin
-      eyd_2    <= eyd;
-      myd_2    <= myd;
-      se_2     <= se;
-      stck_2   <= stck;
-      s1_2     <= s1_1;
-      s2_2     <= s2_1;
-      ss_2     <= ss_1;
-      stage_2  <= stage_1;
-    end
-  end
-
 
   wire signed [8:0] eyf;
   wire [7:0] eyr;
   wire [26:0] myf;
   wire [24:0] myr;
 
-  assign eyf = {1'b0, eyd_2} - {4'b0, se_2};
+  assign eyf = {1'b0, eyd} - {4'b0, se};
   assign eyr = (eyf > 0) ? eyf[7:0] : 8'b0;
-  assign myf = (eyf > 0) ? (myd_2 << se_2) : (myd_2 << (eyd_2[4:0] - 1)); 
-  assign myr = ((myf[1] == 1) && (myf[0] == 0) && (stck_2 == 0) && (myf[2] == 1))     ? (myf[26:2] + 25'b1) :
-               ((myf[1] == 1) && (myf[0] == 0) && (s1_2 == s2_2) && (stck_2 == 1))    ? (myf[26:2] + 25'b1) :
+  assign myf = (eyf > 0) ? (myd << se) : (myd << (eyd[4:0] - 1)); 
+  assign myr = ((myf[1] == 1) && (myf[0] == 0) && (stck == 0) && (myf[2] == 1))     ? (myf[26:2] + 25'b1) :
+               ((myf[1] == 1) && (myf[0] == 0) && (s1_1 == s2_1) && (stck == 1))    ? (myf[26:2] + 25'b1) :
                ((myf[1] == 1) && (myf[0] == 1))                                       ? (myf[26:2] + 25'b1) : myf[26:2];
 
   wire [7:0] eyri;
@@ -215,7 +184,7 @@ module fadd
               (myr[23:0] == 24'b0) ? 0    : eyr;
   assign my = (myr[24] == 1)       ? 23'b0 :
               (myr[23:0] == 24'b0) ? 23'b0 : myr[22:0];
-  assign sy = (ey == 0 && my == 0) ? (s1_2 && s2_2) : ss_2;
+  assign sy = (ey == 0 && my == 0) ? (s1_1 && s2_1) : ss_1;
 
   assign rd = {sy,ey,my};
 
