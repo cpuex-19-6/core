@@ -59,10 +59,10 @@
 #    "../bin_code/compiler_io_test.coe"
 #    "../bin_code/div_rem_test.coe"
 #    "../bin_code/mandelbrot.coe"
-#    "../bin_code/float-check.coe"
 #    "../bin_code/float_int_register_check.coe"
 #    "../bin_code/uart_add1_loopback.coe"
-#    "../bin_code/sin-check-2.coe"
+#    "../bin_code/conversational_fib_float.coe"
+#    "../bin_code/float-check-3.coe"
 #    "../constraint.xdc"
 #
 #*****************************************************************************************
@@ -215,10 +215,10 @@ set files [list \
  [file normalize "${origin_dir}/../bin_code/compiler_io_test.coe"] \
  [file normalize "${origin_dir}/../bin_code/div_rem_test.coe"] \
  [file normalize "${origin_dir}/../bin_code/mandelbrot.coe"] \
- [file normalize "${origin_dir}/../bin_code/float-check.coe"] \
  [file normalize "${origin_dir}/../bin_code/float_int_register_check.coe"] \
  [file normalize "${origin_dir}/../bin_code/uart_add1_loopback.coe"] \
- [file normalize "${origin_dir}/../bin_code/sin-check-2.coe"] \
+ [file normalize "${origin_dir}/../bin_code/conversational_fib_float.coe"] \
+ [file normalize "${origin_dir}/../bin_code/float-check-3.coe"] \
 ]
 add_files -norecurse -fileset $obj $files
 
@@ -541,7 +541,7 @@ proc cr_bd_ver1 { parentCell } {
   set inst_mem [ create_bd_cell -type ip -vlnv xilinx.com:ip:blk_mem_gen:8.4 inst_mem ]
   set_property -dict [ list \
    CONFIG.Byte_Size {9} \
-   CONFIG.Coe_File {../../../../../../../../bin_code/sin-check-2.coe} \
+   CONFIG.Coe_File {../../../../../../../../bin_code/float-check-3.coe} \
    CONFIG.EN_SAFETY_CKT {false} \
    CONFIG.Enable_32bit_Address {false} \
    CONFIG.Enable_A {Always_Enabled} \
@@ -581,6 +581,9 @@ proc cr_bd_ver1 { parentCell } {
 
   # Create instance: xlconcat_0, and set properties
   set xlconcat_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 xlconcat_0 ]
+  set_property -dict [ list \
+   CONFIG.NUM_PORTS {3} \
+ ] $xlconcat_0
 
   # Create interface connections
   connect_bd_intf_net -intf_net default_sysclk_300_1 [get_bd_intf_ports default_sysclk_300] [get_bd_intf_pins clk_wiz_0/CLK_IN1_D]
@@ -588,7 +591,7 @@ proc cr_bd_ver1 { parentCell } {
   # Create port connections
   connect_bd_net -net GPIO_SW_1 [get_bd_ports GPIO_SW] [get_bd_pins simple_reset_gen_0/usr_rst_in]
   connect_bd_net -net GPIO_SW_S_1 [get_bd_ports GPIO_SW_S] [get_bd_pins simple_reset_gen_0/usr_load_in]
-  connect_bd_net -net USB_UART_TX_1 [get_bd_ports USB_UART_TX] [get_bd_pins uart_manage_0/rxd]
+  connect_bd_net -net USB_UART_TX_1 [get_bd_ports USB_UART_TX] [get_bd_pins uart_manage_0/rxd] [get_bd_pins xlconcat_0/In2]
   connect_bd_net -net clk_wiz_0_locked [get_bd_pins clk_wiz_0/locked] [get_bd_pins simple_reset_gen_0/sys_rstn]
   connect_bd_net -net clk_wiz_1_clk_out1 [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins cpu_0/clk] [get_bd_pins data_mem/clka] [get_bd_pins inst_mem/clka] [get_bd_pins uart_manage_0/clk]
   connect_bd_net -net cpu_0_a_inst [get_bd_pins cpu_0/a_inst] [get_bd_pins inst_mem/addra]
@@ -977,6 +980,9 @@ proc cr_bd_ver1_sim { parentCell } {
 
   # Create instance: xlconcat_0, and set properties
   set xlconcat_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 xlconcat_0 ]
+  set_property -dict [ list \
+   CONFIG.NUM_PORTS {3} \
+ ] $xlconcat_0
 
   # Create instance: xlconstant_2, and set properties
   set xlconstant_2 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 xlconstant_2 ]
@@ -1031,7 +1037,7 @@ proc cr_bd_ver1_sim { parentCell } {
   connect_bd_net -net util_vector_logic_2_Res [get_bd_pins util_vector_logic_0/Op2] [get_bd_pins util_vector_logic_2/Res]
   connect_bd_net -net util_vector_logic_3_Res [get_bd_pins util_vector_logic_1/Op2] [get_bd_pins util_vector_logic_3/Res]
   connect_bd_net -net xlconcat_0_dout [get_bd_ports GPIO_LED] [get_bd_pins xlconcat_0/dout]
-  connect_bd_net -net xlconstant_2_dout [get_bd_pins uart_manage_0/rxd] [get_bd_pins xlconstant_2/dout]
+  connect_bd_net -net xlconstant_2_dout [get_bd_pins uart_manage_0/rxd] [get_bd_pins xlconcat_0/In2] [get_bd_pins xlconstant_2/dout]
   connect_bd_net -net xlconstant_3_dout [get_bd_pins simple_reset_gen_0/usr_load_in] [get_bd_pins xlconstant_3/dout]
   connect_bd_net -net xlslice_0_Dout [get_bd_pins util_vector_logic_0/Op1] [get_bd_pins xlslice_0/Dout]
 
