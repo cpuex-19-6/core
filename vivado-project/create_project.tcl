@@ -59,11 +59,12 @@
 #    "../bin_code/compiler_io_test.coe"
 #    "../bin_code/div_rem_test.coe"
 #    "../bin_code/mandelbrot.coe"
-#    "../bin_code/float-check.coe"
 #    "../bin_code/float_int_register_check.coe"
 #    "../bin_code/uart_add1_loopback.coe"
-#    "../bin_code/float-check-2.coe"
-#    "../bin_code/sin-check-2.coe"
+#    "../bin_code/feq_test.coe"
+#    "../bin_code/fib-float.coe"
+#    "../bin_code/conversational_fib_float.coe"
+#    "../bin_code/float-check-3.coe"
 #    "../constraint.xdc"
 #
 #*****************************************************************************************
@@ -216,11 +217,12 @@ set files [list \
  [file normalize "${origin_dir}/../bin_code/compiler_io_test.coe"] \
  [file normalize "${origin_dir}/../bin_code/div_rem_test.coe"] \
  [file normalize "${origin_dir}/../bin_code/mandelbrot.coe"] \
- [file normalize "${origin_dir}/../bin_code/float-check.coe"] \
  [file normalize "${origin_dir}/../bin_code/float_int_register_check.coe"] \
  [file normalize "${origin_dir}/../bin_code/uart_add1_loopback.coe"] \
- [file normalize "${origin_dir}/../bin_code/float-check-2.coe"] \
- [file normalize "${origin_dir}/../bin_code/sin-check-2.coe"] \
+ [file normalize "${origin_dir}/../bin_code/feq_test.coe"] \
+ [file normalize "${origin_dir}/../bin_code/fib-float.coe"] \
+ [file normalize "${origin_dir}/../bin_code/conversational_fib_float.coe"] \
+ [file normalize "${origin_dir}/../bin_code/float-check-3.coe"] \
 ]
 add_files -norecurse -fileset $obj $files
 
@@ -544,7 +546,7 @@ proc cr_bd_ver1 { parentCell } {
   set inst_mem [ create_bd_cell -type ip -vlnv xilinx.com:ip:blk_mem_gen:8.4 inst_mem ]
   set_property -dict [ list \
    CONFIG.Byte_Size {9} \
-   CONFIG.Coe_File {../../../../../../../../bin_code/sin-check-2.coe} \
+   CONFIG.Coe_File {../../../../../../../../bin_code/float-check-3.coe} \
    CONFIG.EN_SAFETY_CKT {false} \
    CONFIG.Enable_32bit_Address {false} \
    CONFIG.Enable_A {Always_Enabled} \
@@ -1067,9 +1069,8 @@ proc cr_bd_ver1_sim { parentCell } {
   # Restore current instance
   current_bd_instance $oldCurInst
 
+  validate_bd_design
   save_bd_design
-common::send_msg_id "BD_TCL-1000" "WARNING" "This Tcl script was generated from a block design that has not been validated. It is possible that design <$design_name> may result in errors during validation."
-
   close_bd_design $design_name 
 }
 # End of cr_bd_ver1_sim()
@@ -1098,6 +1099,7 @@ set_property -name "display_name" -value "synth_1_synth_report_utilization_0" -o
 
 }
 set obj [get_runs synth_1]
+set_property -name "needs_refresh" -value "1" -objects $obj
 set_property -name "strategy" -value "Vivado Synthesis Defaults" -objects $obj
 
 # set the current synth run
@@ -1321,6 +1323,7 @@ set_property -name "display_name" -value "impl_1_post_route_phys_opt_report_bus_
 
 }
 set obj [get_runs impl_1]
+set_property -name "needs_refresh" -value "1" -objects $obj
 set_property -name "strategy" -value "Vivado Implementation Defaults" -objects $obj
 set_property -name "steps.write_bitstream.args.readback_file" -value "0" -objects $obj
 set_property -name "steps.write_bitstream.args.verbose" -value "0" -objects $obj
