@@ -33,28 +33,19 @@ module fpu
     // orderはorder_ableが立っているときに命令の種類に従って個別に出す
     // acceptedとdoneは後で一括管理する
 
-    // fadd
-    wire fadd_order = order_able &
-        (func7 == `FUNC7_FADD);
-    wire fadd_accepted;
-    wire fadd_done;
-    wire [32-1:0] fadd_rd;
-    wire fadd_rs2 = rs2;
+    // fadd/fsub
+    wire faddsub_order = order_able &
+        ((func7 == `FUNC7_FADD) |
+         (func7 == `FUNC7_FSUB));
+    wire faddsub_accepted;
+    wire faddsub_done;
+    wire faddsub_new_sign =
+        func7[2] ? ~rs2[31] : rs2[31];
+    wire [32-1:0] faddsub_rd;
+    wire [32-1:0] faddsub_rs2 = {faddsub_new_sign, rs2[31-1:0]};
     fadd m_fadd(
-        fadd_order, fadd_accepted, fadd_done,
-        rs1, fadd_rs2, fadd_rd,
-        clk, rstn);
-
-    // fsub
-    wire fsub_order = order_able &
-        (func7 == `FUNC7_FSUB);
-    wire fsub_accepted;
-    wire fsub_done;
-    wire [32-1:0] fsub_rd;
-    wire fsub_rs2 = {~rs2[31], rs2[31-1:0]};
-    fadd m_fsub(
-        fsub_order, fsub_accepted, fsub_done,
-        rs1, fsub_rs2, fsub_rd,
+        faddsub_order, faddsub_accepted, faddsub_done,
+        rs1, faddsub_rs2, faddsub_rd,
         clk, rstn);
 
     // fmul
@@ -188,38 +179,39 @@ module fpu
 
     // 誰かがacceptしてるならそれを伝える(acceptedを上げる)
     assign accepted =
-        (fadd_accepted  | fsub_accepted  | fmul_accepted   | fdiv_accepted |
-         fsqrt_accepted | fsgnj_accepted | ffloor_accepted |
-         itof_accepted  | ftoi_accepted  | fmvi_accepted   | imvf_accepted |
-         fcomp_accepted |
+        (faddsub_accepted | fmul_accepted  | fdiv_accepted   |
+         fsqrt_accepted   | fsgnj_accepted | ffloor_accepted |
+         itof_accepted    | ftoi_accepted  |
+         fmvi_accepted    | imvf_accepted  |
+         fcomp_accepted   |
          error_accepted); // "|"でつなげる
 
     // 子モジュールのうち誰かがdoneを上げていたそのクロックのうちに
     // 終了するので、doneを上げておく
     assign done =
-        (fadd_done  | fsub_done  | fmul_done   | fdiv_done |
-         fsqrt_done | fsgnj_done | ffloor_done |
-         itof_done  | ftoi_done  | fmvi_done   | imvf_done |
-         fcomp_done |
+        (faddsub_done | fmul_done  | fdiv_done   |
+         fsqrt_done   | fsgnj_done | ffloor_done |
+         itof_done    | ftoi_done  |
+         fmvi_done    | imvf_done  |
+         fcomp_done   |
          error_done); // "|"でつなげる
     
     // doneがあがれば出力を更新する
     // そうでなければ更新しない
     wire [32-1:0] rd_buf;
     wire [32-1:0] next_rd_buf =
-        fadd_done    ? fadd_rd   :
-        fsub_done    ? fsub_rd   :
-        fmul_done    ? fmul_rd   :
-        fdiv_done    ? fdiv_rd   :
-        fsqrt_done   ? fsqrt_rd  :
-        fsgnj_done   ? fsgnj_rd  :
-        ffloor_done  ? ffloor_rd :
-        itof_done    ? itof_rd   :
-        ftoi_done    ? ftoi_rd   :
-        fmvi_done    ? fmvi_rd   :
-        imvf_done    ? imvf_rd   :
-        fcomp_done   ? fcomp_rd  :
-        error_done   ? error_rd  : rd_buf;
+        faddsub_done ? faddsub_rd :
+        fmul_done    ? fmul_rd    :
+        fdiv_done    ? fdiv_rd    :
+        fsqrt_done   ? fsqrt_rd   :
+        fsgnj_done   ? fsgnj_rd   :
+        ffloor_done  ? ffloor_rd  :
+        itof_done    ? itof_rd    :
+        ftoi_done    ? ftoi_rd    :
+        fmvi_done    ? fmvi_rd    :
+        imvf_done    ? imvf_rd    :
+        fcomp_done   ? fcomp_rd   :
+        error_done   ? error_rd   : rd_buf;
     temp_reg r_rd_buf(1'b1, next_rd_buf, rd_buf, clk, rstn);
 
     assign rd = next_rd_buf;
