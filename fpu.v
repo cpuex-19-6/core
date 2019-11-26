@@ -20,13 +20,13 @@ module fpu
     // このクロック開始時にモジュール内で計算中かどうか
     // 実行中で、現在のクロックで終了するなら次はやらない
     // 何もやってなくて、orderが出ていたら仕事をする
-    wire doing;
-    wire next_doing = (~done) & (doing | order);
-    temp_reg #(1) r_doing(1'b1, next_doing, doing, clk, rstn);
+    wire busy;
+    wire next_busy = (~done) & (busy | accepted);
+    temp_reg #(1) r_busy(1'b1, next_busy, busy, clk, rstn);
   
     // 現在何も実行していなくて、orderが来ているなら
     // orderを子モジュールに投げられる。
-    wire order_able = ~doing & order;
+    wire order_able = ~busy & order;
 
     // 各子モジュール
     // 基本入力と出力は垂れ流し
@@ -220,7 +220,7 @@ module fpu
         imvf_done    ? imvf_rd   :
         fcomp_done   ? fcomp_rd  :
         error_done   ? error_rd  : rd_buf;
-    temp_reg r_rd_buf(done, next_rd_buf, rd_buf, clk, rstn);
+    temp_reg r_rd_buf(1'b1, next_rd_buf, rd_buf, clk, rstn);
 
     assign rd = next_rd_buf;
 
