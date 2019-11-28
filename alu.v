@@ -45,7 +45,7 @@ module alu
     wire internal_order = order_able &
         ~(extention_flag &
         ((func3 == `FUNC3_REMU) |
-         (func3 == `FUNC3_DIVU));
+         (func3 == `FUNC3_DIVU)));
     wire internal_accepted = internal_order;
     wire internal_done     = internal_order;
 
