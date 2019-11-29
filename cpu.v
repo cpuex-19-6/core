@@ -24,6 +24,7 @@
 `define STATE_WRITE        16'b0000000000100000
 
 module cpu
+    #(LEN_MEMISTR_ADDR = 15)
     (input  wire clk,
      input  wire rstn,
      input  wire native_rstn,
@@ -31,7 +32,7 @@ module cpu
      input  wire usr_load,
      output wire [6-1:0] led_stat,
 
-     output wire [`LEN_MEMISTR_ADDR-1:0] a_inst,
+     output wire [LEN_MEMISTR_ADDR-1:0] a_inst,
      input  wire [`LEN_WORD-1:0]         d_inst,
      output wire [`LEN_WORD-1:0]         prold_set_address,
      output wire                         prold_write_flag,
@@ -88,7 +89,7 @@ module cpu
     reg  [`LEN_INST-1:0] inst_fd;
     wire [`LEN_INST-1:0] inst_f;
 
-    fetch fet(
+    fetch #(LEN_MEMISTR_ADDR) fet(
         fetch_order, fetch_accepted, fetch_done,
         pc, inst_f,
         a_inst, d_inst,
