@@ -233,7 +233,7 @@ module cpu
     // main -------------------------------
 
     always @(posedge clk) begin
-        if (~rstn) begin
+        if (~native_rstn) begin
             pc <= 'b0;
             clock_counter <= 32'b0;
 
@@ -278,11 +278,111 @@ module cpu
             io_flag <= 1'b0;
             io_io <= 1'b0;
 
-            state <= native_rstn ? (usr_rst ? `STATE_INIT1 : `STATE_PRO_LD1) : `STATE_NONE;
+            state <= `STATE_NONE;
             io_init <= 1'b0;
             io_pro_ld <= 1'b0;
+        end
+        // init ---------------------------
+        else if (usr_rst) begin
+            pc <= 'b0;
+            clock_counter <= 32'b0;
 
-        end else begin
+            r_prold_write_flag <= 1'b0;
+            pro_ld_inst <= 32'b0;
+
+            reg_a_rd <= 6'b0;
+            reg_d_rd <= 32'b0;
+            
+            reg_flag <= 1'b0;
+
+            fetch_order <= 1'b0;
+            inst_fd <= 32'b0;
+            pc_fd <= 32'b0;
+
+            alu_de <= 1'b0;
+            alu_imm_f_de <= 1'b0;
+            alu_extention_f_de <= 1'b0;
+            mem_de <= 1'b0;
+            fpu_de <= 1'b0;
+            branch_de <= 1'b0;
+            jump_de <= 1'b0;
+            subst_de <= 1'b0;
+            io_de <= 1'b0;
+            d_rs1_de <= 32'b0;
+            d_rs2_de <= 32'b0;
+            d_rs3_de <= 32'b0;
+            a_rd_de <= 6'b0;
+            opecode_de <= 7'b0;
+            func3_de <= 3'b0;
+            func7_de <= 7'b0;
+            pc_de <= 32'b0;
+
+            write_ew <= 1'b0;
+            a_rd_ew <= 6'b0;
+            d_rd_ew <= 32'b0;
+            next_pc_ew <= 32'b0;
+            alu_flag <= 1'b0;
+            fpu_flag <= 1'b0;
+            mem_flag <= 1'b0;
+            mem_io <= 1'b0;
+            io_flag <= 1'b0;
+            io_io <= 1'b0;
+
+            state <= `STATE_INIT1;
+            io_init <= 1'b0;
+            io_pro_ld <= 1'b0;
+        end
+        // pro_ld ---------------------------
+        else if (usr_load) begin
+            pc <= 'b0;
+            clock_counter <= 32'b0;
+
+            r_prold_write_flag <= 1'b0;
+            pro_ld_inst <= 32'b0;
+
+            reg_a_rd <= 6'b0;
+            reg_d_rd <= 32'b0;
+            
+            reg_flag <= 1'b0;
+
+            fetch_order <= 1'b0;
+            inst_fd <= 32'b0;
+            pc_fd <= 32'b0;
+
+            alu_de <= 1'b0;
+            alu_imm_f_de <= 1'b0;
+            alu_extention_f_de <= 1'b0;
+            mem_de <= 1'b0;
+            fpu_de <= 1'b0;
+            branch_de <= 1'b0;
+            jump_de <= 1'b0;
+            subst_de <= 1'b0;
+            io_de <= 1'b0;
+            d_rs1_de <= 32'b0;
+            d_rs2_de <= 32'b0;
+            d_rs3_de <= 32'b0;
+            a_rd_de <= 6'b0;
+            opecode_de <= 7'b0;
+            func3_de <= 3'b0;
+            func7_de <= 7'b0;
+            pc_de <= 32'b0;
+
+            write_ew <= 1'b0;
+            a_rd_ew <= 6'b0;
+            d_rd_ew <= 32'b0;
+            next_pc_ew <= 32'b0;
+            alu_flag <= 1'b0;
+            fpu_flag <= 1'b0;
+            mem_flag <= 1'b0;
+            mem_io <= 1'b0;
+            io_flag <= 1'b0;
+            io_io <= 1'b0;
+
+            state <= `STATE_PRO_LD1;
+            io_init <= 1'b0;
+            io_pro_ld <= 1'b0;
+        end
+        else begin
             // pro_ld ---------------------------
             if (state == `STATE_PRO_LD1) begin
                 io_pro_ld <= 1'b1;
