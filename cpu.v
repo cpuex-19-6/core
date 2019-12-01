@@ -54,6 +54,8 @@ module cpu
     reg [`LEN_MEM_ADDR-1:0] pc;
     reg [`STATE_NUM-1:0]    state;
 
+    reg [7:0] init_wait;
+
     reg [32-1:0] clock_counter;
 
     // program load -------------------------------
@@ -400,17 +402,24 @@ module cpu
             end
             // init ---------------------------
             else if (state == `STATE_INIT1) begin
+                init_wait <= 8'b0;
                 state <= `STATE_INIT2;
             end
             else if (state == `STATE_INIT2) begin
-                io_init <= 1'b1;
-                state <= `STATE_INIT3;
+                if (init_wait == 8'b11111111) begin
+                    io_init <= 1'b1;
+                    state <= `STATE_INIT3;
+                end
+                else begin
+                    init_wait <= init_wait + 8'b1;
+                end
             end
             else if (state == `STATE_INIT3) begin
                 if (io_accepted) begin
                     io_init <= 1'b0;
                 end
                 if (io_done) begin
+                    io_init <= 1'b0;
                     state <= `STATE_FETCH;
                 end
             end
@@ -565,6 +574,7 @@ module cpu
     end
 
     // LED output
+    //assign led_stat = {state[15], opecode_de[6:3], state[4]};
     assign led_stat = {rstn, state[15], |state[14:13], |state[12:11], state[4:3]};
     //                       end        pro-ld         init           exec-wait exec
 
