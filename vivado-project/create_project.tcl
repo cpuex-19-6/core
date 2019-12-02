@@ -48,21 +48,23 @@
 #    "../memory_access.v"
 #    "../reg.v"
 #    "../cpu.v"
+#    "../reset.v"
 #    "../uart_rx.v"
 #    "../uart_tx.v"
 #    "../uart_util.v"
 #    "../uart.v"
-#    "../reset.v"
 #    "../uart_input_test.v"
 #    "../bin_code/uart_loopback.coe"
 #    "../bin_code/conversational_fib.coe"
 #    "../bin_code/compiler_io_test.coe"
 #    "../bin_code/div_rem_test.coe"
 #    "../bin_code/mandelbrot.coe"
-#    "../bin_code/float-check.coe"
 #    "../bin_code/float_int_register_check.coe"
 #    "../bin_code/uart_add1_loopback.coe"
-#    "../bin_code/float-check-2.coe"
+#    "../bin_code/feq_test.coe"
+#    "../bin_code/fib-float.coe"
+#    "../bin_code/conversational_fib_float.coe"
+#    "../bin_code/float-check-3.coe"
 #    "../constraint.xdc"
 #
 #*****************************************************************************************
@@ -204,28 +206,30 @@ set files [list \
  [file normalize "${origin_dir}/../memory_access.v"] \
  [file normalize "${origin_dir}/../reg.v"] \
  [file normalize "${origin_dir}/../cpu.v"] \
+ [file normalize "${origin_dir}/../reset.v"] \
  [file normalize "${origin_dir}/../uart_rx.v"] \
  [file normalize "${origin_dir}/../uart_tx.v"] \
  [file normalize "${origin_dir}/../uart_util.v"] \
  [file normalize "${origin_dir}/../uart.v"] \
- [file normalize "${origin_dir}/../reset.v"] \
  [file normalize "${origin_dir}/../uart_input_test.v"] \
  [file normalize "${origin_dir}/../bin_code/uart_loopback.coe"] \
  [file normalize "${origin_dir}/../bin_code/conversational_fib.coe"] \
  [file normalize "${origin_dir}/../bin_code/compiler_io_test.coe"] \
  [file normalize "${origin_dir}/../bin_code/div_rem_test.coe"] \
  [file normalize "${origin_dir}/../bin_code/mandelbrot.coe"] \
- [file normalize "${origin_dir}/../bin_code/float-check.coe"] \
  [file normalize "${origin_dir}/../bin_code/float_int_register_check.coe"] \
  [file normalize "${origin_dir}/../bin_code/uart_add1_loopback.coe"] \
- [file normalize "${origin_dir}/../bin_code/float-check-2.coe"] \
+ [file normalize "${origin_dir}/../bin_code/feq_test.coe"] \
+ [file normalize "${origin_dir}/../bin_code/fib-float.coe"] \
+ [file normalize "${origin_dir}/../bin_code/conversational_fib_float.coe"] \
+ [file normalize "${origin_dir}/../bin_code/float-check-3.coe"] \
 ]
 add_files -norecurse -fileset $obj $files
 
 # Import local files from the original project
 set files [list \
- [file normalize "${origin_dir}/ver1_wrapper.v" ]\
- [file normalize "${origin_dir}/ver1_sim_wrapper.v" ]\
+ [file normalize "${origin_dir}/ver1_wrapper.v"]\
+ [file normalize "${origin_dir}/ver1_sim_wrapper.v"]\
 ]
 set imported_files [import_files -fileset sources_1 $files]
 
@@ -347,6 +351,9 @@ if { [get_files reg.v] == "" } {
 if { [get_files cpu.v] == "" } {
   import_files -quiet -fileset sources_1 ../cpu.v
 }
+if { [get_files reset.v] == "" } {
+  import_files -quiet -fileset sources_1 ../reset.v
+}
 if { [get_files include.vh] == "" } {
   import_files -quiet -fileset sources_1 ../include.vh
 }
@@ -364,9 +371,6 @@ if { [get_files uart_util.v] == "" } {
 }
 if { [get_files uart.v] == "" } {
   import_files -quiet -fileset sources_1 ../uart.v
-}
-if { [get_files reset.v] == "" } {
-  import_files -quiet -fileset sources_1 ../reset.v
 }
 
 
@@ -395,7 +399,6 @@ proc cr_bd_ver1 { parentCell } {
   xilinx.com:ip:clk_wiz:6.0\
   xilinx.com:ip:blk_mem_gen:8.4\
   xilinx.com:ip:xlconcat:2.1\
-  xilinx.com:ip:xlconstant:1.1\
   "
 
    set list_ips_missing ""
@@ -542,7 +545,7 @@ proc cr_bd_ver1 { parentCell } {
   set inst_mem [ create_bd_cell -type ip -vlnv xilinx.com:ip:blk_mem_gen:8.4 inst_mem ]
   set_property -dict [ list \
    CONFIG.Byte_Size {9} \
-   CONFIG.Coe_File {../../../../../../../../bin_code/float-check-2.coe} \
+   CONFIG.Coe_File {../../../../../../../../bin_code/float-check-3.coe} \
    CONFIG.EN_SAFETY_CKT {false} \
    CONFIG.Enable_32bit_Address {false} \
    CONFIG.Enable_A {Always_Enabled} \
@@ -582,26 +585,17 @@ proc cr_bd_ver1 { parentCell } {
 
   # Create instance: xlconcat_0, and set properties
   set xlconcat_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 xlconcat_0 ]
-
-  # Create instance: xlconstant_0, and set properties
-  set xlconstant_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 xlconstant_0 ]
   set_property -dict [ list \
-   CONFIG.CONST_VAL {0} \
- ] $xlconstant_0
-
-  # Create instance: xlconstant_1, and set properties
-  set xlconstant_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 xlconstant_1 ]
-  set_property -dict [ list \
-   CONFIG.CONST_VAL {0} \
-   CONFIG.CONST_WIDTH {32} \
- ] $xlconstant_1
+   CONFIG.NUM_PORTS {3} \
+ ] $xlconcat_0
 
   # Create interface connections
   connect_bd_intf_net -intf_net default_sysclk_300_1 [get_bd_intf_ports default_sysclk_300] [get_bd_intf_pins clk_wiz_0/CLK_IN1_D]
 
   # Create port connections
   connect_bd_net -net GPIO_SW_1 [get_bd_ports GPIO_SW] [get_bd_pins simple_reset_gen_0/usr_rst_in]
-  connect_bd_net -net USB_UART_TX_1 [get_bd_ports USB_UART_TX] [get_bd_pins uart_manage_0/rxd]
+  connect_bd_net -net GPIO_SW_S_1 [get_bd_ports GPIO_SW_S] [get_bd_pins simple_reset_gen_0/usr_load_in]
+  connect_bd_net -net USB_UART_TX_1 [get_bd_ports USB_UART_TX] [get_bd_pins uart_manage_0/rxd] [get_bd_pins xlconcat_0/In2]
   connect_bd_net -net clk_wiz_0_locked [get_bd_pins clk_wiz_0/locked] [get_bd_pins simple_reset_gen_0/sys_rstn]
   connect_bd_net -net clk_wiz_1_clk_out1 [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins cpu_0/clk] [get_bd_pins data_mem/clka] [get_bd_pins inst_mem/clka] [get_bd_pins uart_manage_0/clk]
   connect_bd_net -net cpu_0_a_inst [get_bd_pins cpu_0/a_inst] [get_bd_pins inst_mem/addra]
@@ -609,6 +603,8 @@ proc cr_bd_ver1 { parentCell } {
   connect_bd_net -net cpu_0_led_stat [get_bd_pins cpu_0/led_stat] [get_bd_pins xlconcat_0/In0]
   connect_bd_net -net cpu_0_mem_read_flag [get_bd_pins cpu_0/mem_read_flag] [get_bd_pins data_mem/ena]
   connect_bd_net -net cpu_0_mem_write_flag [get_bd_pins cpu_0/mem_write_flag] [get_bd_pins data_mem/wea]
+  connect_bd_net -net cpu_0_prold_set_address [get_bd_pins cpu_0/prold_set_address] [get_bd_pins inst_mem/dina]
+  connect_bd_net -net cpu_0_prold_write_flag [get_bd_pins cpu_0/prold_write_flag] [get_bd_pins inst_mem/wea]
   connect_bd_net -net cpu_0_sd_mem [get_bd_pins cpu_0/sd_mem] [get_bd_pins data_mem/dina]
   connect_bd_net -net cpu_0_uart_o_data [get_bd_pins cpu_0/uart_o_data] [get_bd_pins uart_manage_0/write_data]
   connect_bd_net -net cpu_0_uart_order [get_bd_pins cpu_0/uart_order] [get_bd_pins uart_manage_0/order]
@@ -619,14 +615,13 @@ proc cr_bd_ver1 { parentCell } {
   connect_bd_net -net reset_1 [get_bd_ports reset] [get_bd_pins clk_wiz_0/reset]
   connect_bd_net -net simple_reset_gen_0_native_rstn [get_bd_pins cpu_0/native_rstn] [get_bd_pins simple_reset_gen_0/native_rstn]
   connect_bd_net -net simple_reset_gen_0_rstn [get_bd_pins cpu_0/rstn] [get_bd_pins simple_reset_gen_0/rstn] [get_bd_pins uart_manage_0/rstn]
+  connect_bd_net -net simple_reset_gen_0_usr_load_out [get_bd_pins cpu_0/usr_load] [get_bd_pins simple_reset_gen_0/usr_load_out]
   connect_bd_net -net simple_reset_gen_0_usr_rst_out [get_bd_pins cpu_0/usr_rst] [get_bd_pins simple_reset_gen_0/usr_rst_out]
   connect_bd_net -net uart_manage_0_accepted [get_bd_pins cpu_0/uart_accepted] [get_bd_pins uart_manage_0/accepted]
   connect_bd_net -net uart_manage_0_done [get_bd_pins cpu_0/uart_done] [get_bd_pins uart_manage_0/done]
   connect_bd_net -net uart_manage_0_read_data [get_bd_pins cpu_0/uart_i_data] [get_bd_pins uart_manage_0/read_data]
   connect_bd_net -net uart_manage_0_txd [get_bd_ports USB_UART_RX] [get_bd_pins uart_manage_0/txd] [get_bd_pins xlconcat_0/In1]
   connect_bd_net -net xlconcat_0_dout [get_bd_ports GPIO_LED] [get_bd_pins xlconcat_0/dout]
-  connect_bd_net -net xlconstant_0_dout [get_bd_pins inst_mem/wea] [get_bd_pins xlconstant_0/dout]
-  connect_bd_net -net xlconstant_1_dout [get_bd_pins inst_mem/dina] [get_bd_pins xlconstant_1/dout]
 
   # Create address segments
 
@@ -989,22 +984,18 @@ proc cr_bd_ver1_sim { parentCell } {
 
   # Create instance: xlconcat_0, and set properties
   set xlconcat_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 xlconcat_0 ]
-
-  # Create instance: xlconstant_0, and set properties
-  set xlconstant_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 xlconstant_0 ]
   set_property -dict [ list \
-   CONFIG.CONST_VAL {0} \
- ] $xlconstant_0
-
-  # Create instance: xlconstant_1, and set properties
-  set xlconstant_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 xlconstant_1 ]
-  set_property -dict [ list \
-   CONFIG.CONST_VAL {0} \
-   CONFIG.CONST_WIDTH {32} \
- ] $xlconstant_1
+   CONFIG.NUM_PORTS {3} \
+ ] $xlconcat_0
 
   # Create instance: xlconstant_2, and set properties
   set xlconstant_2 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 xlconstant_2 ]
+
+  # Create instance: xlconstant_3, and set properties
+  set xlconstant_3 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 xlconstant_3 ]
+  set_property -dict [ list \
+   CONFIG.CONST_VAL {0} \
+ ] $xlconstant_3
 
   # Create instance: xlslice_0, and set properties
   set xlslice_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_0 ]
@@ -1027,6 +1018,8 @@ proc cr_bd_ver1_sim { parentCell } {
   connect_bd_net -net cpu_0_led_stat [get_bd_pins cpu_0/led_stat] [get_bd_pins xlconcat_0/In0]
   connect_bd_net -net cpu_0_mem_read_flag [get_bd_pins cpu_0/mem_read_flag] [get_bd_pins data_mem/ena]
   connect_bd_net -net cpu_0_mem_write_flag [get_bd_pins cpu_0/mem_write_flag] [get_bd_pins data_mem/wea]
+  connect_bd_net -net cpu_0_prold_set_address [get_bd_pins cpu_0/prold_set_address] [get_bd_pins inst_mem/dina]
+  connect_bd_net -net cpu_0_prold_write_flag [get_bd_pins cpu_0/prold_write_flag] [get_bd_pins inst_mem/wea]
   connect_bd_net -net cpu_0_sd_mem [get_bd_pins cpu_0/sd_mem] [get_bd_pins data_mem/dina]
   connect_bd_net -net cpu_0_uart_o_data [get_bd_pins cpu_0/uart_o_data] [get_bd_pins uart_manage_0/write_data]
   connect_bd_net -net cpu_0_uart_order [get_bd_pins cpu_0/uart_order] [get_bd_pins uart_manage_0/order]
@@ -1037,6 +1030,7 @@ proc cr_bd_ver1_sim { parentCell } {
   connect_bd_net -net sim_rst_gen_0_rst [get_bd_pins clk_wiz_0/reset] [get_bd_pins sim_rst_gen_0/rst]
   connect_bd_net -net simple_reset_gen_0_native_rstn [get_bd_pins cpu_0/native_rstn] [get_bd_pins simple_reset_gen_0/native_rstn]
   connect_bd_net -net simple_reset_gen_0_rstn [get_bd_pins cpu_0/rstn] [get_bd_pins simple_reset_gen_0/rstn] [get_bd_pins uart_manage_0/rstn]
+  connect_bd_net -net simple_reset_gen_0_usr_load_out [get_bd_pins cpu_0/usr_load] [get_bd_pins simple_reset_gen_0/usr_load_out]
   connect_bd_net -net simple_reset_gen_0_usr_rst_out [get_bd_pins cpu_0/usr_rst] [get_bd_pins simple_reset_gen_0/usr_rst_out]
   connect_bd_net -net uart_manage_0_accepted [get_bd_pins cpu_0/uart_accepted] [get_bd_pins uart_manage_0/accepted]
   connect_bd_net -net uart_manage_0_done [get_bd_pins cpu_0/uart_done] [get_bd_pins uart_manage_0/done]
@@ -1047,9 +1041,8 @@ proc cr_bd_ver1_sim { parentCell } {
   connect_bd_net -net util_vector_logic_2_Res [get_bd_pins util_vector_logic_0/Op2] [get_bd_pins util_vector_logic_2/Res]
   connect_bd_net -net util_vector_logic_3_Res [get_bd_pins util_vector_logic_1/Op2] [get_bd_pins util_vector_logic_3/Res]
   connect_bd_net -net xlconcat_0_dout [get_bd_ports GPIO_LED] [get_bd_pins xlconcat_0/dout]
-  connect_bd_net -net xlconstant_0_dout [get_bd_pins inst_mem/wea] [get_bd_pins xlconstant_0/dout]
-  connect_bd_net -net xlconstant_1_dout [get_bd_pins inst_mem/dina] [get_bd_pins xlconstant_1/dout]
-  connect_bd_net -net xlconstant_2_dout [get_bd_pins uart_manage_0/rxd] [get_bd_pins xlconstant_2/dout]
+  connect_bd_net -net xlconstant_2_dout [get_bd_pins uart_manage_0/rxd] [get_bd_pins xlconcat_0/In2] [get_bd_pins xlconstant_2/dout]
+  connect_bd_net -net xlconstant_3_dout [get_bd_pins simple_reset_gen_0/usr_load_in] [get_bd_pins xlconstant_3/dout]
   connect_bd_net -net xlslice_0_Dout [get_bd_pins util_vector_logic_0/Op1] [get_bd_pins xlslice_0/Dout]
 
   # Create address segments
@@ -1065,9 +1058,8 @@ proc cr_bd_ver1_sim { parentCell } {
   # Restore current instance
   current_bd_instance $oldCurInst
 
+  validate_bd_design
   save_bd_design
-common::send_msg_id "BD_TCL-1000" "WARNING" "This Tcl script was generated from a block design that has not been validated. It is possible that design <$design_name> may result in errors during validation."
-
   close_bd_design $design_name 
 }
 # End of cr_bd_ver1_sim()
@@ -1096,6 +1088,7 @@ set_property -name "display_name" -value "synth_1_synth_report_utilization_0" -o
 
 }
 set obj [get_runs synth_1]
+set_property -name "needs_refresh" -value "1" -objects $obj
 set_property -name "strategy" -value "Vivado Synthesis Defaults" -objects $obj
 
 # set the current synth run
@@ -1319,6 +1312,7 @@ set_property -name "display_name" -value "impl_1_post_route_phys_opt_report_bus_
 
 }
 set obj [get_runs impl_1]
+set_property -name "needs_refresh" -value "1" -objects $obj
 set_property -name "strategy" -value "Vivado Implementation Defaults" -objects $obj
 set_property -name "steps.write_bitstream.args.readback_file" -value "0" -objects $obj
 set_property -name "steps.write_bitstream.args.verbose" -value "0" -objects $obj

@@ -2,30 +2,41 @@
 
 `default_nettype none
 
-`define STATE_NUM 10
+`define STATE_NUM 16
 
-`define STATE_NONE         10'b0000000000
-`define STATE_INIT         10'b1000000000
-`define STATE_INIT2        10'b0100000000
-`define STATE_INIT3        10'b1100000000
-`define STATE_FETCH        10'b0000000001
-`define STATE_FETCH_WAIT   10'b0000000010
-`define STATE_DECODE       10'b0000000100
-`define STATE_EXECUTE      10'b0000001000
-`define STATE_EXECUTE_WAIT 10'b0000010000
-`define STATE_WRITE        10'b0000100000
-`define STATE_END          10'b1111111111
+`define STATE_NONE         16'b0000000000000000
+
+`define STATE_END          16'b1000000000000000
+
+`define STATE_PRO_LD1      16'b0100000000000000
+`define STATE_PRO_LD2      16'b0010000000000000
+`define STATE_PRO_LD3      16'b0110000000000000
+
+`define STATE_INIT1        16'b0001000000000000
+`define STATE_INIT2        16'b0000100000000000
+`define STATE_INIT3        16'b0001100000000000
+
+`define STATE_FETCH        16'b0000000000000001
+`define STATE_FETCH_WAIT   16'b0000000000000010
+`define STATE_DECODE       16'b0000000000000100
+`define STATE_EXECUTE      16'b0000000000001000
+`define STATE_EXECUTE_WAIT 16'b0000000000010000
+`define STATE_WRITE        16'b0000000000100000
 
 module cpu
+    #(LEN_MEMISTR_ADDR = 15)
     (input  wire clk,
      input  wire rstn,
      input  wire native_rstn,
      input  wire usr_rst,
-     output wire [7-1:0] led_stat,
+     input  wire usr_load,
+     output wire [6-1:0] led_stat,
 
-     output wire [`LEN_MEMISTR_ADDR-1:0] a_inst,
+     output wire [LEN_MEMISTR_ADDR-1:0] a_inst,
      input  wire [`LEN_WORD-1:0]         d_inst,
-     
+     output wire [`LEN_WORD-1:0]         prold_set_address,
+     output wire                         prold_write_flag,
+
      output wire [`LEN_MEMDATA_ADDR-1:0] a_mem,
      output wire [`LEN_WORD-1:0]         sd_mem,
      input  wire [`LEN_WORD-1:0]         ld_mem,
@@ -43,7 +54,15 @@ module cpu
     reg [`LEN_MEM_ADDR-1:0] pc;
     reg [`STATE_NUM-1:0]    state;
 
+    reg [7:0] init_wait;
+
     reg [32-1:0] clock_counter;
+
+    // program load -------------------------------
+    reg r_prold_write_flag;
+    reg [32-1:0] pro_ld_inst;
+    assign prold_write_flag = r_prold_write_flag;
+    assign prold_set_address = pro_ld_inst;
 
     // registers -------------------------------
     //  in
@@ -72,7 +91,7 @@ module cpu
     reg  [`LEN_INST-1:0] inst_fd;
     wire [`LEN_INST-1:0] inst_f;
 
-    fetch fet(
+    fetch #(LEN_MEMISTR_ADDR) fet(
         fetch_order, fetch_accepted, fetch_done,
         pc, inst_f,
         a_inst, d_inst,
@@ -198,6 +217,7 @@ module cpu
     reg                  io_flag;
     reg                  io_io;
     reg                  io_init;
+    reg                  io_pro_ld;
 
     //  out
     wire [`LEN_WORD-1:0] io_input;
@@ -205,8 +225,10 @@ module cpu
     wire                 io_done;
 
     io_core io_c(
-        io_init | io_flag, io_accepted, io_done,
-        io_init | io_io, io_init ? 3'b000 : func3_de, io_init ? 32'haa : d_rs1_de, io_input,
+        io_init | io_pro_ld | io_flag, io_accepted, io_done,
+        io_init | io_io,
+        io_init ? 3'b000 : (io_pro_ld ? 3'b010 : func3_de),
+        io_init ? 32'haa : d_rs1_de, io_input,
         uart_write_flag, uart_size, uart_o_data, uart_i_data,
         uart_order, uart_accepted, uart_done,
         clk, rstn);
@@ -214,9 +236,13 @@ module cpu
     // main -------------------------------
 
     always @(posedge clk) begin
-        if (~rstn) begin
+        if (~native_rstn) begin
             pc <= 'b0;
             clock_counter <= 32'b0;
+
+            r_prold_write_flag <= 1'b0;
+            pro_ld_inst <= 32'b0;
+
             reg_a_rd <= 6'b0;
             reg_d_rd <= 32'b0;
             
@@ -254,24 +280,146 @@ module cpu
             mem_io <= 1'b0;
             io_flag <= 1'b0;
             io_io <= 1'b0;
-            
-            state <= native_rstn ? `STATE_INIT : `STATE_NONE;
-            io_init <= 1'b0;
 
-        end else begin
+            state <= `STATE_NONE;
+            io_init <= 1'b0;
+            io_pro_ld <= 1'b0;
+        end
+        // init ---------------------------
+        else if (usr_rst) begin
+            pc <= 'b0;
+            clock_counter <= 32'b0;
+
+            r_prold_write_flag <= 1'b0;
+            pro_ld_inst <= 32'b0;
+
+            reg_a_rd <= 6'b0;
+            reg_d_rd <= 32'b0;
+            
+            reg_flag <= 1'b0;
+
+            fetch_order <= 1'b0;
+            inst_fd <= 32'b0;
+            pc_fd <= 32'b0;
+
+            alu_de <= 1'b0;
+            alu_imm_f_de <= 1'b0;
+            alu_extention_f_de <= 1'b0;
+            mem_de <= 1'b0;
+            fpu_de <= 1'b0;
+            branch_de <= 1'b0;
+            jump_de <= 1'b0;
+            subst_de <= 1'b0;
+            io_de <= 1'b0;
+            d_rs1_de <= 32'b0;
+            d_rs2_de <= 32'b0;
+            d_rs3_de <= 32'b0;
+            a_rd_de <= 6'b0;
+            opecode_de <= 7'b0;
+            func3_de <= 3'b0;
+            func7_de <= 7'b0;
+            pc_de <= 32'b0;
+
+            write_ew <= 1'b0;
+            a_rd_ew <= 6'b0;
+            d_rd_ew <= 32'b0;
+            next_pc_ew <= 32'b0;
+            alu_flag <= 1'b0;
+            fpu_flag <= 1'b0;
+            mem_flag <= 1'b0;
+            mem_io <= 1'b0;
+            io_flag <= 1'b0;
+            io_io <= 1'b0;
+
+            state <= `STATE_INIT1;
+            io_init <= 1'b0;
+            io_pro_ld <= 1'b0;
+        end
+        // pro_ld ---------------------------
+        else if (usr_load) begin
+            pc <= 'b0;
+            clock_counter <= 32'b0;
+
+            r_prold_write_flag <= 1'b0;
+            pro_ld_inst <= 32'b0;
+
+            reg_a_rd <= 6'b0;
+            reg_d_rd <= 32'b0;
+            
+            reg_flag <= 1'b0;
+
+            fetch_order <= 1'b0;
+            inst_fd <= 32'b0;
+            pc_fd <= 32'b0;
+
+            alu_de <= 1'b0;
+            alu_imm_f_de <= 1'b0;
+            alu_extention_f_de <= 1'b0;
+            mem_de <= 1'b0;
+            fpu_de <= 1'b0;
+            branch_de <= 1'b0;
+            jump_de <= 1'b0;
+            subst_de <= 1'b0;
+            io_de <= 1'b0;
+            d_rs1_de <= 32'b0;
+            d_rs2_de <= 32'b0;
+            d_rs3_de <= 32'b0;
+            a_rd_de <= 6'b0;
+            opecode_de <= 7'b0;
+            func3_de <= 3'b0;
+            func7_de <= 7'b0;
+            pc_de <= 32'b0;
+
+            write_ew <= 1'b0;
+            a_rd_ew <= 6'b0;
+            d_rd_ew <= 32'b0;
+            next_pc_ew <= 32'b0;
+            alu_flag <= 1'b0;
+            fpu_flag <= 1'b0;
+            mem_flag <= 1'b0;
+            mem_io <= 1'b0;
+            io_flag <= 1'b0;
+            io_io <= 1'b0;
+
+            state <= `STATE_PRO_LD1;
+            io_init <= 1'b0;
+            io_pro_ld <= 1'b0;
+        end
+        else begin
+            // pro_ld ---------------------------
+            if (state == `STATE_PRO_LD1) begin
+                io_pro_ld <= 1'b1;
+                if (io_done) begin
+                    r_prold_write_flag <= 1'b1;
+                    pro_ld_inst <= io_input;
+                    state <= `STATE_PRO_LD2;
+                end
+            end
+            else if (state == `STATE_PRO_LD2) begin
+                r_prold_write_flag <= 1'b0;
+                pc <= pc + 32'd4;
+                state <= `STATE_PRO_LD1;
+            end
             // init ---------------------------
-            if (state == `STATE_INIT) begin
+            else if (state == `STATE_INIT1) begin
+                init_wait <= 8'b0;
                 state <= `STATE_INIT2;
             end
             else if (state == `STATE_INIT2) begin
-                io_init <= 1'b1;
-                state <= `STATE_INIT3;
+                if (init_wait == 8'b11111111) begin
+                    io_init <= 1'b1;
+                    state <= `STATE_INIT3;
+                end
+                else begin
+                    init_wait <= init_wait + 8'b1;
+                end
             end
             else if (state == `STATE_INIT3) begin
                 if (io_accepted) begin
                     io_init <= 1'b0;
                 end
                 if (io_done) begin
+                    io_init <= 1'b0;
                     state <= `STATE_FETCH;
                 end
             end
@@ -426,7 +574,9 @@ module cpu
     end
 
     // LED output
-    assign led_stat = {clk, rstn, io_init, state[9:8], state[4:3]};
+    //assign led_stat = {state[15], opecode_de[6:3], state[4]};
+    assign led_stat = {rstn, state[15], |state[14:13], |state[12:11], state[4:3]};
+    //                       end        pro-ld         init           exec-wait exec
 
 endmodule
 

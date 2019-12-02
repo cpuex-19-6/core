@@ -93,7 +93,7 @@ module uart_tx
                 end
             end
             else if (status == s_stop_bit) begin
-                if (signal_stopbit) begin
+                if (signal_bit) begin
                     txd <= 1;
                     status <= s_idle;
                     r_sendable <= 1;

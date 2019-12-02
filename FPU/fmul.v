@@ -19,7 +19,7 @@ module fmul
   // 内部でクロック周波数、クロック数が常に一定のときには
   // busyが常に0でもよい
   wire busy;
-  wire next_busy = busy ? ~done : order;
+  wire next_busy = busy ? ~done : accepted;
   temp_reg #(1) r_busy(1'b1, next_busy, busy, clk, rstn);
 
   // 現在何も実行していなくて、orderが来ているなら、

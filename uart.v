@@ -113,8 +113,7 @@ module uart_inside
 endmodule
 
 module uart_manage
-    #(DEPTH = `LEN_CYCLE_REG,
-      LENGTH_ADDR = `LEN_CYCLE_REG_ADDR,
+    #(LENGTH_ADDR = `LEN_CYCLE_REG_ADDR,
       CLK_FREQ = `CLK_PER_SEC,
       BAUD = `DEFAULT_BAUD)
     (input  wire order,
@@ -130,6 +129,8 @@ module uart_manage
      output wire txd,
      input  wire clk,
      input  wire rstn);
+
+    localparam DEPTH = 2 ** `LEN_CYCLE_REG_ADDR;
     
     wire urx_rr_flag;
     wire [8-1:0] urx_rr_data;

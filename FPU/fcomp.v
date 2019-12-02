@@ -43,10 +43,12 @@ module fcomp
               (e1 > e2) ? (pos ? 1'b0 : 1'b1) :
               (pos ? (m1 < m2) : (m1 > m2));
               
-
-  assign rd = (func3 == 3'b010) ? eq :        // feq
-              (func3 == 3'b001) ? lt :        // flt
-                                  (eq || lt); // fle
+  wire rd_1bit;
+  assign rd_1bit = (func3 == 3'b010) ? eq :        // feq
+                   (func3 == 3'b001) ? lt :        // flt
+                                       (eq || lt); // fle
+  
+  assign rd = {31'b0, rd_1bit};
 
   assign accepted = order;
   assign done = order;

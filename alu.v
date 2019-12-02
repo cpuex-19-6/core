@@ -42,9 +42,7 @@ module alu
     // calculate in module
 
     // internal
-    wire internal_order = order_able &
-        (func3 != `FUNC3_DIVU) &
-        (func3 != `FUNC3_REMU);
+    wire internal_order = order_able & ~extention_flag;
     wire internal_accepted = internal_order;
     wire internal_done     = internal_order;
 
