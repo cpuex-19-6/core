@@ -34,7 +34,7 @@ module memory
     wire stage_00 = accepted & io;
     assign done = stage_2 | stage_00;
 
-    assign a_mem = address;
+    assign a_mem = address[`LEN_MEMDATA_ADDR+2-1:2];
     assign sd_mem = i_data;
     assign mem_en = accepted;
     wire mem_w_f = accepted & io;
