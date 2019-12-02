@@ -23,7 +23,7 @@ module memory
      input  wire                     rstn);
 
     wire busy;
-    wire next_busy = busy ? ~done : order;
+    wire next_busy = (~done) & (busy | accepted);
     temp_reg #(1) r_busy(1'b1, next_busy, busy, clk, rstn);
 
     assign accepted = ~busy & order;
