@@ -2,9 +2,8 @@
 
 `default_nettype none
 
-module cycle_reg
-    #(DEPTH = `LEN_CYCLE_REG,
-      LENGTH_ADDR = `LEN_CYCLE_REG_ADDR)
+module ring_buf
+    #(LENGTH_ADDR = `LEN_RING_BUF_ADDR)
     (input  wire i_order,
      input  wire [8-1:0] i_data,
      output reg  i_done,
@@ -15,6 +14,8 @@ module cycle_reg
      
      input  wire clk,
      input  wire rstn);
+    
+    localparam DEPTH = 2 ** LENGTH_ADDR;
     
     reg [8-1:0] d[DEPTH-1:0];
     reg [LENGTH_ADDR-1:0] i_addr; /* 次に書き込む場所 */

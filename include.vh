@@ -12,9 +12,8 @@
 // 実際のレジスタアドレスのサイズ
 `define LEN_RREG_ADDR 6
 
-// UART用リングバッファのサイズ(外部から更新可)
-`define LEN_CYCLE_REG      4096
-`define LEN_CYCLE_REG_ADDR 12
+// UART用リングバッファアドレスのサイズ(外部から更新可)
+`define LEN_RING_BUF_ADDR 12
 
 // 周波数(外部から更新可)
 `define CLK_PER_SEC  100_000_000
