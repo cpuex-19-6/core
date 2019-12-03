@@ -5,6 +5,8 @@
 `define LEN_MEM_ADDR 32
 `define LEN_REG_ADDR 6
 
+`define LEN_CONTEXT 10
+
 `define LEN_MEMDATA_ADDR 19
 
 `define HEAP_POINTER_INIT 32'b0
