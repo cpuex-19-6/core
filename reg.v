@@ -44,7 +44,7 @@ module regs
     wire [32-1:0] reg_init[special_init_regs-1:0];
 
     assign reg_init[1-1] = 32'b0;
-    assign reg_init[2-1] = 32'b1 << `LEN_MEMDATA_ADDR;
+    assign reg_init[2-1] = 32'b100 << `LEN_MEMDATA_ADDR;
     assign reg_init[3-1] = `HEAP_POINTER_INIT;
 
     always @(posedge clk) begin
