@@ -1,16 +1,39 @@
 
+// 実装上の定義(実行時)
 
+// コンテキスト
+`define LEN_CONTEXT 10
+// メモリアドレス(word)のサイズ
+`define LEN_MEMDATA_ADDR 19
+// 命令メモリのサイズ(word)のサイズ(外部から更新可)
+`define LEN_MEMISTR_ADDR 15
+// heapポインタの初期値
+`define HEAP_POINTER_INIT 32'b0
+// 実際のレジスタアドレスのサイズ
+`define LEN_RREG_ADDR 6
+
+// UART用リングバッファのサイズ(外部から更新可)
+`define LEN_CYCLE_REG      4096
+`define LEN_CYCLE_REG_ADDR 12
+
+// 周波数(外部から更新可)
+`define CLK_PER_SEC  100_000_000
+// BAUD rate(外部から更新可)
+`define DEFAULT_BAUD 115_200
+
+
+// ISA的な定義(デコード時)
+
+// WORD長
 `define LEN_WORD 32
+// 命令長
 `define LEN_INST 32
+// メモリアドレスのサイズ
 `define LEN_MEM_ADDR 32
+// レジスタアドレスのサイズ
 `define LEN_REG_ADDR 6
 
-`define LEN_CONTEXT 10
-
-`define LEN_MEMDATA_ADDR 19
-
-`define HEAP_POINTER_INIT 32'b0
-
+// 命令の分割
 `define LEN_OPECODE 7
 `define LEN_IMM12 12
 `define LEN_IMM13 13
@@ -18,14 +41,6 @@
 `define LEN_IMM32 32
 `define LEN_FUNC3 3
 `define LEN_FUNC7 7
-
-`define NUM_REG 32
-
-`define LEN_CYCLE_REG      4096
-`define LEN_CYCLE_REG_ADDR 12
-
-`define CLK_PER_SEC  100_000_000
-`define DEFAULT_BAUD 115_200
 
 // opecode
 

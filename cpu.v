@@ -34,7 +34,7 @@ module cpu
 `define STATE_WRITE        16'b0000000000100000
 
 module cpu
-    #(LEN_MEMISTR_ADDR = 15)
+    #(LEN_MEMISTR_ADDR = `LEN_MEMISTR_ADDR)
     (input  wire clk,
      input  wire rstn,
      input  wire native_rstn,
