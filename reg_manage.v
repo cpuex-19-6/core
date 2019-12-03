@@ -53,50 +53,78 @@ module reg_manage(
 
      input  wire clk,
      input  wire rstn);
+    
+    // 全体で使いうるwire等の定義
 
     reg [`LEN_CONTEXT-1:0] assigned_context[2**`LEN_VREG_ADDR-1:0];
     // reg [`LEN_PREG_ADDR-1:0] v_reg_dict[2**`LEN_VREG_ADDR-1:0];
 
-    wire [`LEN_PREG_ADDR-1:0] r1_pa_rs1_m;
-    wire [`LEN_PREG_ADDR-1:0] r1_pa_rs2_m;
+    wire [`LEN_PREG_ADDR-1:0] r1_pa_rs1;
+    wire [`LEN_PREG_ADDR-1:0] r1_pa_rs2;
+    wire [`LEN_VREG_ADDR-1:0] r1_va_rd;
     wire [`LEN_WORD-1:0] r1_d_rs1_m;
     wire [`LEN_WORD-1:0] r1_d_rs2_m;
 
     regs m_regs(
-        r1_pa_rs1_m, r1_pa_rs2_m,
+        r1_pa_rs1, r1_pa_rs2,
         r1_d_rs1_m, r1_d_rs2_m,
         w1_order, w1_pa_rd, w1_d_rd,
         clk, rstn);
     );
 
-    wire r1_ready_rs1;
-    wire r1_ready_rs2;
-    wire r1_ready_rd;
-
-    wire [2**`LEN_PREG_ADDR-1:0] forwarding;
+    wire [1-0:0] forwarding[2**`LEN_PREG_ADDR-1:0];
     // 並列実行可能にしたら何番目の入力を使えばよいのかわかるように
     // その分だけ並列化する
 
     // read 1
 
+    wire r1_accepted_in;
     wire r1_busy;
-    wire r1_next_busy = (~r1_done) & (r1_busy | r1_accepted);
+    wire r1_next_busy = (~r1_done) & (r1_busy | r1_accepted_in);
     temp_reg #(1) r_r1_busy(1'b1, r1_next_busy, r1_busy, clk, rstn);
-    assign r1_accepted = ~r1_busy & r1_order;
+    assign r1_accepted_in = ~r1_busy & r1_order;
 
-    assign r1_pa_rs1_m = r1_va_rs1;
-    assign r1_pa_rs2_m = r1_va_rs2;
+    wire [`LEN_VREG_ADDR-1:0] r1_va_rs1;
+    wire [`LEN_VREG_ADDR-1:0] r1_va_rs2;
+    wire [`LEN_CONTEXT-1:0] r1_context;
+    unpack_struct_inst_vreg m_r1_unp_ivr(
+        r1_inst_vreg,
+        r1_va_rs1, r1_va_rs2, r1_va_rd, r1_context);
 
-    wire r1_next_ready_rs1 = r1_ready_rs1;
-    temp_reg #(1) r_r1_ready_rs1(1'b1, r1_next_ready_rs1, r1_ready_rs1, clk, rstn);
+    assign r1_pa_rs1 = r1_va_rs1;
+    assign r1_pa_rs2 = r1_va_rs2;
 
-    wire r1_next_ready_rs2 = r1_ready_rs2;
-    temp_reg #(1) r_r1_ready_rs2(1'b1, r1_next_ready_rs2, r1_ready_rs2, clk, rstn);
+    assign r1_d_rs1 =
+        ((|r1_pa_rs1) & (|(forwarding[r1_pa_rs1])))
+            ? w1_d_rd : r1_d_rs1_m;
 
+    wire r1_before_ready_rs1;
+    wire r1_ready_rs1 =
+          r1_busy
+        & (r1_before_ready_rs1 |
+           (|r1_pa_rs1) |
+           (|(forwarding[r1_pa_rs1])));
+    temp_reg #(1) r_r1_ready_rs1(1'b1, r1_ready_rs1, r1_before_ready_rs1, clk, rstn);
+
+    assign r1_d_rs2 =
+        ((|r1_pa_rs2) & (|(forwarding[r1_pa_rs2])))
+            ? w1_d_rd : r1_d_rs2_m;
+
+    wire r1_before_ready_rs2;
+    wire r1_ready_rs2 =
+          r1_next_busy
+        & (r1_before_ready_rs2 |
+           (|r1_pa_rs2) |
+           (|(forwarding[r1_pa_rs2])));
+    temp_reg #(1) r_r1_ready_rs2(1'b1, r1_ready_rs2, r1_before_ready_rs2, clk, rstn);
+
+    wire r1_ready_rd;
     wire r1_next_ready_rd = r1_ready_rd;
     temp_reg #(1) r_r1_ready_rs2(1'b1, r1_next_ready_rd, r1_ready_rd, clk, rstn);
 
-    assign done = r1_branch_hazard | (r1_ready_rs1 & r2_ready & rd_ready);
+    assign r1_branch_hazard = |(hazard_context | r1_context)
+
+    assign r1_done = r1_branch_hazard | (r1_ready_rs1 & r1_ready_rs2 & r1_ready_rd);
 
 endmodule
 
