@@ -36,7 +36,7 @@ module memory
 
     assign a_mem = address[`LEN_MEMDATA_ADDR+2-1:2];
     assign sd_mem = i_data;
-    assign mem_en = accepted;
+    assign mem_en = 1'b1;
     wire mem_w_f = accepted & io;
     assign mem_write = {mem_w_f, mem_w_f, mem_w_f, mem_w_f};
 
@@ -48,9 +48,9 @@ module memory
     temp_reg #(1) r_io_2(1'b1, io_1, io_2, clk, rstn);
     temp_reg #(1) r_stage_2(1'b1, stage_1, stage_2, clk, rstn);
 
-    wire [32-1:0] rd_buf;
+    wire [`LEN_WORD-1:0] rd_buf;
     assign o_data = (stage_2 & ~io_2) ? ld_mem : rd_buf;
-    temp_reg #(32) r_rd_buf(1'b1, o_data, rd_buf, clk, rstn);
+    temp_reg #(`LEN_WORD) r_rd_buf(1'b1, o_data, rd_buf, clk, rstn);
 
 endmodule
 
