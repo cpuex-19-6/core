@@ -14,30 +14,31 @@ module reg_manage
 */
 
 module reg_manage(
-     input  wire                     r1_order,
-     output wire                     r1_accepted,
-     output wire                     r1_done,
+     input  wire r1_order,
+     output wire r1_accepted,
+     output wire r1_done,
 
-     input  wire [`LEN_REG_ADDR-1:0] r1_ars1,
-     input  wire [`LEN_REG_ADDR-1:0] r1_ars2,
-     input  wire [`LEN_REG_ADDR-1:0] r1_ard,
-     input  wire [`LEN_CONTEXT-1:0]  r1_context,
+     input  wire [`LEN_VREG_ADDR-1:0] r1_ars1,
+     input  wire [`LEN_VREG_ADDR-1:0] r1_ars2,
+     input  wire [`LEN_VREG_ADDR-1:0] r1_ard,
+     input  wire [`LEN_CONTEXT-1:0]   r1_context,
 
-     output wire [`LEN_WORD-1:0]     r1_drs2,
-     output wire [`LEN_WORD-1:0]     r1_drs1,
-     input  wire [`LEN_REG_ADDR-1:0] r1_rard,
+     output wire [`LEN_WORD-1:0]      r1_drs2,
+     output wire [`LEN_WORD-1:0]      r1_drs1,
+     input  wire [`LEN_PREG_ADDR-1:0] r1_rard,
 
      input  wire                     w_order,
-     input  wire [`LEN_REG_ADDR-1:0] w_rard,
+     input  wire [`LEN_PREG_ADDR-1:0] w_rard,
      input  wire [`LEN_WORD-1:0]     w_drd,
 
-     input  wire                     hazard,
-     input  wire [`LEN_CONTEXT-1:0]  hazard_context,
+     input  wire                    hazard,
+     input  wire [`LEN_CONTEXT-1:0] hazard_context,
 
      input  wire clk,
      input  wire rstn);
 
-    reg [`LEN_CONTEXT-1:0] assigned_context[2**`LEN_REG_ADDR];
+    reg [`LEN_CONTEXT-1:0] assigned_context[2**`LEN_VREG_ADDR-1:0];
+    reg [`LEN_PREG_ADDR-1:0] v_reg_dict[2**`LEN_VREG_ADDR-1:0];
 
 endmodule
 

@@ -6,10 +6,10 @@ module decode
     (input  wire [`LEN_INST-1:0] instr,
      input  wire [`LEN_WORD-1:0] pc,
 
-     output wire [`LEN_REG_ADDR-1:0] regi_a_rs1,
-     output wire [`LEN_REG_ADDR-1:0] regi_a_rs2,
-     input  wire [`LEN_WORD-1:0]     regi_d_rs1,
-     input  wire [`LEN_WORD-1:0]     regi_d_rs2,
+     output wire [`LEN_VREG_ADDR-1:0] regi_a_rs1,
+     output wire [`LEN_VREG_ADDR-1:0] regi_a_rs2,
+     input  wire [`LEN_WORD-1:0]      regi_d_rs1,
+     input  wire [`LEN_WORD-1:0]      regi_d_rs2,
 
      output wire                    alu,
      output wire                    alu_imm_flag,
@@ -21,10 +21,10 @@ module decode
      output wire                    subst,
      output wire                    io,
 
-     output wire [`LEN_WORD-1:0]     d_rs1,
-     output wire [`LEN_WORD-1:0]     d_rs2,
-     output wire [`LEN_WORD-1:0]     d_rs3, // for immediate
-     output wire [`LEN_REG_ADDR-1:0] a_rd,
+     output wire [`LEN_WORD-1:0]      d_rs1,
+     output wire [`LEN_WORD-1:0]      d_rs2,
+     output wire [`LEN_WORD-1:0]      d_rs3, // for immediate
+     output wire [`LEN_VREG_ADDR-1:0] a_rd,
      
      output wire [`LEN_OPECODE-1:0]  opecode,
      output wire [`LEN_FUNC3-1:0]    func3,

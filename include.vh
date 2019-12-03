@@ -10,7 +10,7 @@
 // heapポインタの初期値
 `define HEAP_POINTER_INIT 32'b0
 // 実際のレジスタアドレスのサイズ
-`define LEN_RREG_ADDR 6
+`define LEN_PREG_ADDR 6
 
 // UART用リングバッファアドレスのサイズ(外部から更新可)
 `define LEN_RING_BUF_ADDR 12
@@ -30,7 +30,7 @@
 // メモリアドレスのサイズ
 `define LEN_MEM_ADDR 32
 // レジスタアドレスのサイズ
-`define LEN_REG_ADDR 6
+`define LEN_VREG_ADDR 6
 
 // 命令の分割
 `define LEN_OPECODE 7

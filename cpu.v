@@ -76,11 +76,11 @@ module cpu
 
     // registers -------------------------------
     //  in
-    reg                      reg_flag;
-    reg  [`LEN_REG_ADDR-1:0] reg_a_rd;
-    reg  [`LEN_WORD-1:0]     reg_d_rd;
-    wire [`LEN_REG_ADDR-1:0] reg_a_rs1;
-    wire [`LEN_REG_ADDR-1:0] reg_a_rs2;
+    reg                       reg_flag;
+    reg  [`LEN_VREG_ADDR-1:0] reg_a_rd;
+    reg  [`LEN_WORD-1:0]      reg_d_rd;
+    wire [`LEN_VREG_ADDR-1:0] reg_a_rs1;
+    wire [`LEN_VREG_ADDR-1:0] reg_a_rs2;
 
     //  out
     wire [`LEN_WORD-1:0]     reg_d_rs1;
@@ -112,38 +112,38 @@ module cpu
     reg  [`LEN_MEM_ADDR-1:0] pc_fd;
 
     //  out
-    reg  [`LEN_OPECODE-1:0]  opecode_de;
-    wire [`LEN_OPECODE-1:0]  opecode_d;
-    reg                      alu_de;
-    wire                     alu_d;
-    reg                      alu_imm_f_de;
-    wire                     alu_imm_f_d;
-    reg                      alu_extention_f_de;
-    wire                     alu_extention_f_d;
-    reg                      mem_de;
-    wire                     mem_d;
-    reg                      fpu_de;
-    wire                     fpu_d;
-    reg                      branch_de;
-    wire                     branch_d;
-    reg                      jump_de;
-    wire                     jump_d;
-    reg                      subst_de;
-    wire                     subst_d;
-    reg                      io_de;
-    wire                     io_d;
-    reg  [`LEN_WORD-1:0]     d_rs1_de;
-    wire [`LEN_WORD-1:0]     d_rs1_d;
-    reg  [`LEN_WORD-1:0]     d_rs2_de;
-    wire [`LEN_WORD-1:0]     d_rs2_d;
-    reg  [`LEN_WORD-1:0]     d_rs3_de;
-    wire [`LEN_WORD-1:0]     d_rs3_d;
-    reg  [`LEN_REG_ADDR-1:0] a_rd_de;
-    wire [`LEN_REG_ADDR-1:0] a_rd_d;
-    reg  [`LEN_FUNC3-1:0]    func3_de;
-    wire [`LEN_FUNC3-1:0]    func3_d;
-    reg  [`LEN_FUNC7-1:0]    func7_de;
-    wire [`LEN_FUNC7-1:0]    func7_d;
+    reg  [`LEN_OPECODE-1:0]   opecode_de;
+    wire [`LEN_OPECODE-1:0]   opecode_d;
+    reg                       alu_de;
+    wire                      alu_d;
+    reg                       alu_imm_f_de;
+    wire                      alu_imm_f_d;
+    reg                       alu_extention_f_de;
+    wire                      alu_extention_f_d;
+    reg                       mem_de;
+    wire                      mem_d;
+    reg                       fpu_de;
+    wire                      fpu_d;
+    reg                       branch_de;
+    wire                      branch_d;
+    reg                       jump_de;
+    wire                      jump_d;
+    reg                       subst_de;
+    wire                      subst_d;
+    reg                       io_de;
+    wire                      io_d;
+    reg  [`LEN_WORD-1:0]      d_rs1_de;
+    wire [`LEN_WORD-1:0]      d_rs1_d;
+    reg  [`LEN_WORD-1:0]      d_rs2_de;
+    wire [`LEN_WORD-1:0]      d_rs2_d;
+    reg  [`LEN_WORD-1:0]      d_rs3_de;
+    wire [`LEN_WORD-1:0]      d_rs3_d;
+    reg  [`LEN_VREG_ADDR-1:0] a_rd_de;
+    wire [`LEN_VREG_ADDR-1:0] a_rd_d;
+    reg  [`LEN_FUNC3-1:0]     func3_de;
+    wire [`LEN_FUNC3-1:0]     func3_d;
+    reg  [`LEN_FUNC7-1:0]     func7_de;
+    wire [`LEN_FUNC7-1:0]     func7_d;
     decode dec(
         inst_fd, pc_fd,
         reg_a_rs1, reg_a_rs2, reg_d_rs1, reg_d_rs2,
@@ -158,10 +158,10 @@ module cpu
     reg  [`LEN_MEM_ADDR-1:0] pc_de;
 
     //  out
-    reg                      write_ew;
-    reg  [`LEN_REG_ADDR-1:0] a_rd_ew;
-    reg  [`LEN_WORD-1:0]     d_rd_ew;
-    reg  [`LEN_MEM_ADDR-1:0] next_pc_ew;
+    reg                       write_ew;
+    reg  [`LEN_VREG_ADDR-1:0] a_rd_ew;
+    reg  [`LEN_WORD-1:0]      d_rd_ew;
+    reg  [`LEN_MEM_ADDR-1:0]  next_pc_ew;
 
     // alu -------------------------------
     //  in
