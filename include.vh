@@ -20,6 +20,10 @@
 // BAUD rate(外部から更新可)
 `define DEFAULT_BAUD 115_200
 
+// wire structs
+
+// vregs_data
+`define LEN_INST_VREG ((`LEN_VREG_ADDR)*3+(`LEN_CONTEXT))
 
 // ISA的な定義(デコード時)
 

@@ -13,23 +13,39 @@ module reg_manage
 --------------------------------
 */
 
+module pack_struct_inst_vreg(
+     input  wire [`LEN_VREG_ADDR-1:0] va_rs1,
+     input  wire [`LEN_VREG_ADDR-1:0] va_rs2,
+     input  wire [`LEN_VREG_ADDR-1:0] va_rd,
+     input  wire [`LEN_CONTEXT-1:0]   context,
+     output wire [`LEN_INST_VREG-1:0] inst_vreg);
+    assign vregs_data = {va_rs1,va_rs2,va_rd,context};
+endmodule
+
+module unpack_struct_inst_vreg(
+     input  wire [`LEN_INST_VREG-1:0] inst_vreg,
+     output wire [`LEN_VREG_ADDR-1:0] va_rs1,
+     output wire [`LEN_VREG_ADDR-1:0] va_rs2,
+     output wire [`LEN_VREG_ADDR-1:0] va_rd,
+     output wire [`LEN_CONTEXT-1:0]   context);
+    assign {va_rs1,va_rs2,va_rd,context} = inst_vreg;
+endmodule
+
 module reg_manage(
      input  wire r1_order,
      output wire r1_accepted,
      output wire r1_done,
 
-     input  wire [`LEN_VREG_ADDR-1:0] r1_ars1,
-     input  wire [`LEN_VREG_ADDR-1:0] r1_ars2,
-     input  wire [`LEN_VREG_ADDR-1:0] r1_ard,
-     input  wire [`LEN_CONTEXT-1:0]   r1_context,
+     input  wire [`LEN_INST_VREG-1:0] r1_inst_vreg,
 
-     output wire [`LEN_WORD-1:0]      r1_drs2,
-     output wire [`LEN_WORD-1:0]      r1_drs1,
-     input  wire [`LEN_PREG_ADDR-1:0] r1_rard,
+     output wire [`LEN_WORD-1:0]      r1_d_rs2,
+     output wire [`LEN_WORD-1:0]      r1_d_rs1,
+     output wire [`LEN_PREG_ADDR-1:0] r1_pa_rd,
+     output wire                      r1_hazard,
 
-     input  wire                     w_order,
-     input  wire [`LEN_PREG_ADDR-1:0] w_rard,
-     input  wire [`LEN_WORD-1:0]     w_drd,
+     input  wire                      w_order,
+     input  wire [`LEN_PREG_ADDR-1:0] w_pa_rd,
+     input  wire [`LEN_WORD-1:0]      w_d_rd,
 
      input  wire                    hazard,
      input  wire [`LEN_CONTEXT-1:0] hazard_context,
