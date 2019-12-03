@@ -21,14 +21,15 @@ module temp_reg
 endmodule
 
 module regs
-    (input  wire                      in_flag,
-     input  wire [`LEN_PREG_ADDR-1:0] ard,
-     input  wire [`LEN_PREG_ADDR-1:0] ars1,
+    (input  wire [`LEN_PREG_ADDR-1:0] ars1,
      input  wire [`LEN_PREG_ADDR-1:0] ars2,
 
-     input  wire [`LEN_WORD-1:0]     drd,
-     output wire [`LEN_WORD-1:0]     drs1,
-     output wire [`LEN_WORD-1:0]     drs2,
+     output wire [`LEN_WORD-1:0]      drs1,
+     output wire [`LEN_WORD-1:0]      drs2,
+
+     input  wire                      in_flag,
+     input  wire [`LEN_PREG_ADDR-1:0] ard,
+     input  wire [`LEN_WORD-1:0]      drd,
 
      input wire clk,
      input wire rstn);
