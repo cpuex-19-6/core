@@ -2,11 +2,11 @@
 // 実装上の定義(実行時)
 
 // コンテキスト
-`define LEN_CONTEXT 10
+`define LEN_CONTEXT 8
 // コンテキストの0(リセット初期化用)
-`define CONTEXT_ZERO 10'b0
-// コンテキストの0(context_manage内リセット初期化用)
-`define CONTEXT_INIT 10'b1
+`define CONTEXT_ZERO 8'b0
+// コンテキストの初期値(context_manage内リセット初期化用)
+`define CONTEXT_INIT 8'b1
 // メモリアドレス(word)のサイズ
 `define LEN_MEMDATA_ADDR 19
 // 命令メモリのサイズ(word)のサイズ(外部から更新可)
@@ -18,20 +18,24 @@
 // 物理レジスタアドレスの0(リセット初期化用)
 `define PREG_ZERO 6'b0
 
+// decoder parallel degree
+`define DECODE_PARA 1
+
+// execute parallel degree
+`define EXECUTE_PARA 1
+// decoder parallel idの長さ
+`define LEN_E_PARA_ID 1
+// decoder parallel id zero
+`define E_PARA_ID_ZERO 1'b0
+
 // UART用リングバッファアドレスのサイズ(外部から更新可)
 `define LEN_RING_BUF_ADDR 12
 
 // 周波数(外部から更新可)
-`define CLK_PER_SEC  100_000_000
+`define CLK_PER_SEC  80_000_000
 // BAUD rate(外部から更新可)
 `define DEFAULT_BAUD 115_200
 
-// wire structs
-
-// vregs_data
-`define LEN_INST_VREG ((`LEN_VREG_ADDR)*3+(`LEN_CONTEXT)+3)
-// reg_mngr_t
-`define REG_MNGR_T ((`LEN_VREG_ADDR)*3+(`LEN_CONTEXT)+3)
 
 // ISA的な定義(デコード時)
 
@@ -118,3 +122,12 @@
 `define FUNC3_FROUND 3'b000
 `define FUNC3_FFLOOR 3'b010
 `define FUNC3_FCEIL  3'b011 
+
+// wire structs
+
+// inst_vregs
+`define LEN_INST_VREG ((`LEN_VREG_ADDR)*3+(`LEN_CONTEXT)+3)
+// inst_d_r
+`define LEN_INST_D_R ((`LEN_WORD)*3+(`LEN_PREG_ADDR)+4)
+// write_d_r
+`define LEN_WRITE_D_R ((`LEN_PREG_ADDR)+(`LEN_WORD)+1)
