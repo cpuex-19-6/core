@@ -23,9 +23,11 @@ endmodule
 module regs
     (input  wire [`LEN_PREG_ADDR-1:0] ars1,
      input  wire [`LEN_PREG_ADDR-1:0] ars2,
+     input  wire [`LEN_PREG_ADDR-1:0] ars3,
 
      output wire [`LEN_WORD-1:0]      drs1,
      output wire [`LEN_WORD-1:0]      drs2,
+     output wire [`LEN_WORD-1:0]      drs3,
 
      input  wire                      in_flag,
      input  wire [`LEN_PREG_ADDR-1:0] ard,
@@ -41,6 +43,7 @@ module regs
 
     assign drs1 = (|ars1) ? registers[ars1] : 32'b0;
     assign drs2 = (|ars2) ? registers[ars2] : 32'b0;
+    assign drs3 = (|ars3) ? registers[ars3] : 32'b0;
 
     wire [32-1:0] reg_init[special_init_regs-1:0];
 

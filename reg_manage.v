@@ -51,6 +51,7 @@ module reg_manage(
 
     wire [`LEN_PREG_ADDR-1:0] r_pa_rs1;
     wire [`LEN_PREG_ADDR-1:0] r_pa_rs2;
+    wire [`LEN_PREG_ADDR-1:0] lr_pa;
     wire [`LEN_PREG_ADDR-1:0] w_pa_rd;
     wire [`LEN_WORD-1:0] r_d_rs1;
     wire [`LEN_WORD-1:0] r_d_rs2;
@@ -58,8 +59,8 @@ module reg_manage(
     wire w_order;
 
     regs m_regs(
-        r_pa_rs1, r_pa_rs2,
-        r_d_rs1, r_d_rs2,
+        r_pa_rs1, r_pa_rs2, lr_pa,
+        r_d_rs1, r_d_rs2, lr_d,
         w_order, w_pa_rd, w_d_rd,
         clk, rstn);
 
@@ -200,8 +201,8 @@ module reg_manage(
 
     // ---- link register -------------------------
     
-    wire [`LEN_VREG_ADDR-1:0] va_lr = 6'd1;
-    wire [`LEN_PREG_ADDR-1:0] pa_lr = va_lr;
+    wire [`LEN_VREG_ADDR-1:0] lr_va = 6'd1;
+    assign lr_pa = lr_va;
 
     assign lr_dirty = |(context_write[pa_lr]);
 
