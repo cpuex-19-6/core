@@ -29,7 +29,9 @@
 // wire structs
 
 // vregs_data
-`define LEN_INST_VREG ((`LEN_VREG_ADDR)*3+(`LEN_CONTEXT))
+`define LEN_INST_VREG ((`LEN_VREG_ADDR)*3+(`LEN_CONTEXT)+3)
+// reg_mngr_t
+`define REG_MNGR_T ((`LEN_VREG_ADDR)*3+(`LEN_CONTEXT)+3)
 
 // ISA的な定義(デコード時)
 
