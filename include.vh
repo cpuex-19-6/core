@@ -3,14 +3,20 @@
 
 // コンテキスト
 `define LEN_CONTEXT 10
+// コンテキストの0(リセット初期化用)
+`define CONTEXT_ZERO 10'b0
+// コンテキストの0(context_manage内リセット初期化用)
+`define CONTEXT_INIT 10'b1
 // メモリアドレス(word)のサイズ
 `define LEN_MEMDATA_ADDR 19
 // 命令メモリのサイズ(word)のサイズ(外部から更新可)
 `define LEN_MEMISTR_ADDR 15
 // heapポインタの初期値
 `define HEAP_POINTER_INIT 32'b0
-// 実際のレジスタアドレスのサイズ
+// 物理レジスタアドレスのサイズ
 `define LEN_PREG_ADDR 6
+// 物理レジスタアドレスの0(リセット初期化用)
+`define PREG_ZERO 6'b0
 
 // UART用リングバッファアドレスのサイズ(外部から更新可)
 `define LEN_RING_BUF_ADDR 12
