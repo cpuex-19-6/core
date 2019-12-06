@@ -131,3 +131,15 @@
 `define LEN_INST_D_R ((`LEN_WORD)*3+(`LEN_PREG_ADDR)+4)
 // write_d_r
 `define LEN_WRITE_D_R ((`LEN_PREG_ADDR)+(`LEN_WORD)+1)
+// exec_type
+`define LEN_EXEC_TYPE 8
+
+`define EXEC_TYPE_ALU_NON_IMM 7
+`define EXEC_TYPE_ALU_NON_EXT 6
+`define EXEC_TYPE_FPU         5
+`define EXEC_TYPE_MEM         4
+`define EXEC_TYPE_JUMP        3
+`define EXEC_TYPE_BRANCH      2
+`define EXEC_TYPE_SUBST       1
+`define EXEC_TYPE_IO          0
+

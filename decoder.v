@@ -3,28 +3,15 @@
 `default_nettype none
 
 module decode
-    (input  wire [`LEN_INST-1:0] instr,
-     input  wire [`LEN_WORD-1:0] pc,
+    (input  wire [`LEN_INST-1:0]      instr,
+     input  wire [`LEN_WORD-1:0]      pc,
 
-     output wire [`LEN_VREG_ADDR-1:0] regi_a_rs1,
-     output wire [`LEN_VREG_ADDR-1:0] regi_a_rs2,
-     input  wire [`LEN_WORD-1:0]      regi_d_rs1,
-     input  wire [`LEN_WORD-1:0]      regi_d_rs2,
+     output wire [`LEN_EXEC_TYPE-1:0] exec_type,
 
-     output wire                    alu,
-     output wire                    alu_imm_flag,
-     output wire                    alu_extention_flag,
-     output wire                    fpu,
-     output wire                    mem,
-     output wire                    jump,
-     output wire                    branch,
-     output wire                    subst,
-     output wire                    io,
-
-     output wire [`LEN_WORD-1:0]      d_rs1,
-     output wire [`LEN_WORD-1:0]      d_rs2,
-     output wire [`LEN_WORD-1:0]      d_rs3, // for immediate
-     output wire [`LEN_VREG_ADDR-1:0] a_rd,
+     output wire [`LEN_VREG_ADDR-1:0] va_rs1,
+     output wire [`LEN_VREG_ADDR-1:0] va_rs2,
+     output wire [`LEN_VREG_ADDR-1:0] va_rd,
+     output wire [`LEN_WORD-1:0]      d_imm,
      
      output wire [`LEN_OPECODE-1:0]  opecode,
      output wire [`LEN_FUNC3-1:0]    func3,
@@ -32,24 +19,24 @@ module decode
 
     wire float;
 
-    assign alu    = (opecode == `OP_ALU)
-                  | (opecode == `OP_ALUI);
-    assign fpu    = (opecode == `OP_FPU);
-    assign mem    = (opecode == `OP_MEML)
-                  | (opecode == `OP_MEMS)
-                  | (opecode == `OP_FMEML)
-                  | (opecode == `OP_FMEMS);
-    assign float  = (opecode == `OP_FPU)
-                  | (opecode == `OP_FMEML)
-                  | (opecode == `OP_FMEMS)
-                  | (io & func7[5]);
-    assign jump   = (opecode == `OP_JAL)
-                  | (opecode == `OP_JALR);
-    assign branch = (opecode == `OP_BRANCH);
-    assign subst  = (opecode == `OP_LUI)
-                  | (opecode == `OP_AUIPC);
-    assign io     = (opecode == `OP_INPUT)
-                  | (opecode == `OP_OUTPUT);
+    wire alu    = (opecode == `OP_ALU)
+                | (opecode == `OP_ALUI);
+    wire fpu    = (opecode == `OP_FPU);
+    wire mem    = (opecode == `OP_MEML)
+                | (opecode == `OP_MEMS)
+                | (opecode == `OP_FMEML)
+                | (opecode == `OP_FMEMS);
+    wire float  = (opecode == `OP_FPU)
+                | (opecode == `OP_FMEML)
+                | (opecode == `OP_FMEMS)
+                | (io & func7[5]);
+    wire jump   = (opecode == `OP_JAL)
+                | (opecode == `OP_JALR);
+    wire branch = (opecode == `OP_BRANCH);
+    wire subst  = (opecode == `OP_LUI)
+                | (opecode == `OP_AUIPC);
+    wire io     = (opecode == `OP_INPUT)
+                | (opecode == `OP_OUTPUT);
 
     assign alu_imm_flag = (opecode == `OP_ALUI);
     assign alu_extention_flag = (opecode == `OP_ALU) && instr[25];
@@ -86,13 +73,13 @@ module decode
                     |((opecode == `OP_FPU) & ~func7[5]));
 
     assign opecode    = instr[ 6: 0];
-    assign a_rd       =
+    assign va_rd       =
               no_use_rd  ? 6'b0
                          : { rd_float, instr[11: 7]};
-    assign regi_a_rs1 = 
+    assign va_rs1 = 
               no_use_rs1 ? 6'b0
                          : {rs1_float, instr[19:15]};
-    assign regi_a_rs2 =
+    assign va_rs2 =
               no_use_rs2 ? 6'b0
                          : {rs2_float, instr[24:20]};
     assign func3      = instr[14:12];
@@ -116,19 +103,6 @@ module decode
     assign d_imm21  = {{11{imm21[20]}}, imm21};
     assign d_imm32  = imm32;
 
-    assign d_rs1 = 
-        (opecode == `OP_MEML  ) ? regi_d_rs1 + d_imm12i :
-        (opecode == `OP_FMEML ) ? regi_d_rs1 + d_imm12i :
-        (opecode == `OP_MEMS  ) ? regi_d_rs1 + d_imm12s :
-        (opecode == `OP_FMEMS ) ? regi_d_rs1 + d_imm12s :
-        (opecode == `OP_JALR  ) ? regi_d_rs1 + d_imm12i :
-        (opecode == `OP_JAL   ) ? d_imm21 + pc :
-                                  regi_d_rs1;
-
-    assign d_rs2 =
-        (opecode == `OP_ALUI  ) ? d_imm12i :
-                                  regi_d_rs2;
-
     assign d_rs3 =
       //(opecode == `OP_MEML  ) ? d_imm12i :
         (opecode == `OP_MEMS  ) ? d_imm12s :
@@ -139,6 +113,9 @@ module decode
         (opecode == `OP_LUI   ) ? d_imm32 :
         (opecode == `OP_AUIPC ) ? d_imm32 + pc :
                                   d_imm12i;
+    
+    pack_exec_type m_pet(
+      );
 
 endmodule
 
