@@ -78,11 +78,13 @@ module context_manage(
         input  wire [`LEN_CONTEXT-1:0] decoder2_context,
         input  wire [`LEN_WORD-1:0]    decoder2_next_pc,
 
-        // exec
-        input  wire [`LEN_CONTEXT-1:0] exec_next_context,
+        // exec jump
+        input  wire [`LEN_CONTEXT-1:0] exec_jump_context,
         input  wire                    exec_next_pc_ready,
         input  wire [`LEN_WORD-1:0]    exec_next_pc,
 
+        // exec branch
+        input  wire [`LEN_CONTEXT-1:0] exec_branch_context,
         input  wire                    exec_branch_hazard,
         input  wire [`LEN_CONTEXT-1:0] exec_hazard_context,
         input  wire [`LEN_CONTEXT-1:0] exec_safe_context,
@@ -97,8 +99,11 @@ module context_manage(
     wire [`LEN_CONTEXT-1:0] ctxt_non_fetch;
 
     wire [`LEN_CONTEXT_ID-1:0] ctxt_hot_id;
-    onehot_to_binary #(`LEN_CONTEXT_ID) m_o_to_b_hot_cntx(
+    onehot_to_binary #(`LEN_CONTEXT_ID) m_o_to_b_ctxt_hot(
             ctxt_hot, ctxt_hot_id);
+    wire [`LEN_CONTEXT_ID-1:0] exec_b_cntx_id;
+    onehot_to_binary #(`LEN_CONTEXT_ID) m_o_to_b_exec_b_cntx(
+            exec_branch_context, exec_b_cntx_id);
 
     // new context for decode branch 
     shift_left_round #(`LEN_CONTEXT) m_sl1(
@@ -115,7 +120,9 @@ module context_manage(
     assign hazard_context_info = ctxt_info[hazard_context_id];
 
     wire [`LEN_CONTEXT-1:0] ctxt_next1_hot =
-        branch_hazard ? exec_safe_context : ctxt_hot;
+        (branch_hazard & (|(hazard_context_info & ctxt_info[ctxt_hot_id])))
+                ? exec_safe_context
+                : ctxt_hot;
     wire [`LEN_CONTEXT-1:0] ctxt_next1_info[`LEN_CONTEXT-1:0];
     wire [`LEN_CONTEXT-1:0] ctxt_next1_non_fetch;
 
@@ -125,7 +132,7 @@ module context_manage(
             assign ctxt_next1_info[cntx] =
                 (|(hazard_context_info & ctxt_info[cntx]))
                     ? `CONTEXT_ZERO
-                    : ((~ctxt_info[ctxt_hot_id]) & (ctxt_info[ctxt]));
+                    : ((~ctxt_info[exec_b_cntx_id]) & (ctxt_info[ctxt]));
             assign ctxt_next1_non_fetch[cntx] =
                 (|(hazard_context_info & ctxt_info[cntx])
                     ? 1'b0 : ctxt_non_fetch[cntx];
