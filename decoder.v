@@ -6,30 +6,38 @@ module decode(
         input  wire                      order,
         input  wire                      done,
 
+        // from fetch
         input  wire [`LEN_INST-1:0]      instr,
         input  wire [`LEN_WORD-1:0]      pc,
-        input  wire [`LEN_CONTEXT-1:0]   context,
+        input  wire [`LEN_CONTEXT-1:0]   context_in,
+
+        // from context_manager
+        input  wire                      branch_hazard,
+        input  wire [`LEN_CONTEXT-1:0]   hazard_context_info,
+
         input  wire [`LEN_CONTEXT-1:0]   context_b_t,
         input  wire [`LEN_CONTEXT-1:0]   context_b_f,
 
+        // to context_manager
+        output wire [`LEN_CONTEXT-1:0]   context_out,
+        output wire                      next_pc_ready,
+        output wire                      next_pc_wait_type,
+        // 0 -> wait reg / 1 -> wait exec
+        output wire [`LEN_WORD-1:0]      next_pc,
+        output wire                      branch,
+        output wire [`LEN_WORD-1:0]      next_pc_branched,
+
+        // to decode2
         output wire [`LEN_EXEC_TYPE-1:0] exec_type,
         output wire [`LEN_INST_VREG-1:0] inst_vreg,
         output wire [`LEN_WORD-1:0]      d_imm,
-        output wire [`LEN_ONTEXT-1:0]    b_t_context,
-        output wire [`LEN_ONTEXT-1:0]    b_f_context,
 
         output wire [`LEN_OPECODE-1:0]   opecode,
         output wire [`LEN_FUNC3-1:0]     func3,
         output wire [`LEN_FUNC7-1:0]     func7,
 
-        output wire [`LEN_ONTEXT-1:0]    b_t_context,
-        output wire [`LEN_ONTEXT-1:0]    b_f_context,
-
-        output wire                      next_pc_normal,
-        output wire                      next_pc_wait_type,
-        // 0 -> wait reg / 1 -> wait exec
-        output wire [`LEN_WORD-1:0]      next_pc,
-        output wire [`LEN_WORD-1:0]      next_pc_branched);
+        output wire [`LEN_CONTEXT-1:0]    b_t_context,
+        output wire [`LEN_CONTEXT-1:0]    b_f_context);
 
     wire float;
 

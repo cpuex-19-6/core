@@ -1,12 +1,14 @@
 
 // 実装上の定義(実行時)
 
-// コンテキスト
+// log2(コンテキストのサイズ)
+`define LEN_CONTEXT_ID 3
+// コンテキストのサイズ
 `define LEN_CONTEXT 8
+// コンテキストの初期値
+`define CONTEXT_INIT 8'b1
 // コンテキストの0(リセット初期化用)
 `define CONTEXT_ZERO 8'b0
-// コンテキストの初期値(context_manage内リセット初期化用)
-`define CONTEXT_INIT 8'b1
 // メモリアドレス(word)のサイズ
 `define LEN_MEMDATA_ADDR 19
 // 命令メモリのサイズ(word)のサイズ(外部から更新可)
