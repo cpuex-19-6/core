@@ -33,6 +33,9 @@ module decode(
         input  wire [`LEN_CONTEXT-1:0]   context_b_t,
         input  wire [`LEN_CONTEXT-1:0]   context_b_f,
 
+        // from decode2
+        input  wire                      decode_able,
+
         // to context_manager
         output wire [`LEN_CONTEXT-1:0]   context_out,
         output wire                      next_pc_ready,
@@ -172,7 +175,7 @@ module decode(
     assign done =
         (branch_hazard & |(context_in & hazard_context_info))
             ? 1'b0
-            : order;
+            : (order & decode_able);
 
     pack_struct_inst_vreg m_p_inst_vreg(
         done & ~no_use_rs1, va_rs1,
