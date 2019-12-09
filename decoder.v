@@ -188,7 +188,7 @@ module decode(
     assign b_t_context = context_b_t;
     assign b_f_context = context_f_t;
 
-    assign next_pc_ready = ~(branch | jump);
+    assign next_pc_ready = done & ~(branch | jump);
     assign next_pc =
         (opecode == `OP_JAL) ? d_imm21 + pc :
         branch               ? d_imm13 + pc :
