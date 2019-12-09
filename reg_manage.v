@@ -66,7 +66,7 @@ module reg_manage(
     genvar pa_reg;
     genvar w;
     genvar r;
-    
+
     wire [`LEN_CONTEXT-1:0] before_context[2**`LEN_PREG_ADDR-1:0];
 
     // ---- writer loop -------------------------

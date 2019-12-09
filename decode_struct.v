@@ -39,10 +39,10 @@ module alu_exec_type(
         output wire alu_ext);
     wire alu_non_imm = exec_type[7];
     wire alu_non_ext = exec_type[6];
-    wire alu = alu_non_ext | alu_non_imm;
-    wire alu_std = alu_non_ext & alu_non_imm;
-    wire alu_imm = alu_non_ext & ~alu_non_imm;
-    wire alu_ext = alu_non_imm & ~alu_non_ext;
+    assign alu = alu_non_ext | alu_non_imm;
+    assign alu_std = alu_non_ext & alu_non_imm;
+    assign alu_imm = alu_non_ext & ~alu_non_imm;
+    assign alu_ext = alu_non_imm & ~alu_non_ext;
 endmodule
 
 `default_nettype wire

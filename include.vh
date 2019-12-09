@@ -135,7 +135,6 @@
 `define LEN_WRITE_D_R ((`LEN_PREG_ADDR)+(`LEN_WORD)+1)
 // exec_type
 `define LEN_EXEC_TYPE 8
-
 `define EXEC_TYPE_ALU_NON_IMM 7
 `define EXEC_TYPE_ALU_NON_EXT 6
 `define EXEC_TYPE_FPU         5
