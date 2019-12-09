@@ -2,20 +2,34 @@
 
 `default_nettype none
 
-module decode
-    (input  wire [`LEN_INST-1:0]      instr,
-     input  wire [`LEN_WORD-1:0]      pc,
+module decode(
+        input  wire                      order,
+        input  wire                      done,
 
-     output wire [`LEN_EXEC_TYPE-1:0] exec_type,
+        input  wire [`LEN_INST-1:0]      instr,
+        input  wire [`LEN_WORD-1:0]      pc,
+        input  wire [`LEN_CONTEXT-1:0]   context,
+        input  wire [`LEN_CONTEXT-1:0]   context_b_t,
+        input  wire [`LEN_CONTEXT-1:0]   context_b_f,
 
-     output wire [`LEN_VREG_ADDR-1:0] va_rs1,
-     output wire [`LEN_VREG_ADDR-1:0] va_rs2,
-     output wire [`LEN_VREG_ADDR-1:0] va_rd,
-     output wire [`LEN_WORD-1:0]      d_imm,
-     
-     output wire [`LEN_OPECODE-1:0]  opecode,
-     output wire [`LEN_FUNC3-1:0]    func3,
-     output wire [`LEN_FUNC7-1:0]    func7);
+        output wire [`LEN_EXEC_TYPE-1:0] exec_type,
+        output wire [`LEN_INST_VREG-1:0] inst_vreg,
+        output wire [`LEN_WORD-1:0]      d_imm,
+        output wire [`LEN_ONTEXT-1:0]    b_t_context,
+        output wire [`LEN_ONTEXT-1:0]    b_f_context,
+
+        output wire [`LEN_OPECODE-1:0]   opecode,
+        output wire [`LEN_FUNC3-1:0]     func3,
+        output wire [`LEN_FUNC7-1:0]     func7,
+
+        output wire [`LEN_ONTEXT-1:0]    b_t_context,
+        output wire [`LEN_ONTEXT-1:0]    b_f_context,
+
+        output wire                      next_pc_normal,
+        output wire                      next_pc_wait_type,
+        // 0 -> wait reg / 1 -> wait exec
+        output wire [`LEN_WORD-1:0]      next_pc,
+        output wire [`LEN_WORD-1:0]      next_pc_branched);
 
     wire float;
 

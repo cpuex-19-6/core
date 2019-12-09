@@ -75,3 +75,5 @@ module unpack_struct_write_d_r(
         output wire [`LEN_WORD-1:0]      d_rd);
     assign {order,pa_rd,d_rd} = write_d_r;
 endmodule
+
+`default_nettype wire
