@@ -196,12 +196,23 @@ module inst_window(
                 next2_rd_order[i], next3_va_rd[i],
                 next3_context[i], r_inst_vreg);
 
+            wire [`LEN_WORD-1:0] rs1_temp;
+            wire [`LEN_WORD-1:0] rs2_temp;
             unpack_struct_inst_d_r m_up_inst_d_r(
                 r_inst_d_r,
-                next3_rs1_ready[i], next3_d_rs1[i],
-                next3_rs2_ready[i], next3_d_rs2[i],
+                next3_rs1_ready[i], rs1_temp,
+                next3_rs2_ready[i], rs2_temp,
                 next3_rd_ready[i], next3_pa_rd[i],
                 next3_flag[i]);
+
+                assign next3_d_rs1[i] =
+                    (  next3_rs1_ready[i] & next2_rs1_order[i]
+                     & ~exec_type[`EXEC_TYPE_ALU_NON_EXT])
+                        ? rs1_temp + d_imm : rs1_temp;
+                assign next3_d_rs2[i] =
+                    (  next3_rs2_ready[i] & next2_rs2_order[i]
+                     & exec_type[`EXEC_TYPE_ALU_NON_EXT])
+                        ? rs1_temp + d_imm : rs1_temp;
         end
         for (i=`INST_W_PARA; i<`SIZE_INST_W; i=i+1) begin
             assign next3_d_rs1[i] = d_rs1[nextinst[i]];
@@ -225,9 +236,13 @@ module inst_window(
     wire [`LEN_CONTEXT-1:0]   pre_b_t_context;
     wire [`LEN_CONTEXT-1:0]   pre_b_f_context;
 
-    wire [`LEN_WORD-1:0]      pre_d_rs1 = pre_d_imm;
-    wire [`LEN_WORD-1:0]      pre_d_rs2 = pre_d_imm;
-    wire [`LEN_PREG_ADDR-1:0] pre_pa_rd = `LEN_PREG_ADDR;
+    wire [`LEN_WORD-1:0]      pre_d_rs1 =
+        (~exec_type[`EXEC_TYPE_ALU_NON_EXT])
+            ? d_imm : `WORD_ZERO;
+    wire [`LEN_WORD-1:0]      pre_d_rs2 =
+        (exec_type[`EXEC_TYPE_ALU_NON_EXT])
+            ? d_imm : `WORD_ZERO;
+    wire [`LEN_PREG_ADDR-1:0] pre_pa_rd = `PREG_ZERO;
     wire                      pre_rs1_order;
     wire                      pre_rs2_order;
     wire                      pre_rd_order;
