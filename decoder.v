@@ -19,7 +19,8 @@ module decode
 
 module decode(
         input  wire                      order,
-        input  wire                      done,
+        output wire                      done,
+        output wire                      accept_able,
 
         // from fetch
         input  wire [`LEN_INST-1:0]      instr,
@@ -33,7 +34,7 @@ module decode(
         input  wire [`LEN_CONTEXT-1:0]   context_b_t,
         input  wire [`LEN_CONTEXT-1:0]   context_b_f,
 
-        // from decode2
+        // from inst window
         input  wire                      decode_able,
 
         // to context_manager
@@ -43,19 +44,10 @@ module decode(
         output wire [`LEN_WORD-1:0]      next_pc,
         output wire [`LEN_WORD-1:0]      next_pc_f,
 
-        // to decode2
-        output wire [`LEN_EXEC_TYPE-1:0] exec_type,
-        output wire [`LEN_INST_VREG-1:0] inst_vreg,
-        output wire [`LEN_WORD-1:0]      d_imm,
+        // to inst window
+        output wire [`LEN_D_E_INFO-1:0]  dec_exec_info);
 
-        output wire [`LEN_OPECODE-1:0]   opecode,
-        output wire [`LEN_FUNC3-1:0]     func3,
-        output wire [`LEN_FUNC7-1:0]     func7,
-
-        output wire [`LEN_CONTEXT-1:0]   b_t_context,
-        output wire [`LEN_CONTEXT-1:0]   b_f_context);
-
-    assign opecode = instr[ 6: 0];
+    wire [`LEN_OPECODE-1:0] opecode = instr[ 6: 0];
 
     wire alu    = (opecode == `OP_ALU)
                 | (opecode == `OP_ALUI);
@@ -80,14 +72,16 @@ module decode(
 
     wire no_use_func3 = (opecode == `OP_JAL)
                       | (opecode == `OP_AUIPC);
-    assign func3 = no_use_func3 ? 3'b0 : instr[14:12];
+    wire [`LEN_FUNC3-1:0] func3 =
+        no_use_func3 ? 3'b0 : instr[14:12];
 
     wire no_use_func7 = mem
                       | jump
                       | branch
                       | subst
                       | (alu_imm & (func3[1:0] == 2'b01));
-    assign func7 = no_use_func7 ? 7'b0 : instr[31:25];
+    wire [`LEN_FUNC7-1:0] func7 =
+        no_use_func7 ? 7'b0 : instr[31:25];
 
     wire float  = (opecode == `OP_FPU)
                 | (opecode == `OP_FMEML)
@@ -159,7 +153,7 @@ module decode(
     wire use_imm12s = (opecode == `OP_MEMS )
                     | (opecode == `OP_FMEMS);
 
-    wire d_imm =
+    wire [`LEN_WORD-1:0] d_imm =
         use_imm12i              ? d_imm12i :
         use_imm12s              ? d_imm12s :
         (opecode == `OP_JAL   ) ? pc + 32'd4 :
@@ -167,28 +161,38 @@ module decode(
         (opecode == `OP_AUIPC ) ? d_imm32 + pc :
                                   32'b0;
 
+    wire [`LEN_EXEC_TYPE-1:0] exec_type;
     pack_exec_type m_pet(
         alu_non_imm, alu_non_imm, fpu,
         mem, jump, branch, subst, io,
         exec_type);
+
+    assign accept_able = decode_able;
 
     assign done =
         (branch_hazard & |(context_in & hazard_context_info))
             ? 1'b0
             : (order & decode_able);
 
+    wire [`LEN_INST_VREG-1:0] inst_vreg;
     pack_struct_inst_vreg m_p_inst_vreg(
-        done & ~no_use_rs1, va_rs1,
-        done & ~no_use_rs2, va_rs2,
-        done & ~no_use_rd,  va_rd,
+        done & ~|va_rs1, va_rs1,
+        done & ~|va_rs2, va_rs2,
+        done & ~|va_rd,  va_rd,
         context_in,
         inst_vreg);
 
     assign context_out = context_in;
-    assign b_t_context = context_b_t;
-    assign b_f_context = context_f_t;
 
-    assign next_pc_ready = done & ~(branch | jump);
+    wire io_type = (io | mem) & (opecode[5]);
+
+    pack_dec_exec_info m_p_d_e_info(
+        exec_type, inst_vreg, d_imm, io_type,
+        func3, func7, context_b_t, context_b_f,
+        dec_exec_info);
+
+    assign next_pc_ready =
+        done & (alu | fpu | mem | subst | io);
     assign next_pc =
         (opecode == `OP_JAL) ? d_imm21 + pc :
         branch               ? d_imm13 + pc :

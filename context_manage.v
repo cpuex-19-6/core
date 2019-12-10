@@ -77,10 +77,10 @@ module context_manage(
         // reg_manage
         input wire [`LEN_WORD-1:0]     lr_d,
 
-        // decode2
-        input  wire                    decoder2_next_pc_ready,
-        input  wire [`LEN_CONTEXT-1:0] decoder2_context,
-        input  wire [`LEN_WORD-1:0]    decoder2_next_pc,
+        // inst window
+        input  wire                    inst_window_next_pc_ready,
+        input  wire [`LEN_CONTEXT-1:0] inst_window_context,
+        input  wire [`LEN_WORD-1:0]    inst_window_next_pc,
 
         // exec jump
         input  wire [`LEN_CONTEXT-1:0] exec_jump_context,
@@ -140,12 +140,13 @@ module context_manage(
 
     generate
         for (cntx=0; cntx<`LEN_CONTEXT; cntx=cntx+1) begin
+            wire [`LEN_CONTEXT-1:0] masked_cntx_info =
+                (~cntx_info[exec_b_cntx_id]) & (cntx_info[cntx]);
             assign cntx_next1_info[cntx] =
-                (branch_hazard & |(hazard_context_info & cntx_info[cntx]))
-                    ? `CONTEXT_ZERO
-                    : ((~cntx_info[exec_b_cntx_id]) & (cntx_info[cntx]));
+                (branch_hazard & |(hazard_context_info & masked_cntx_info))
+                    ? `CONTEXT_ZERO : masked_cntx_info;
             assign cntx_next1_non_fetch[cntx] =
-                (  (branch_hazard & |(hazard_context_info & cntx_info[cntx]))
+                (  (branch_hazard & |(hazard_context_info & masked_cntx_info))
                  | ((cntx == cntx_hot_id) & fetch_accepted))
                     ? 1'b0 : cntx_non_fetch[cntx];
         end
@@ -159,14 +160,14 @@ module context_manage(
     wire [`LEN_CONTEXT-1:0] cntx_next2_non_fetch;
     wire [`LEN_CONTEXT-1:0] cntx_next2_info[`LEN_CONTEXT-1:0];
 
-    wire [`LEN_CONTEXT_ID-1:0] dec1_cntx_id;
-    wire [`LEN_CONTEXT_ID-1:0] dec2_cntx_id;
+    wire [`LEN_CONTEXT_ID-1:0] dec_cntx_id;
+    wire [`LEN_CONTEXT_ID-1:0] i_w_cntx_id;
     wire [`LEN_CONTEXT_ID-1:0] exec_j_cntx_id;
-    onehot_to_binary #(`LEN_CONTEXT_ID) m_o_to_b_dec1_cntx(
-            decoder_context, dec1_cntx_id);
+    onehot_to_binary #(`LEN_CONTEXT_ID) m_o_to_b_dec_cntx(
+            decoder_context, dec_cntx_id);
     generate
-        onehot_to_binary #(`LEN_CONTEXT_ID) m_o_to_b_dec2_cntx(
-                decoder2_context, dec2_cntx_id);
+        onehot_to_binary #(`LEN_CONTEXT_ID) m_o_to_b_i_w_cntx(
+                inst_window_context, i_w_cntx_id);
     endgenerate
     onehot_to_binary #(`LEN_CONTEXT_ID) m_o_to_b_exec_j_cntx_id(
             exec_jump_context, exec_j_cntx_id);
@@ -175,7 +176,7 @@ module context_manage(
         for (cntx=0; cntx<`LEN_CONTEXT; cntx=cntx+1) begin
             assign cntx_next2_next_pc[cntx] =
                 (  decoder_next_pc_ready
-                 & (dec1_cntx_id == cntx[`LEN_CONTEXT_ID-1:0]))
+                 & (dec_cntx_id == cntx[`LEN_CONTEXT_ID-1:0]))
                     ? decoder_next_pc :
                 (  decoder_branch
                  & (context_b_t_id == cntx[`LEN_CONTEXT_ID-1:0]))
@@ -183,19 +184,19 @@ module context_manage(
                 (  decoder_branch
                  & (context_b_f_id == cntx[`LEN_CONTEXT_ID-1:0]))
                     ? decoder_next_pc_f :
-                (  decoder2_next_pc_ready
-                 & (dec2_cntx_id == cntx[`LEN_CONTEXT_ID-1:0]))
-                    ? decoder2_next_pc :
+                (  inst_window_next_pc_ready
+                 & (i_w_cntx_id == cntx[`LEN_CONTEXT_ID-1:0]))
+                    ? inst_window_next_pc :
                 (  exec_next_pc_ready
                  & (exec_j_cntx_id == cntx[`LEN_CONTEXT_ID-1:0]))
                     ? exec_next_pc : cntx_next_pc[cntx];
             assign cntx_next2_non_fetch[cntx] =
                   (  (exec_next_pc_ready
                    & (exec_j_cntx_id == cntx[`LEN_CONTEXT_ID-1:0]))
-                | (  decoder2_next_pc_ready
-                   & (dec2_cntx_id == cntx[`LEN_CONTEXT_ID-1:0]))
+                | (  inst_window_next_pc_ready
+                   & (i_w_cntx_id == cntx[`LEN_CONTEXT_ID-1:0]))
                 | (  decoder_next_pc_ready
-                   & (dec1_cntx_id == cntx[`LEN_CONTEXT_ID-1:0]))
+                   & (dec_cntx_id == cntx[`LEN_CONTEXT_ID-1:0]))
                 | (  decoder_branch
                    & (  (context_b_t_id == cntx[`LEN_CONTEXT_ID-1:0])
                       | (context_b_f_id == cntx[`LEN_CONTEXT_ID-1:0])))
@@ -204,7 +205,7 @@ module context_manage(
                 (  decoder_branch
                  & (  (context_b_t_id == cntx[`LEN_CONTEXT_ID-1:0])
                     | (context_b_f_id == cntx[`LEN_CONTEXT_ID-1:0]))
-                        ? (`CONTEXT_INIT << cntx) | cntx_next1_info[dec1_cntx_id]
+                        ? (`CONTEXT_INIT << cntx) | cntx_next1_info[dec_cntx_id]
                         : cntx_next1_info[cntx];
         end
     endgenerate

@@ -1,6 +1,8 @@
 
 // 実装上の定義(実行時)
 
+// wordのゼロ
+`define WORD_ZERO 32'b0
 // コンテキストIDのサイズ
 `define LEN_CONTEXT_ID 3
 // コンテキストのサイズ
@@ -22,6 +24,23 @@
 
 // decoder parallel degree
 `define DECODE_PARA 1
+
+// inst window degree
+`define INST_W_PARA 1
+// 命令ウィンドウの待機列のサイズ(0)
+`define LEN_INST_WAIT 0 
+// 命令ウィンドウのサイズ
+`define SIZE_INST_W ((`DECODE_PARA)+(`INST_W_PARA)+(`LEN_INST_WAIT))
+// 命令ウィンドウのidのサイズ
+`define LEN_INST_W_ID 1
+// 命令ウィンドウのidのゼロ
+`define INST_W_ID_ZERO 1'b0
+// 命令ウィンドウの直接実行可能なサイズ <=(`INST_W_PARA +`LEN_INST_WAIT)
+`define LEN_IW_E_ABLE 1
+// 直接実行可能なウィンドウのidのサイズ
+`define LEN_IW_E_ABLE_ID 1
+// 直接実行可能なウィンドウのidのゼロ
+`define IW_E_ABLE_ID_ZERO 1'b0
 
 // execute parallel degree
 `define EXECUTE_PARA 1
@@ -143,4 +162,5 @@
 `define EXEC_TYPE_BRANCH      2
 `define EXEC_TYPE_SUBST       1
 `define EXEC_TYPE_IO          0
-
+// dec_exec_info
+`define LEN_D_E_INFO ((`LEN_INST_VREG)+(`LEN_EXEC_TYPE)+(`LEN_WORD)+(`LEN_FUNC3)+(`LEN_FUNC7)+(`LEN_CONTEXT)*2+1)

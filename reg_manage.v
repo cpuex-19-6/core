@@ -125,7 +125,7 @@ module reg_manage(
     // context_write
 
     wire [`LEN_CONTEXT-1:0] context_write[2**`LEN_VREG_ADDR-1:0];
-    wire [`LEN_CONTEXT-1:0] context_write_update[`DECODE_PARA:0][2**`LEN_VREG_ADDR-1:0];
+    wire [`LEN_CONTEXT-1:0] context_write_update[`INST_W_PARA:0][2**`LEN_VREG_ADDR-1:0];
     // wire [`LEN_PREG_ADDR-1:0] v_reg_dict[2**`LEN_VREG_ADDR-1:0];
 
     generate
@@ -133,7 +133,7 @@ module reg_manage(
             assign context_write_update[0][pa_reg] =
                 context_read[pa_reg];
             assign context_write[pa_reg] =
-                context_write_update[`DECODE_PARA][pa_reg];
+                context_write_update[`INST_W_PARA][pa_reg];
         end
         for (r = 0; r < 1; r = r+1) begin : read_loop
             // ---- read 1 -------------------------
