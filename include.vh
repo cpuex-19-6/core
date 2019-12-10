@@ -1,7 +1,7 @@
 
 // 実装上の定義(実行時)
 
-// log2(コンテキストのサイズ)
+// コンテキストIDのサイズ
 `define LEN_CONTEXT_ID 3
 // コンテキストのサイズ
 `define LEN_CONTEXT 8
