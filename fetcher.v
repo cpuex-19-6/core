@@ -22,7 +22,7 @@ module fetch
      input  wire [`LEN_MEM_ADDR-1:0] pc,
      output wire [`LEN_INST-1:0]     inst,
 
-     output wire [LEN_MEMISTR_ADDR-1:0] a_inst_mem,
+     output wire [`LEN_MEMISTR_ADDR-1:0] a_inst_mem,
      input  wire [`LEN_INST-1:0]         d_inst_mem,
 
      input  wire                     clk,

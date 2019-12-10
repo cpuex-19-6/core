@@ -69,6 +69,26 @@ module ring_buf
     end
 endmodule
 
+module fullassociative
+  #(DEPTH     = `DEPTH_FETCH_CASHE,
+    LEN_INDEX = `LEN_MEMISTR_ADDR,
+    LEN_DATA  = `LEN_WORD)(
+        input  wire                  push_order,
+        input  wire [`LEN_INDEX-1:0] push_key,
+        input  wire [`LEN_DATA-1:0]  push_data,
+        output wire                  push_success,
+
+        input  wire                  find_order,
+        input  wire [`LEN_INDEX-1:0] find_key,
+        output wire                  found,
+        output wire [`LEN_DATA-1:0]  found_data,
+
+        input  wire                  all_clear,
+
+        input  wire clk,
+        input  wire rstn);
+endmodule
+
 module binary_to_onehot
     #(BIN_LENGTH = `LEN_CONTEXT_ID)(
         input  wire [BIN_LENGTH-1:0]    bin,
