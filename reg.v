@@ -58,7 +58,7 @@ module regs
                 if (~rstn) begin
                     registers[i] <= reg_init[i-1];
                 end
-                else if (ard == i) begin
+                else if  (in_flag & (ard == i)) begin
                     registers[i] <= drd;
                 end
             end
