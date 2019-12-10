@@ -77,11 +77,6 @@ module context_manage(
         // reg_manage
         input wire [`LEN_WORD-1:0]     lr_d,
 
-        // inst window
-        input  wire                    inst_window_next_pc_ready,
-        input  wire [`LEN_CONTEXT-1:0] inst_window_context,
-        input  wire [`LEN_WORD-1:0]    inst_window_next_pc,
-
         // exec jump
         input  wire [`LEN_CONTEXT-1:0] exec_jump_context,
         input  wire                    exec_next_pc_ready,
@@ -161,14 +156,10 @@ module context_manage(
     wire [`LEN_CONTEXT-1:0] cntx_next2_info[`LEN_CONTEXT-1:0];
 
     wire [`LEN_CONTEXT_ID-1:0] dec_cntx_id;
-    wire [`LEN_CONTEXT_ID-1:0] i_w_cntx_id;
     wire [`LEN_CONTEXT_ID-1:0] exec_j_cntx_id;
     onehot_to_binary #(`LEN_CONTEXT_ID) m_o_to_b_dec_cntx(
             decoder_context, dec_cntx_id);
     generate
-        onehot_to_binary #(`LEN_CONTEXT_ID) m_o_to_b_i_w_cntx(
-                inst_window_context, i_w_cntx_id);
-    endgenerate
     onehot_to_binary #(`LEN_CONTEXT_ID) m_o_to_b_exec_j_cntx_id(
             exec_jump_context, exec_j_cntx_id);
 
@@ -184,17 +175,12 @@ module context_manage(
                 (  decoder_branch
                  & (context_b_f_id == cntx[`LEN_CONTEXT_ID-1:0]))
                     ? decoder_next_pc_f :
-                (  inst_window_next_pc_ready
-                 & (i_w_cntx_id == cntx[`LEN_CONTEXT_ID-1:0]))
-                    ? inst_window_next_pc :
                 (  exec_next_pc_ready
                  & (exec_j_cntx_id == cntx[`LEN_CONTEXT_ID-1:0]))
                     ? exec_next_pc : cntx_next_pc[cntx];
             assign cntx_next2_non_fetch[cntx] =
                   (  (exec_next_pc_ready
                    & (exec_j_cntx_id == cntx[`LEN_CONTEXT_ID-1:0]))
-                | (  inst_window_next_pc_ready
-                   & (i_w_cntx_id == cntx[`LEN_CONTEXT_ID-1:0]))
                 | (  decoder_next_pc_ready
                    & (dec_cntx_id == cntx[`LEN_CONTEXT_ID-1:0]))
                 | (  decoder_branch

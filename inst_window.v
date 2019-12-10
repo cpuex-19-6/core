@@ -45,11 +45,6 @@ module inst_window(
         output wire [`LEN_INST_VREG-1:0] r_inst_vreg,
         input  wire [`LEN_INST_D_R-1:0]  r_inst_d_r,
 
-        // context_manage
-        output wire                      iw_next_pc_ready,
-        output wire [`LEN_CONTEXT-1:0]   iw_context,
-        output wire [`LEN_WORD-1:0]      iw_next_pc,
-
         // exec
         output wire order,
         input  wire accepted, 
