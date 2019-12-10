@@ -76,7 +76,7 @@ module inst_window(
 
     wire [`LEN_WORD-1:0]      d_rs1[`SIZE_INST_W-1:0];
     wire [`LEN_WORD-1:0]      d_rs2[`SIZE_INST_W-1:0];
-    wire [`LEN_WORD-1:0]      pa_rd[`SIZE_INST_W-1:0];
+    wire [`LEN_PREG_ADDR-1:0] pa_rd[`SIZE_INST_W-1:0];
     wire [`SIZE_INST_W-1:0]   rs1_ready;
     wire [`SIZE_INST_W-1:0]   rs2_ready;
     wire [`SIZE_INST_W-1:0]   rd_ready;
@@ -169,7 +169,7 @@ module inst_window(
 
     wire [`LEN_WORD-1:0]      next3_d_rs1[`SIZE_INST_W-1:0];
     wire [`LEN_WORD-1:0]      next3_d_rs2[`SIZE_INST_W-1:0];
-    wire [`LEN_WORD-1:0]      next3_pa_rd[`SIZE_INST_W-1:0];
+    wire [`LEN_PREG_ADDR-1:0] next3_pa_rd[`SIZE_INST_W-1:0];
     wire [`SIZE_INST_W-1:0]   next3_rs1_ready;
     wire [`SIZE_INST_W-1:0]   next3_rs2_ready;
     wire [`SIZE_INST_W-1:0]   next3_rd_ready;
@@ -225,9 +225,9 @@ module inst_window(
     wire [`LEN_CONTEXT-1:0]   pre_b_t_context;
     wire [`LEN_CONTEXT-1:0]   pre_b_f_context;
 
-    wire [`LEN_WORD-1:0]      pre_d_rs1 = `WORD_ZERO;
-    wire [`LEN_WORD-1:0]      pre_d_rs2 = `WORD_ZERO;
-    wire [`LEN_WORD-1:0]      pre_pa_rd = `PREG_ZERO;
+    wire [`LEN_WORD-1:0]      pre_d_rs1 = pre_d_imm;
+    wire [`LEN_WORD-1:0]      pre_d_rs2 = pre_d_imm;
+    wire [`LEN_PREG_ADDR-1:0] pre_pa_rd = `LEN_PREG_ADDR;
     wire                      pre_rs1_order;
     wire                      pre_rs2_order;
     wire                      pre_rd_order;
@@ -281,7 +281,7 @@ module inst_window(
             wire [`LEN_CONTEXT-1:0]   context[`SIZE_INST_W-1:0];
             wire [`LEN_WORD-1:0]      d_rs1[`SIZE_INST_W-1:0];
             wire [`LEN_WORD-1:0]      d_rs2[`SIZE_INST_W-1:0];
-            wire [`LEN_WORD-1:0]      pa_rd[`SIZE_INST_W-1:0];
+            wire [`LEN_PREG_ADDR-1:0] pa_rd[`SIZE_INST_W-1:0];
 // ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 
             temp_reg #(1) r_rs1_ready(
@@ -325,7 +325,7 @@ module inst_window(
             wire [`LEN_CONTEXT-1:0]   context[`SIZE_INST_W-1:0];
             wire [`LEN_WORD-1:0]      d_rs1[`SIZE_INST_W-1:0];
             wire [`LEN_WORD-1:0]      d_rs2[`SIZE_INST_W-1:0];
-            wire [`LEN_WORD-1:0]      pa_rd[`SIZE_INST_W-1:0];
+            wire [`LEN_PREG_ADDR-1:0] pa_rd[`SIZE_INST_W-1:0];
 // ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 
             temp_reg #(1) r_rs1_ready(
