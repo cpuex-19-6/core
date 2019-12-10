@@ -11,27 +11,28 @@ module inst_window
 ・制御ハザードがあれば消すべき命令を消す
 
 +-0
-|   +-LEN_INST_WAIT
-|   |   +-LEN_IW_E_ABLE
-|   |   |   +-LEN_INST_WAIT+INST_W_PARA
+|   +-LEN_IW_E_ABLE
+|   |   +-INST_W_PARA
+|   |   |   +-INST_W_PARA+LEN_INST_WAIT
 |   |   |   |   +-SIZE_INST_W
 |   |   |   |   |
 [###############) : 命令ウィンドウのサイズ
 |   |   |   |   |
-[###)   |   |   | : レジスタ解決済み実行待ち
-|   |   |   |   |     (ハザード解決をしないといけない)
-|   |   |   |   |     (大きさが0の前提で実装)
-[#######)   |   | : 直接実行可能
-    |       |   |     LEN_INST_WAIT+INST_W_PARA以下で
-    |       |   |     EXECUTE_PARA以上だと良い
-    [#######)   | : reg_managerと接続
-            |   |     長さはINST_W_PARA
+[###)   |   |   | : 直接実行可能
+|       |   |   |
+[#######)   |   | : reg_managerと接続
+        |   |   |     長さはINST_W_PARA
+        |   |   |
+        [#######) : レジスタ解決待ち
+            |   |     (ハザード解決をしないといけない)
+            |   |
             [###) : decoderから来たデータの一時退避場所
                       更新できなければ保存したまま
                       次のデコードを止める
-                      (ハザード解決をしないといけない)
 --------------------------------
 */
+
+`define DECODE_BASE ((`INST_W_PARA)+(`LEN_INST_WAIT))
 
 module inst_window(
         output wire                      accept_able,
@@ -59,6 +60,159 @@ module inst_window(
 
     genvar i;
     genvar j;
+
+    wire [`SIZE_INST_W-1:0]   flag;
+    wire [`LEN_EXEC_TYPE-1:0] exec_type[`SIZE_INST_W-1:0];
+    wire [`LEN_WORD-1:0]      d_imm[`SIZE_INST_W-1:0];
+    wire [`SIZE_INST_W-1:0]   io_type;
+    wire [`LEN_FUNC3-1:0]     func3[`SIZE_INST_W-1:0];
+    wire [`LEN_FUNC7-1:0]     func7[`SIZE_INST_W-1:0];
+    wire [`LEN_CONTEXT-1:0]   b_t_context[`SIZE_INST_W-1:0];
+    wire [`LEN_CONTEXT-1:0]   b_f_context[`SIZE_INST_W-1:0];
+    wire [`LEN_VREG_ADDR-1:0] va_rs1[`SIZE_INST_W-1:0];
+    wire [`LEN_VREG_ADDR-1:0] va_rs2[`SIZE_INST_W-1:0];
+    wire [`LEN_VREG_ADDR-1:0] va_rd[`SIZE_INST_W-1:0];
+    wire [`LEN_CONTEXT-1:0]   context[`SIZE_INST_W-1:0];
+
+    wire [`LEN_WORD-1:0]      d_rs1[`SIZE_INST_W-1:0];
+    wire [`LEN_WORD-1:0]      d_rs2[`SIZE_INST_W-1:0];
+    wire [`LEN_WORD-1:0]      pa_rd[`SIZE_INST_W-1:0];
+    wire [`SIZE_INST_W-1:0]   rs1_ready;
+    wire [`SIZE_INST_W-1:0]   rs2_ready;
+    wire [`SIZE_INST_W-1:0]   rd_ready;
+
+    wire [`SIZE_INST_W-1:0]   all_ready =
+        rs1_ready & rs2_ready & rd_ready & flag;
+
+    // choose inst to execute
+    wire [`SIZE_INST_W-1:0] next1_flag;
+    wire [`LEN_IW_E_ABLE_ID-1:0] order_id_decide[`LEN_IW_E_ABLE:0];
+    wire [`LEN_IW_E_ABLE_ID-1:0] order_id;
+    wire [`LEN_IW_E_ABLE:0] order_decide;
+    generate
+        assign order_id_decide[0] = `IW_E_ABLE_ID_ZERO;
+        assign order_decide[0] = 1'b0;
+        assign order_id = order_id_decide[`LEN_IW_E_ABLE];
+        assign order = order_decide[`LEN_IW_E_ABLE];
+        for (i=0; i<`LEN_IW_E_ABLE; i=i+1) begin
+            // 実行できるものを探して実行
+            // 同時に複数実行するときには優先度に注意
+            assign order_decide[i+1] =
+                all_ready[i] & order_decide[i];
+            assign order_id_decide[i+1] =
+                (all_ready[i] & (~order_decide[i]))
+                    ? i[`LEN_IW_E_ABLE_ID-1:0] : order_id_decide[i];
+            assign next1_flag[i] =
+                (all_ready[i] & (~order_decide[i]))
+                    ? accepted : flag[i];
+        end
+        assign next1_flag[`SIZE_INST_W-1:`LEN_IW_E_ABLE] =
+            flag[`SIZE_INST_W-1:`LEN_IW_E_ABLE];
+    endgenerate
+
+    // replace insts into inst window
+    wire [`LEN_INST_W_ID-1:0] nextinst[`SIZE_INST_W-1:0];
+    wire [`LEN_INST_W_ID-1:0] next2_flag[`SIZE_INST_W-1:0];
+    wire [`SIZE_INST_W-1:0]   next2_rs1_order;
+    wire [`SIZE_INST_W-1:0]   next2_rs2_order;
+    wire [`SIZE_INST_W-1:0]   next2_rd_order;
+    generate
+        wire [`LEN_INST_W_ID-1:0] id_table[2**`SIZE_INST_W-1:0];
+        wire [`LEN_INST_W_ID-1:0] newplace[`SIZE_INST_W-1:0];
+        for (i=0; i<2**`SIZE_INST_W; i=i+1) begin
+            wire [`LEN_INST_W_ID-1:0] hot_sum[`SIZE_INST_W:0];
+            assign hot_sum[0] = `INST_W_ID_ZERO;
+            for (j=0; j<`SIZE_INST_W; j=j+1) begin
+                assign hot_sum[j+1] = hot_sum[j] + i[j];
+            end
+            assign id_table[i] = hot_sum[`SIZE_INST_W];
+        end
+        for (i=0; i<`SIZE_INST_W; i=i+1) begin
+            wire [`SIZE_INST_W-1:0] masked_flag
+                = next1_flag << (`SIZE_INST_W-i);
+            assign newplace[i] = id_table[masked_flag];
+        end
+        for (i=0; i<`SIZE_INST_W; i=i+1) begin
+            wire [`SIZE_INST_W-1:0] n2_flag_update;
+            for (j=0; j<`SIZE_INST_W; j=j+1) begin
+                assign n2_flag_update[j] =
+                    next1_flag[j] & (newplace[j] == i);
+            end
+            wire [(2**`LEN_INST_W_ID)-`SIZE_INST_W-1:0] fullsize_help = 'b0;
+            onehot_to_binary #(`LEN_INST_W_ID) m_o_t_b_nextinst(
+                {fullsize_help, n2_flag_update}, nextinst[i]);
+            assign next2_flag[i] = |n2_flag_update;
+            assign next2_rs1_order[i] =
+                next2_flag[i] & ~rs1_ready[nextinst[i]];
+            assign next2_rs2_order[i] =
+                next2_flag[i] & ~rs2_ready[nextinst[i]];
+            assign next2_rd_order[i] =
+                next2_flag[i] & ~rd_ready[nextinst[i]];
+        end
+    endgenerate
+    assign accept_able =
+        &~next2_flag[`SIZE_INST_W-1:`DECODE_BASE];
+    
+    // register assignment
+    wire [`SIZE_INST_W-1:0]   next3_flag;
+    wire [`LEN_EXEC_TYPE-1:0] next3_exec_type[`SIZE_INST_W-1:0];
+    wire [`LEN_WORD-1:0]      next3_d_imm[`SIZE_INST_W-1:0];
+    wire [`SIZE_INST_W-1:0]   next3_io_type;
+    wire [`LEN_FUNC3-1:0]     next3_func3[`SIZE_INST_W-1:0];
+    wire [`LEN_FUNC7-1:0]     next3_func7[`SIZE_INST_W-1:0];
+    wire [`LEN_CONTEXT-1:0]   next3_b_t_context[`SIZE_INST_W-1:0];
+    wire [`LEN_CONTEXT-1:0]   next3_b_f_context[`SIZE_INST_W-1:0];
+    wire [`LEN_VREG_ADDR-1:0] next3_va_rs1[`SIZE_INST_W-1:0];
+    wire [`LEN_VREG_ADDR-1:0] next3_va_rs2[`SIZE_INST_W-1:0];
+    wire [`LEN_VREG_ADDR-1:0] next3_va_rd[`SIZE_INST_W-1:0];
+    wire [`LEN_CONTEXT-1:0]   next3_context[`SIZE_INST_W-1:0];
+
+    wire [`LEN_WORD-1:0]      next3_d_rs1[`SIZE_INST_W-1:0];
+    wire [`LEN_WORD-1:0]      next3_d_rs2[`SIZE_INST_W-1:0];
+    wire [`LEN_WORD-1:0]      next3_pa_rd[`SIZE_INST_W-1:0];
+    wire [`SIZE_INST_W-1:0]   next3_rs1_ready;
+    wire [`SIZE_INST_W-1:0]   next3_rs2_ready;
+    wire [`SIZE_INST_W-1:0]   next3_rd_ready;
+
+    generate
+        for (i=0; i<`SIZE_INST_W; i=i+1) begin
+            assign next3_exec_type[i] = exec_type[nextinst[i]];
+            assign next3_d_imm[i] = d_imm[nextinst[i]];
+            assign next3_io_type[i] = io_type[nextinst[i]];
+            assign next3_func3[i] = func3[nextinst[i]];
+            assign next3_func7[i] = func7[nextinst[i]];
+            assign next3_b_t_context[i] = b_t_context[nextinst[i]];
+            assign next3_b_f_context[i] = b_f_context[nextinst[i]];
+            assign next3_va_rs1[i] = va_rs1[nextinst[i]];
+            assign next3_va_rs2[i] = va_rs2[nextinst[i]];
+            assign next3_va_rd[i] = va_rd[nextinst[i]];
+            assign next3_context[i] = context[nextinst[i]];
+        end
+        for (i=0; i<0`INST_W_PARA; i=i+1) begin
+
+            pack_struct_inst_vreg m_p_i_vreg(
+                next2_rs1_order[i], next3_va_rs1[i],
+                next2_rs2_order[i], next3_va_rs2[i],
+                next2_rd_order[i], next3_va_rd[i],
+                next3_context[i], r_inst_vreg);
+
+            unpack_struct_inst_d_r m_up_inst_d_r(
+                r_inst_d_r,
+                next3_rs1_ready[i], next3_d_rs1[i],
+                next3_rs2_ready[i], next3_d_rs2[i],
+                next3_rd_ready[i], next3_pa_rd[i],
+                next3_flag[i]);
+        end
+        for (i=`INST_W_PARA; i<`SIZE_INST_W; i=i+1) begin
+            assign next3_d_rs1[i] = d_rs1[nextinst[i]];
+            assign next3_d_rs2[i] = d_rs2[nextinst[i]];
+            assign next3_pa_rd[i] = pa_rd[nextinst[i]];
+            assign next3_flag[i] = next2_flag[i];
+            assign next3_rs1_ready[i] = next2_rs1_order[i];
+            assign next3_rs2_ready[i] = next2_rs2_order[i];
+            assign next3_rd_ready[i] = next2_rd_order[i];
+        end
+    endgenerate
 
     // decode unpack
     wire                      pre_flag = d_done;
@@ -100,124 +254,94 @@ module inst_window(
     assign pre_rs2_ready = ~pre_rs2_order;
     assign pre_rd_ready = ~pre_rd_order;
 
-    wire [`SIZE_INST_W:0]     flag;
-    wire [`LEN_EXEC_TYPE-1:0] exec_type[`SIZE_INST_W:0];
-    wire [`LEN_WORD-1:0]      d_imm[`SIZE_INST_W:0];
-    wire [`SIZE_INST_W:0]     io_type;
-    wire [`LEN_FUNC3-1:0]     func3[`SIZE_INST_W:0];
-    wire [`LEN_FUNC7-1:0]     func7[`SIZE_INST_W:0];
-    wire [`LEN_CONTEXT-1:0]   b_t_context[`SIZE_INST_W:0];
-    wire [`LEN_CONTEXT-1:0]   b_f_context[`SIZE_INST_W:0];
-
-    wire [`LEN_WORD-1:0]      d_rs1[`SIZE_INST_W:0];
-    wire [`LEN_WORD-1:0]      d_rs2[`SIZE_INST_W:0];
-    wire [`LEN_WORD-1:0]      pa_rd[`SIZE_INST_W:0];
-    wire [`SIZE_INST_W:0]     rs1_ready;
-    wire [`SIZE_INST_W:0]     rs2_ready;
-    wire [`SIZE_INST_W:0]     rd_ready;
-    wire [`SIZE_INST_W:0]     all_ready =
-        rs1_ready & rs2_ready & rd_ready & flag;
-    wire [`LEN_VREG_ADDR-1:0] va_rs1[`SIZE_INST_W:0];
-    wire [`LEN_VREG_ADDR-1:0] va_rs2[`SIZE_INST_W:0];
-    wire [`LEN_VREG_ADDR-1:0] va_rd[`SIZE_INST_W:0];
-    wire [`LEN_CONTEXT-1:0]   context[`SIZE_INST_W:0];
-
-    // choose inst to execute
-    wire [`SIZE_INST_W:0] next1_flag;
-    wire [`LEN_IW_E_ABLE_ID-1:0] order_id_decide[`LEN_IW_E_ABLE:0];
-    wire [`LEN_IW_E_ABLE_ID-1:0] order_id;
-    wire [`LEN_IW_E_ABLE:0] order_decide;
-    generate
-        assign order_id_decide[0] = `IW_E_ABLE_ID_ZERO;
-        assign order_decide[0] = 1'b0;
-        assign order_id = order_id_decide[`LEN_IW_E_ABLE];
-        assign order = order_decide[`LEN_IW_E_ABLE];
-        for (i=0; i<`LEN_IW_E_ABLE; i=i+1) begin
-            // 実行できるものを探して実行
-            // 同時に複数実行するときには優先度に注意
-            assign order_decide[i+1] =
-                all_ready[i] & order_decide[i];
-            assign order_id_decide[i+1] =
-                (all_ready[i] & (~order_decide[i]))
-                    ? i[`LEN_IW_E_ABLE_ID-1:0] : order_id_decide[i];
-            assign next1_flag[i] =
-                (all_ready[i] & (~order_decide[i]))
-                    ? accepted : flag[i];
-        end
-        assign next1_flag[`SIZE_INST_W:`LEN_IW_E_ABLE] =
-            flag[`SIZE_INST_W:`LEN_IW_E_ABLE];
-    endgenerate
-
-    // replace insts into inst window
-    wire [`LEN_INST_W_ID-1:0] newplace[`SIZE_INST_W-1:0];
-    wire [`LEN_INST_W_ID-1:0] nextinst[`SIZE_INST_W-1:0];
-    wire [`LEN_INST_W_ID-1:0] next2_flag[`SIZE_INST_W-1:0];
-    wire [`SIZE_INST_W:0]     next2_rs1_order;
-    wire [`SIZE_INST_W:0]     next2_rs2_order;
-    wire [`SIZE_INST_W:0]     next2_rd_order;
-    generate
-        wire [`LEN_INST_W_ID-1:0] id_table[2**`SIZE_INST_W-1:0];
-        for (i=0; i<2**`SIZE_INST_W; i=i+1) begin
-            wire [`LEN_INST_W_ID-1:0] hot_sum[`SIZE_INST_W:0];
-            assign hot_sum[0] = `INST_W_ID_ZERO;
-            for (j=0; j<`SIZE_INST_W; j=j+1) begin
-                assign hot_sum[j+1] = hot_sum[j] + i[j];
-            end
-            assign id_table[i] = hot_sum[`SIZE_INST_W];
-        end
-        for (i=0; i<`SIZE_INST_W; i=i+1) begin
-            wire [`SIZE_INST_W-1:0] masked_flag
-                = next1_flag << (`SIZE_INST_W-i);
-            assign newplace[i] = id_table[masked_flag];
-        end
-        for (i=0; i<`SIZE_INST_W; i=i+1) begin
-            wire [`SIZE_INST_W-1:0] n2_flag_update;
-            for (j=0; j<`SIZE_INST_W; j=j+1) begin
-                assign n2_flag_update[j] =
-                    next1_flag[j] & (newplace[j] == i);
-            end
-            assign next2_flag[i] = |n2_flag_update;
-            wire [(2**`LEN_INST_W_ID)-`SIZE_INST_W-1:0] fullsize_help = 'b0;
-            onehot_to_binary #(`LEN_INST_W_ID) m_o_t_b_nextinst(
-                {fullsize_help, n2_flag_update}, nextinst[i]);
-            assign next2_rs1_order[i] =
-                next2_flag[i] & ~rs1_ready[nextinst[i]];
-            assign next2_rs2_order[i] =
-                next2_flag[i] & ~rs2_ready[nextinst[i]];
-            assign next2_rd_order[i] =
-                next2_flag[i] & ~rd_ready[nextinst[i]];
-        end
-    endgenerate
-    assign accept_able =
-        &~next2_flag[`SIZE_INST_W-1:`INST_W_PARA+`LEN_INST_WAIT];
-    
-    // register assignment
-    wire [`SIZE_INST_W:0]     next3_flag;
-    wire [`LEN_EXEC_TYPE-1:0] next3_exec_type[`SIZE_INST_W:0];
-    wire [`LEN_WORD-1:0]      next3_d_imm[`SIZE_INST_W:0];
-    wire [`SIZE_INST_W:0]     next3_io_type;
-    wire [`LEN_FUNC3-1:0]     next3_func3[`SIZE_INST_W:0];
-    wire [`LEN_FUNC7-1:0]     next3_func7[`SIZE_INST_W:0];
-    wire [`LEN_CONTEXT-1:0]   next3_b_t_context[`SIZE_INST_W:0];
-    wire [`LEN_CONTEXT-1:0]   next3_b_f_context[`SIZE_INST_W:0];
-
-    wire [`LEN_WORD-1:0]      next3_d_rs1[`SIZE_INST_W:0];
-    wire [`LEN_WORD-1:0]      next3_d_rs2[`SIZE_INST_W:0];
-    wire [`LEN_WORD-1:0]      next3_pa_rd[`SIZE_INST_W:0];
-    wire [`SIZE_INST_W:0]     next3_rs1_ready;
-    wire [`SIZE_INST_W:0]     next3_rs2_ready;
-    wire [`SIZE_INST_W:0]     next3_rd_ready;
-    wire [`LEN_VREG_ADDR-1:0] next3_va_rs1[`SIZE_INST_W:0];
-    wire [`LEN_VREG_ADDR-1:0] next3_va_rs2[`SIZE_INST_W:0];
-    wire [`LEN_VREG_ADDR-1:0] next3_va_rd[`SIZE_INST_W:0];
-    wire [`LEN_CONTEXT-1:0]   next3_context[`SIZE_INST_W:0];
-
-    generate
-        for (i=`LEN_INST_WAIT; i<`LEN_INST_WAIT+`INST_W_PARA; i=i+1) begin
-        end
-    endgenerate
-
     // reg
+    generate
+        for (i=0; i<`DECODE_BASE; i=i+1) begin
+            temp_reg #(1) r_flag(
+                1'b1, next3_flag[i], flag[i], clk, rstn);
+
+            //wire [`LEN_EXEC_TYPE-1:0] exec_type[`SIZE_INST_W-1:0];
+            temp_reg #(`LEN_EXEC_TYPE) r_exec_type(
+                1'b1, next3_exec_type[i], exec_type[i], clk, rstn);
+            //wire [`LEN_WORD-1:0]      d_imm[`SIZE_INST_W-1:0];
+            temp_reg #(`LEN_WORD) r_d_imm(
+                1'b1, next3_d_imm[i], d_imm[i], clk, rstn);
+
+            temp_reg #(1) r_io_type(
+                1'b1, next3_io_type[i], io_type[i], clk, rstn);
+
+// ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+            wire [`LEN_FUNC3-1:0]     func3[`SIZE_INST_W-1:0];
+            wire [`LEN_FUNC7-1:0]     func7[`SIZE_INST_W-1:0];
+            wire [`LEN_CONTEXT-1:0]   b_t_context[`SIZE_INST_W-1:0];
+            wire [`LEN_CONTEXT-1:0]   b_f_context[`SIZE_INST_W-1:0];
+            wire [`LEN_VREG_ADDR-1:0] va_rs1[`SIZE_INST_W-1:0];
+            wire [`LEN_VREG_ADDR-1:0] va_rs2[`SIZE_INST_W-1:0];
+            wire [`LEN_VREG_ADDR-1:0] va_rd[`SIZE_INST_W-1:0];
+            wire [`LEN_CONTEXT-1:0]   context[`SIZE_INST_W-1:0];
+            wire [`LEN_WORD-1:0]      d_rs1[`SIZE_INST_W-1:0];
+            wire [`LEN_WORD-1:0]      d_rs2[`SIZE_INST_W-1:0];
+            wire [`LEN_WORD-1:0]      pa_rd[`SIZE_INST_W-1:0];
+// ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
+
+            temp_reg #(1) r_rs1_ready(
+                1'b1, next3_rs1_ready[i], rs1_ready[i], clk, rstn);
+            temp_reg #(1) r_rs2_ready(
+                1'b1, next3_rs2_ready[i], rs2_ready[i], clk, rstn);
+            temp_reg #(1) r_rd_ready(
+                1'b1, next3_rd_ready[i], rd_ready[i], clk, rstn);
+        end
+        // from decode
+        for (i=`DECODE_BASE; i<`SIZE_INST_W; i=i+1) begin
+            temp_reg #(1) r_flag(
+                1'b1,
+                next3_flag[i] ? next3_flag[i] : d_done,
+                flag[i], clk, rstn);
+
+            //wire [`LEN_EXEC_TYPE-1:0] exec_type[`SIZE_INST_W-1:0];
+            temp_reg #(`LEN_EXEC_TYPE) r_exec_type(
+                1'b1,
+                next3_flag[i] ? next3_exec_type[i] : pre_exec_type,
+                exec_type[i], clk, rstn);
+            //wire [`LEN_WORD-1:0]      d_imm[`SIZE_INST_W-1:0];
+            temp_reg #(`LEN_WORD) r_d_imm(
+                1'b1,
+                next3_flag[i] ? next3_d_imm[i] : pre_d_imm,
+                d_imm[i], clk, rstn);
+
+            temp_reg #(1) r_io_type(
+                1'b1,
+                next3_flag[i] ? next3_io_type[i] : pre_io_type,
+                io_type[i], clk, rstn);
+
+// ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+            wire [`LEN_FUNC3-1:0]     func3[`SIZE_INST_W-1:0];
+            wire [`LEN_FUNC7-1:0]     func7[`SIZE_INST_W-1:0];
+            wire [`LEN_CONTEXT-1:0]   b_t_context[`SIZE_INST_W-1:0];
+            wire [`LEN_CONTEXT-1:0]   b_f_context[`SIZE_INST_W-1:0];
+            wire [`LEN_VREG_ADDR-1:0] va_rs1[`SIZE_INST_W-1:0];
+            wire [`LEN_VREG_ADDR-1:0] va_rs2[`SIZE_INST_W-1:0];
+            wire [`LEN_VREG_ADDR-1:0] va_rd[`SIZE_INST_W-1:0];
+            wire [`LEN_CONTEXT-1:0]   context[`SIZE_INST_W-1:0];
+            wire [`LEN_WORD-1:0]      d_rs1[`SIZE_INST_W-1:0];
+            wire [`LEN_WORD-1:0]      d_rs2[`SIZE_INST_W-1:0];
+            wire [`LEN_WORD-1:0]      pa_rd[`SIZE_INST_W-1:0];
+// ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
+
+            temp_reg #(1) r_rs1_ready(
+                1'b1,
+                next3_flag[i] ? next3_rs1_ready[i] : pre_rs1_ready,
+                rs1_ready[i], clk, rstn);
+            temp_reg #(1) r_rs2_ready(
+                1'b1,
+                next3_flag[i] ? next3_rs2_ready[i] : pre_rs2_ready,
+                rs2_ready[i], clk, rstn);
+            temp_reg #(1) r_rd_ready(
+                1'b1,
+                next3_flag[i] ? next3_rd_ready[i] : pre_rd_ready,
+                rd_ready[i], clk, rstn);
+        end
+    endgenerate
 
 endmodule
 `default_nettype wire

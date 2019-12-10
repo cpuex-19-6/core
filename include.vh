@@ -27,15 +27,15 @@
 
 // inst window degree
 `define INST_W_PARA 1
-// 命令ウィンドウの待機列のサイズ(0)
-`define LEN_INST_WAIT 0 
+// レジスタ割り当て待機列のサイズ(負でもよい)
+`define LEN_INST_WAIT 0
 // 命令ウィンドウのサイズ
 `define SIZE_INST_W ((`DECODE_PARA)+(`INST_W_PARA)+(`LEN_INST_WAIT))
 // 命令ウィンドウのidのサイズ
 `define LEN_INST_W_ID 1
 // 命令ウィンドウのidのゼロ
 `define INST_W_ID_ZERO 1'b0
-// 命令ウィンドウの直接実行可能なサイズ <=(`INST_W_PARA +`LEN_INST_WAIT)
+// 命令ウィンドウの直接実行可能なサイズ
 `define LEN_IW_E_ABLE 1
 // 直接実行可能なウィンドウのidのサイズ
 `define LEN_IW_E_ABLE_ID 1
