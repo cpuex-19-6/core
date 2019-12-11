@@ -37,6 +37,10 @@ module inst_window
 module inst_window(
         output wire                      accept_able,
 
+        // from context_manager
+        input  wire                      branch_hazard,
+        input  wire [`LEN_CONTEXT-1:0]   hazard_context_info,
+
         // from decode
         input  wire                      d_done,
         input  wire [`LEN_D_E_INFO-1:0]  d_dec_exec_info,
@@ -133,9 +137,15 @@ module inst_window(
                 assign n2_flag_update[j] =
                     next1_flag[j] & (newplace[j] == i);
             end
-            wire [(2**`LEN_INST_W_ID)-`SIZE_INST_W-1:0] fullsize_help = 'b0;
-            onehot_to_binary #(`LEN_INST_W_ID) m_o_t_b_nextinst(
-                {fullsize_help, n2_flag_update}, nextinst[i]);
+            if ((2**`LEN_INST_W_ID) == `SIZE_INST_W) begin
+                onehot_to_binary #(`LEN_INST_W_ID) m_o_t_b_nextinst(
+                    n2_flag_update, nextinst[i]);
+            end
+            else begin
+                wire [(2**`LEN_INST_W_ID)-`SIZE_INST_W-1:0] fullsize_help = 'b0;
+                onehot_to_binary #(`LEN_INST_W_ID) m_o_t_b_nextinst(
+                    {fullsize_help, n2_flag_update}, nextinst[i]);
+            end
             assign next2_flag[i] = |n2_flag_update;
             assign next2_rs1_order[i] =
                 next2_flag[i] & ~rs1_ready[nextinst[i]];
@@ -213,10 +223,12 @@ module inst_window(
             assign next3_d_rs1[i] = d_rs1[nextinst[i]];
             assign next3_d_rs2[i] = d_rs2[nextinst[i]];
             assign next3_pa_rd[i] = pa_rd[nextinst[i]];
-            assign next3_flag[i] = next2_flag[i];
             assign next3_rs1_ready[i] = next2_rs1_order[i];
             assign next3_rs2_ready[i] = next2_rs2_order[i];
             assign next3_rd_ready[i] = next2_rd_order[i];
+            assign next3_flag[i] =
+                  (branch_hazard & |(hazard_context_info & next3_context[i]))
+                & next2_flag[i];
         end
     endgenerate
 
