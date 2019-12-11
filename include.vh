@@ -3,6 +3,10 @@
 
 // wordのゼロ
 `define WORD_ZERO 32'b0
+
+// fetchの命令キャッシュのサイズ(キャッシュライン数)
+`define DEPTH_FETCH_CASHE 6
+
 // コンテキストIDのサイズ
 `define LEN_CONTEXT_ID 3
 // コンテキストのサイズ
