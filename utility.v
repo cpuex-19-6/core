@@ -165,8 +165,9 @@ module fullassociative
             assign prio_update[j] = found_k;
         end
 
-        // prio update
+        // prio update -> しない
         for (i=0; i<DEPTH; i=i+1) begin
+            /*
             wire [DEPTH-1:0] prio_upd[FIND_PARA:0];
             assign prio_upd[0] = next1_prio[i];
             for (j=0; j<FIND_PARA; j=j+1) begin
@@ -176,6 +177,8 @@ module fullassociative
                         : prio_upd[j] & (~prio_update[j]);
             end
             assign next2_prio[i] = prio_upd[FIND_PARA];
+            */
+            assign next2_prio[i] = next1_prio[i];
         end
     endgenerate
 

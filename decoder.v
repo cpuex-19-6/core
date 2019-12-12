@@ -8,7 +8,6 @@ module decode
 ・fetchから命令コードとPCを受け取る
 ・命令を解析して種類を特定し、
 　即値や仮想レジスタアドレスを決定
-・制御ハザード時にリセットする
 ・決まっていれば、次のPCを
 　コンテキストとともに
 　context_managerに渡す
@@ -18,33 +17,21 @@ module decode
 */
 
 module decode(
+        // from context_manager
         input  wire                      order,
-        output wire                      done,
-        output wire                      accept_able,
-
-        // from fetch
         input  wire [`LEN_INST-1:0]      instr,
         input  wire [`LEN_WORD-1:0]      pc,
         input  wire [`LEN_CONTEXT-1:0]   context_in,
-
-        // from context_manager
-        input  wire                      branch_hazard,
-        input  wire [`LEN_CONTEXT-1:0]   hazard_context_info,
-
         input  wire [`LEN_CONTEXT-1:0]   context_b_t,
         input  wire [`LEN_CONTEXT-1:0]   context_b_f,
 
-        // from inst window
-        input  wire                      decode_able,
-
         // to context_manager
-        output wire [`LEN_CONTEXT-1:0]   context_out,
         output wire                      next_pc_ready,
         output wire                      branch,
         output wire [`LEN_WORD-1:0]      next_pc,
         output wire [`LEN_WORD-1:0]      next_pc_f,
 
-        // to inst window
+        // to inst_window
         output wire [`LEN_D_E_INFO-1:0]  dec_exec_info);
 
     wire [`LEN_OPECODE-1:0] opecode = instr[ 6: 0];
@@ -167,18 +154,11 @@ module decode(
         mem, jump, branch, subst, io,
         exec_type);
 
-    assign accept_able = decode_able;
-
-    assign done =
-        (branch_hazard & |(context_in & hazard_context_info))
-            ? 1'b0
-            : (order & decode_able);
-
     wire [`LEN_INST_VREG-1:0] inst_vreg;
     pack_struct_inst_vreg m_p_inst_vreg(
-        done & ~|va_rs1, va_rs1,
-        done & ~|va_rs2, va_rs2,
-        done & ~|va_rd,  va_rd,
+        ~|va_rs1, va_rs1,
+        ~|va_rs2, va_rs2,
+        ~|va_rd,  va_rd,
         context_in,
         inst_vreg);
 
@@ -192,7 +172,7 @@ module decode(
         dec_exec_info);
 
     assign next_pc_ready =
-        done & (alu | fpu | mem | subst | io);
+        order & (alu | fpu | mem | subst | io);
     assign next_pc =
         (opecode == `OP_JAL) ? d_imm21 + pc :
         branch               ? d_imm13 + pc :

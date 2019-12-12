@@ -5,7 +5,7 @@
 `define WORD_ZERO 32'b0
 
 // fetchの命令キャッシュのサイズ(キャッシュライン数)
-`define DEPTH_FETCH_CASHE 4
+`define DEPTH_FETCH_CASHE 6
 
 // コンテキストIDのサイズ
 `define LEN_CONTEXT_ID 3
@@ -15,6 +15,7 @@
 `define CONTEXT_INIT 8'b1
 // コンテキストの0(リセット初期化用)
 `define CONTEXT_ZERO 8'b0
+
 // メモリアドレス(word)のサイズ
 `define LEN_MEMDATA_ADDR 19
 // 命令メモリのサイズ(word)のサイズ(外部から更新可)

@@ -13,7 +13,7 @@ module inst_window
 +-0
 |   +-LEN_IW_E_ABLE
 |   |   +-INST_W_PARA
-|   |   |   +-INST_W_PARA+LEN_INST_WAIT
+|   |   |   +-DECODE_BASE
 |   |   |   |   +-SIZE_INST_W
 |   |   |   |   |
 [###############) : 命令ウィンドウのサイズ
@@ -35,6 +35,8 @@ module inst_window
 `define DECODE_BASE ((`INST_W_PARA)+(`LEN_INST_WAIT))
 
 module inst_window(
+        // to context_manager
+        // DECODE_PARAの分だけ並列化
         output wire                      accept_able,
 
         // from context_manager
@@ -42,14 +44,17 @@ module inst_window(
         input  wire [`LEN_CONTEXT-1:0]   hazard_context_info,
 
         // from decode
+        // DECODE_PARAの分だけ並列化
         input  wire                      d_done,
         input  wire [`LEN_D_E_INFO-1:0]  d_dec_exec_info,
 
         // reg_manage
+        // INST_W_PARAの分だけ並列化
         output wire [`LEN_INST_VREG-1:0] r_inst_vreg,
         input  wire [`LEN_INST_D_R-1:0]  r_inst_d_r,
 
         // exec
+        // EXECUTE_PARAの分だけ並列化
         output wire order,
         input  wire accepted, 
         // 後で
