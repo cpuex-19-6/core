@@ -21,25 +21,29 @@ module temp_reg
 endmodule
 
 module regs
-    (input  wire                     in_flag,
-     input  wire [`LEN_REG_ADDR-1:0] ard,
-     input  wire [`LEN_REG_ADDR-1:0] ars1,
-     input  wire [`LEN_REG_ADDR-1:0] ars2,
+    (input  wire [`LEN_PREG_ADDR-1:0] ars1,
+     input  wire [`LEN_PREG_ADDR-1:0] ars2,
+     input  wire [`LEN_PREG_ADDR-1:0] ars3,
 
-     input  wire [`LEN_WORD-1:0]     drd,
-     output wire [`LEN_WORD-1:0]     drs1,
-     output wire [`LEN_WORD-1:0]     drs2,
+     output wire [`LEN_WORD-1:0]      drs1,
+     output wire [`LEN_WORD-1:0]      drs2,
+     output wire [`LEN_WORD-1:0]      drs3,
+
+     input  wire                      in_flag,
+     input  wire [`LEN_PREG_ADDR-1:0] ard,
+     input  wire [`LEN_WORD-1:0]      drd,
 
      input wire clk,
      input wire rstn);
 
-    localparam reg_num = (2 ** `LEN_REG_ADDR);
+    localparam reg_num = (2 ** `LEN_PREG_ADDR);
     localparam special_init_regs = 3;
 
     reg [`LEN_WORD-1:0] registers [reg_num-1:0];
 
     assign drs1 = (|ars1) ? registers[ars1] : 32'b0;
     assign drs2 = (|ars2) ? registers[ars2] : 32'b0;
+    assign drs3 = (|ars3) ? registers[ars3] : 32'b0;
 
     wire [32-1:0] reg_init[special_init_regs-1:0];
 

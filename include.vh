@@ -1,14 +1,80 @@
 
+// 実装上の定義(実行時)
 
-`define LEN_WORD 32
-`define LEN_INST 32
-`define LEN_MEM_ADDR 32
-`define LEN_REG_ADDR 6
+// wordのゼロ
+`define WORD_ZERO 32'b0
 
+// fetchの命令キャッシュのサイズ(キャッシュライン数)
+`define DEPTH_FETCH_CASHE 6
+
+// コンテキストIDのサイズ
+`define LEN_CONTEXT_ID 3
+// コンテキストのサイズ
+`define LEN_CONTEXT 8
+// コンテキストの初期値
+`define CONTEXT_INIT 8'b1
+// コンテキストの0(リセット初期化用)
+`define CONTEXT_ZERO 8'b0
+
+// メモリアドレス(word)のサイズ
 `define LEN_MEMDATA_ADDR 19
-
+// 命令メモリのサイズ(word)のサイズ(外部から更新可)
+`define LEN_MEMISTR_ADDR 15
+// heapポインタの初期値
 `define HEAP_POINTER_INIT 32'b0
+// 物理レジスタアドレスのサイズ
+`define LEN_PREG_ADDR 6
+// 物理レジスタアドレスの0(リセット初期化用)
+`define PREG_ZERO 6'b0
 
+// decoder parallel degree
+`define DECODE_PARA 1
+
+// inst window degree
+`define INST_W_PARA 1
+// レジスタ割り当て待機列のサイズ(負でもよい)
+`define LEN_INST_WAIT 0
+// 命令ウィンドウのサイズ
+`define SIZE_INST_W ((`DECODE_PARA)+(`INST_W_PARA)+(`LEN_INST_WAIT))
+// 命令ウィンドウのidのサイズ
+`define LEN_INST_W_ID 1
+// 命令ウィンドウのidのゼロ
+`define INST_W_ID_ZERO 1'b0
+// 命令ウィンドウの直接実行可能なサイズ
+`define LEN_IW_E_ABLE 1
+// 直接実行可能なウィンドウのidのサイズ
+`define LEN_IW_E_ABLE_ID 1
+// 直接実行可能なウィンドウのidのゼロ
+`define IW_E_ABLE_ID_ZERO 1'b0
+
+// execute parallel degree
+`define EXECUTE_PARA 1
+// decoder parallel idの長さ
+`define LEN_E_PARA_ID 1
+// decoder parallel id zero
+`define E_PARA_ID_ZERO 1'b0
+
+// UART用リングバッファアドレスのサイズ(外部から更新可)
+`define LEN_RING_BUF_ADDR 12
+
+// 周波数(外部から更新可)
+`define CLK_PER_SEC  80_000_000
+// BAUD rate(外部から更新可)
+`define DEFAULT_BAUD 115_200
+
+
+// ISA的な定義(デコード時)
+
+// WORD長
+`define LEN_WORD 32
+// 命令長
+`define LEN_INST 32
+// メモリアドレスのサイズ
+`define LEN_MEM_ADDR 32
+// レジスタアドレスのサイズ
+`define LEN_VREG_ADDR 6
+
+// 命令の分割
 `define LEN_OPECODE 7
 `define LEN_IMM12 12
 `define LEN_IMM13 13
@@ -16,14 +82,6 @@
 `define LEN_IMM32 32
 `define LEN_FUNC3 3
 `define LEN_FUNC7 7
-
-`define NUM_REG 32
-
-`define LEN_CYCLE_REG      4096
-`define LEN_CYCLE_REG_ADDR 12
-
-`define CLK_PER_SEC  100_000_000
-`define DEFAULT_BAUD 115_200
 
 // opecode
 
@@ -93,3 +151,24 @@
 `define FUNC3_FROUND 3'b000
 `define FUNC3_FFLOOR 3'b010
 `define FUNC3_FCEIL  3'b011 
+
+// wire structs
+
+// inst_vregs
+`define LEN_INST_VREG ((`LEN_VREG_ADDR)*3+(`LEN_CONTEXT)+3)
+// inst_d_r
+`define LEN_INST_D_R ((`LEN_WORD)*3+(`LEN_PREG_ADDR)+4)
+// write_d_r
+`define LEN_WRITE_D_R ((`LEN_PREG_ADDR)+(`LEN_WORD)+1)
+// exec_type
+`define LEN_EXEC_TYPE 8
+`define EXEC_TYPE_ALU_NON_IMM 7
+`define EXEC_TYPE_ALU_NON_EXT 6
+`define EXEC_TYPE_FPU         5
+`define EXEC_TYPE_MEM         4
+`define EXEC_TYPE_JUMP        3
+`define EXEC_TYPE_BRANCH      2
+`define EXEC_TYPE_SUBST       1
+`define EXEC_TYPE_IO          0
+// dec_exec_info
+`define LEN_D_E_INFO ((`LEN_INST_VREG)+(`LEN_EXEC_TYPE)+(`LEN_WORD)+(`LEN_FUNC3)+(`LEN_FUNC7)+(`LEN_CONTEXT)*2+1)
