@@ -34,7 +34,8 @@ module cpu
 `define STATE_WRITE        16'b0000000000100000
 
 module cpu
-    #(LEN_MEMISTR_ADDR = `LEN_MEMISTR_ADDR)
+    #(LEN_MEMISTR_ADDR = `LEN_MEMISTR_ADDR,
+      LOG_FETCH_PARA = 0)
     (input  wire clk,
      input  wire rstn,
      input  wire native_rstn,
@@ -42,17 +43,17 @@ module cpu
      input  wire usr_load,
      output wire [6-1:0] led_stat,
 
-     output wire [LEN_MEMISTR_ADDR-1:0] a_inst,
-     input  wire [`LEN_WORD-1:0]         d_inst,
-     output wire [`LEN_WORD-1:0]         prold_set_address,
-     output wire                         prold_write_flag,
+     output wire [LEN_MEMISTR_ADDR-1:0]              a_inst,
+     input  wire [`LEN_WORD*(2**LOG_FETCH_PARA)-1:0] d_inst,
+     output wire [`LEN_WORD*(2**LOG_FETCH_PARA)-1:0] prold_set_address,
+     output wire [2**LOG_FETCH_PARA-1:0]             prold_write_flag,
 
      output wire [`LEN_MEMDATA_ADDR-1:0] a_mem,
      output wire [`LEN_WORD-1:0]         sd_mem,
      input  wire [`LEN_WORD-1:0]         ld_mem,
      output wire [4-1:0]                 mem_write_flag,
      output wire                         mem_read_flag,
-     
+
      output wire [2-1:0]         uart_size,
      output wire [`LEN_WORD-1:0] uart_o_data,
      input  wire [`LEN_WORD-1:0] uart_i_data,
@@ -69,8 +70,8 @@ module cpu
     reg [32-1:0] clock_counter;
 
     // program load -------------------------------
-    reg r_prold_write_flag;
-    reg [32-1:0] pro_ld_inst;
+    reg [2**LOG_FETCH_PARA-1:0] r_prold_write_flag;
+    reg [`LEN_INST**(2**LOG_FETCH_PARA)-1:0] pro_ld_inst;
     assign prold_write_flag = r_prold_write_flag;
     assign prold_set_address = pro_ld_inst;
 
@@ -102,7 +103,7 @@ module cpu
     reg  [`LEN_INST-1:0] inst_fd;
     wire [`LEN_INST-1:0] inst_f;
 
-    fetch #(LEN_MEMISTR_ADDR) fet(
+    fetch #(LEN_MEMISTR_ADDR, LOG_FETCH_PARA) fet(
         fetch_order, fetch_accepted, fetch_done,
         pc, inst_f,
         a_inst, d_inst,
@@ -251,8 +252,8 @@ module cpu
             pc <= 'b0;
             clock_counter <= 32'b0;
 
-            r_prold_write_flag <= 1'b0;
-            pro_ld_inst <= 32'b0;
+            r_prold_write_flag <= 'b0;
+            pro_ld_inst <= {(2**LOG_FETCH_PARA){32'b0}};
 
             reg_a_rd <= 6'b0;
             reg_d_rd <= 32'b0;
@@ -301,8 +302,8 @@ module cpu
             pc <= 'b0;
             clock_counter <= 32'b0;
 
-            r_prold_write_flag <= 1'b0;
-            pro_ld_inst <= 32'b0;
+            r_prold_write_flag <= 'b0;
+            pro_ld_inst <= {(2**LOG_FETCH_PARA){32'b0}};
 
             reg_a_rd <= 6'b0;
             reg_d_rd <= 32'b0;
@@ -351,8 +352,8 @@ module cpu
             pc <= 'b0;
             clock_counter <= 32'b0;
 
-            r_prold_write_flag <= 1'b0;
-            pro_ld_inst <= 32'b0;
+            r_prold_write_flag <= 'b0;
+            pro_ld_inst <= {(2**LOG_FETCH_PARA){32'b0}};
 
             reg_a_rd <= 6'b0;
             reg_d_rd <= 32'b0;
@@ -401,13 +402,13 @@ module cpu
             if (state == `STATE_PRO_LD1) begin
                 io_pro_ld <= 1'b1;
                 if (io_done) begin
-                    r_prold_write_flag <= 1'b1;
+                    r_prold_write_flag <= {(2**LOG_FETCH_PARA){1'b1}};
                     pro_ld_inst <= io_input;
                     state <= `STATE_PRO_LD2;
                 end
             end
             else if (state == `STATE_PRO_LD2) begin
-                r_prold_write_flag <= 1'b0;
+                r_prold_write_flag <= {(2**LOG_FETCH_PARA){1'b0}};
                 pc <= pc + 32'd4;
                 state <= `STATE_PRO_LD1;
             end

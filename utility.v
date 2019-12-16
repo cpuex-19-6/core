@@ -165,7 +165,7 @@ module fullassociative
             assign prio_update[j] = found_k;
         end
 
-        // prio update -> しない
+        // prio update -> しない(読み取った命令は基本不要なので)
         for (i=0; i<DEPTH; i=i+1) begin
             /*
             wire [DEPTH-1:0] prio_upd[FIND_PARA:0];
