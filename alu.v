@@ -59,6 +59,8 @@ module alu
                              (rs1 >> rs2[4:0])) :
             (func3 == `FUNC3_OR ) ? (rs1 | rs2) :
             (func3 == `FUNC3_AND) ? (rs1 & rs2) :
+            (func3 == `FUNC3_SLT) ? (($signed(rs1) < $signed(rs2)) ? 1 : 0 ) :
+            (func3 == `FUNC3_SLTU) ? ((rs1 < rs2) ? 1 : 0 ) :
                                     32'b0);
 
     // accepted / done / rd -----------------
