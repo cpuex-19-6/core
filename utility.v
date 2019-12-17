@@ -70,7 +70,7 @@ module ring_buf
 endmodule
 
 module fullassociative
-  #(DEPTH     = `DEPTH_FETCH_CASHE,
+  #(DEPTH     = `DEPTH_FETCH_CACHE,
     LEN_INDEX = `LEN_MEMISTR_ADDR,
     LEN_DATA  = `LEN_WORD,
     FIND_PARA = `DECODE_PARA)(

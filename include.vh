@@ -5,7 +5,7 @@
 `define WORD_ZERO 32'b0
 
 // fetchの命令キャッシュのサイズ(キャッシュライン数)
-`define DEPTH_FETCH_CASHE 6
+`define DEPTH_FETCH_CACHE 6
 
 // コンテキストIDのサイズ
 `define LEN_CONTEXT_ID 3
@@ -18,8 +18,11 @@
 
 // メモリアドレス(word)のサイズ
 `define LEN_MEMDATA_ADDR 19
-// 命令メモリのサイズ(word)のサイズ(外部から更新可)
+// 命令メモリのサイズ(アクセス単位)の対数(外部から更新可)
 `define LEN_MEMISTR_ADDR 15
+// 命令メモリの一回のfetchで取得できる命令数(外部から更新可)
+`define FETCH_PARA 1
+`define LOG_FETCH_PARA 0
 // heapポインタの初期値
 `define HEAP_POINTER_INIT 32'b0
 // 物理レジスタアドレスのサイズ
