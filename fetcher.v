@@ -13,7 +13,8 @@ module fetch
 --------------------------------
 */
 
-`define FETCH_CLOCK 3;
+`define FETCH_CLOCK 3
+`define FETCH_PREDICT_SIZE 3
 
 module fetch_mem_access #(
     LEN_MEMISTR_ADDR = `LEN_MEMISTR_ADDR,
@@ -57,8 +58,8 @@ endmodule
 
 module fetch #(
     LEN_MEMISTR_ADDR = `LEN_MEMISTR_ADDR,
-      LOG_FETCH_PARA = `LOG_FETCH_PARA,
-      FETCH_PARA = 2**LOG_FETCH_PARA)(
+    LOG_FETCH_PARA = `LOG_FETCH_PARA,
+     FETCH_PARA = 2**LOG_FETCH_PARA)(
         // context_manager
         // DECODE_PARAの分だけ並列化
         input  wire                 order,
@@ -69,10 +70,18 @@ module fetch #(
         // メモリ
         // 並列化しない
         output wire [LEN_MEMISTR_ADDR-1:0]     a_inst_mem,
-        input  wire [`LEN_INST*FETCH_PARA-1:0] d_inst_mem,
+        output wire [FETCH_PARA-1:0]           wen_mem,
+        input  wire [`LEN_INST*FETCH_PARA-1:0] d_inst_mem_in,
+        input  wire [`LEN_INST*FETCH_PARA-1:0] d_inst_mem_out,
 
         // context_manage
         input  wire [`LEN_WORD-1:0] lr_d;
+
+        // prold mode
+        input  wire                 prold_mode;
+        input  wire                 prold_order;
+        input  wire [`LEN_WORD-1:0] prold_pc;
+        input  wire [`LEN_INST-1:0] prold_data;
 
         input  wire clk,
         input  wire rstn);
@@ -85,6 +94,13 @@ module fetch #(
     wire                        cache_order;
     wire [LEN_MEMISTR_ADDR-1:0] cache_key;
     wire [CACHE_LINE_SIZE-1:0]  cache_data;
+
+    wire [LEN_MEMISTR_ADDR*`FETCH_PREDICT_SIZE-1:0] predict_addr_1d;
+    wire [`FETCH_PREDICT_SIZE-1:0]                  predict_found;
+    wire [CACHE_LINE_SIZE*`FETCH_PREDICT_SIZE-1:0]  predict_instr;
+
+    wire [CACHE_LINE_SIZE-1:0] lr_instr;
+    wire                       lr_found;
 
     genvar i;
 
@@ -106,7 +122,7 @@ module fetch #(
             CACHE_LINE_SIZE) m_mem_access(
         access_order, access_done,
         access_addr, accessed_addr, accessed_inst,
-        a_inst_mem, d_inst_mem,
+        a_inst_mem, d_inst_mem_in,
         clk, rstn);
 
     temp_reg #(LEN_MEMISTR_ADDR) r_cache_order(
@@ -135,9 +151,12 @@ module fetch #(
         `DEPTH_FETCH_CACHE,
         LEN_MEMISTR_ADDR,
         CACHE_LINE_SIZE,
-        `DECODE_PARA) m_cache(
+        `DECODE_PARA + `FETCH_PREDICT_SIZE + 1) m_cache(
             cache_order, cache_key, cache_data,
-            order, addr, done, inst_lines,
+            {order, {(`FETCH_PREDICT_SIZE+1){1'b1}}},
+            {addr, predict_addr_1d, lr_d},
+            {done, predict_found, lr_found},
+            {inst_lines, predict_instr, lr_instr},
             1'b0, clk, rstn);
 
     generate
@@ -159,12 +178,21 @@ module fetch #(
     wire [`FETCH_CLOCK-1:0] fetching_flag;
     wire [LEN_MEMISTR_ADDR-1:0] fetching_addr[`FETCH_CLOCK-1:0];
     wire [LEN_MEMISTR_ADDR-1:0] last_output;
+    wire no_order;
 
     wire find_failure = |(order & ~done);
     wire [LEN_MEMISTR_ADDR-1:0] failure_addr;
     wire [LEN_MEMISTR_ADDR-1:0] next_last_output;
 
     generate
+        if (`DECODE_PARA <= 1) begin
+            assign no_order = order[0];
+        end else begin
+            assign no_order =
+                  order[0]
+                | (  order[`DECODE_PARA-1:1]
+                   ^ done[`DECODE_PARA-2:0]);
+        end
         wire [LEN_MEMISTR_ADDR-1:0] failure_addr_find[`DECODE_PARA-1:0];
         assign failure_addr_find[`DECODE_PARA-1] =
             failure_addr_find[`DECODE_PARA-1];
@@ -186,52 +214,83 @@ module fetch #(
         end
     endgenerate
 
-    wire [LEN_MEMISTR_ADDR-1:0] next_last_addr =
-        next_last_output + 1;
-    wire [LEN_MEMISTR_ADDR-1:0] ld_addr =
+    wire [LEN_MEMISTR_ADDR-1:0] predict_addr[`FETCH_PREDICT_SIZE-1:0];
+    wire [LEN_MEMISTR_ADDR-1:0] lr_addr =
         lr_d[LEN_MEMISTR_ADDR+FETCH_PARA+2-1:FETCH_PARA+2];
 
     wire failure_non_fetching;
-    wire ld_non_fetching;
-    wire next_non_fetching;
+    wire lr_non_fetching;
+    wire predict_non_fetching[`FETCH_PREDICT_SIZE-1:0];
+    wire [LEN_MEMISTR_ADDR-1:0] one_predict_addr;
     generate
+        for (i=0; i<`FETCH_PREDICT_SIZE; i=i+1) begin
+            assign predict_addr[i] =
+                next_last_output + i;
+            assign predict_addr_1d[LEN_MEMISTR_ADDR*(i+1)
+                                  :LEN_MEMISTR_ADDR*i] =
+                predict_addr[i];
+        end
+
         wire [`FETCH_CLOCK:0] failure_fetching_find;
-        wire [`FETCH_CLOCK:0] next_fetching_find;
-        wire [`FETCH_CLOCK:0] ld_fetching_find;
+        wire [`FETCH_PREDICT_SIZE-1:0] predict_fetching_find[`FETCH_CLOCK:0];
+        wire [`FETCH_CLOCK:0] lr_fetching_find;
+
         assign failure_fetching_find[`FETCH_CLOCK] = 1'b0;
-        assign next_fetching_find[`FETCH_CLOCK] = 1'b0;
-        assign ld_fetching_find[`FETCH_CLOCK] = 1'b0;
-        wire failure_fetching = failure_fetching_find[0];
+        assign predict_fetching_find[`FETCH_CLOCK] = 'b0;
+        assign lr_fetching_find[`FETCH_CLOCK] = 1'b0;
+
         assign failure_non_fetching =
-            (~failure_fetching) & find_failure;
-        assign next_non_fetching = ~next_fetching_find[0];
-        assign ld_non_fetching = ~next_fetching_find[0];
+            (~failure_fetching_find[0]) & find_failure;
+        assign predict_non_fetching =
+            ~(next_fetching_find[0] | predict_found);
+        assign lr_non_fetching =
+            ~(lr_fetching_find[0] | lr_foundz;
+
         for (i=0; i<`FETCH_CLOCK; i=i+1) begin
             assign failure_fetching_find[i] =
                   (  fetching_flag[i]
                    & (failure_addr == fetchign_addr[i]))
                 | failure_fetching_find[i+1];
-            assign next_fetching_find[i] =
+            for (j=0; j<`FETCH_PREDICT_SIZE; j=j+1) begin
+                assign predict_fetching_find[i][j] =
+                      (  fetching_flag[i]
+                       & (predict_addr[j] == fetchign_addr[i]))
+                    | predict_fetching_find[i+1][j];
+            end
+            assign lr_fetching_find[i] =
                   (  fetching_flag[i]
-                   & (next_last_addr == fetchign_addr[i]))
-                | next_fetching_find[i+1];
-            assign ld_fetching_find[i] =
-                  (  fetching_flag[i]
-                   & (ld_addr == fetchign_addr[i]))
-                | ld_fetching_find[i+1];
+                   & (lr_addr == fetchign_addr[i]))
+                | lr_fetching_find[i+1];
+        end
+
+        wire [LEN_MEMISTR_ADDR-1:0] one_predict_addr_decide[`FETCH_PREDICT_SIZE-1:0];
+        assign one_predict_addr_decide[`FETCH_PREDICT_SIZE-1] =
+            predict_addr[`FETCH_PREDICT_SIZE-1];
+        assign one_predict_addr = one_predict_addr_decide[0];
+        for (i=0; i<`FETCH_PREDICT_SIZE-1; i=i+1) begin
+            assign one_predict_addr_decide[i] =
+                predict_non_fetching[i]
+                    ? predict_addr[i]
+                    : one_predict_addr_decide[i+1];
         end
     endgenerate
 
     assign next_access_order =
-        failure_non_fetching | next_non_fetching | ld_non_fetching;
+          (~prold_mode)
+        & (  failure_non_fetching
+           | |(predict_non_fetching)
+           | (lr_non_fetching & no_order));
 
     assign next_access_addr =
-        failure_non_fetching ? failure_addr   :
-        next_non_fetching    ? next_last_addr
-                             : ld_addr;
+        prold_mode
+            ? prold_pc[LEN_MEMISTR_ADDR+FETCH_PARA+2-1
+                      :FETCH_PARA+2] :
+        failure_non_fetching    ? failure_addr :
+        |(predict_non_fetching) ? one_predict_addr
+                                : ld_addr;
 
     temp_reg #(LEN_MEMISTR_ADDR) r_last_output(
-        1'b1, last_output, last_output, clk, rstn);
+        1'b1, next_last_output, last_output, clk, rstn);
     generate
         temp_reg #(1) r_fetching_flag_0(
             1'b1, next_access_order, fetching_flag[0], clk, rstn);
