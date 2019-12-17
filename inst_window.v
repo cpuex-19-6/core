@@ -246,10 +246,12 @@ module inst_window(
     wire [`LEN_CONTEXT-1:0]   pre_b_f_context;
 
     wire [`LEN_WORD-1:0]      pre_d_rs1 =
-        (~pre_exec_type[`EXEC_TYPE_ALU_NON_EXT])
-            ? pre_d_imm : `WORD_ZERO;
+        (  pre_exec_type[`EXEC_TYPE_ALU_NON_EXT]
+         | pre_exec_type[`EXEC_TYPE_JUMP])
+            ? `WORD_ZERO : pre_d_imm;
     wire [`LEN_WORD-1:0]      pre_d_rs2 =
-        (pre_exec_type[`EXEC_TYPE_ALU_NON_EXT])
+        (  pre_exec_type[`EXEC_TYPE_ALU_NON_EXT]
+         | pre_exec_type[`EXEC_TYPE_JUMP])
             ? pre_d_imm : `WORD_ZERO;
     wire [`LEN_PREG_ADDR-1:0] pre_pa_rd = `PREG_ZERO;
     wire                      pre_rs1_order;
