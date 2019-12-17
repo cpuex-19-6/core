@@ -156,9 +156,9 @@ module decode(
 
     wire [`LEN_INST_VREG-1:0] inst_vreg;
     pack_struct_inst_vreg m_p_inst_vreg(
-        ~|va_rs1, va_rs1,
-        ~|va_rs2, va_rs2,
-        ~|va_rd,  va_rd,
+        |va_rs1, va_rs1,
+        |va_rs2, va_rs2,
+        |va_rd,  va_rd,
         context_in,
         inst_vreg);
 
