@@ -208,26 +208,51 @@ module inst_window(
 
             wire [`LEN_WORD-1:0] rs1_temp;
             wire [`LEN_WORD-1:0] rs2_temp;
+            wire [`LEN_PREG_ADDR-1:0] rd_temp;
+            wire rs1_ready_temp;
+            wire rs2_ready_temp;
+            wire rd_ready_temp;
+            wire branch_hazard_temp;
             unpack_struct_inst_d_r m_up_inst_d_r(
                 r_inst_d_r,
-                next3_rs1_ready[i], rs1_temp,
-                next3_rs2_ready[i], rs2_temp,
-                next3_rd_ready[i], next3_pa_rd[i],
-                next3_flag[i]);
+                rs1_ready_temp, rs1_temp,
+                rs2_ready_temp, rs2_temp,
+                rd_ready_temp, rd_temp,
+                branch_hazard_temp);
 
-                assign next3_d_rs1[i] =
-                    (  next3_rs1_ready[i] & next2_rs1_order[i]
-                     & next3_exec_type[i][`EXEC_TYPE_MEM])
-                        ? rs1_temp + d_imm : rs1_temp;
-                assign next3_d_rs2[i] = rs2_temp;
+            assign next3_rs1_ready[i] =
+                rs1_ready_temp | rs1_ready[nextinst[i]];
+            assign next3_rs2_ready[i] =
+                rs2_ready_temp | rs2_ready[nextinst[i]];
+            assign next3_rd_ready[i] =
+                rd_ready_temp | rd_ready[nextinst[i]];
+            assign next3_flag[i] =
+                next2_flag[i] & ~branch_hazard_temp;
+
+            assign next3_d_rs1[i] =
+                (  rs1_ready_temp
+                 & (  next3_exec_type[i][`EXEC_TYPE_MEM]
+                    | next3_exec_type[i][`EXEC_TYPE_JUMP]))
+                    ? rs1_temp + d_imm :
+                rs1_ready_temp
+                    ? rs1_temp
+                    : d_rs1[nextinst[i]];
+            assign next3_d_rs2[i] =
+                rs2_ready_temp
+                    ? rs2_temp
+                    : d_rs2[nextinst[i]];
+            assign next3_pa_rd[i] =
+                rd_ready_temp
+                    ? rd_temp
+                    : pa_rd[nextinst[i]];
         end
         for (i=`INST_W_PARA; i<`SIZE_INST_W; i=i+1) begin
             assign next3_d_rs1[i] = d_rs1[nextinst[i]];
             assign next3_d_rs2[i] = d_rs2[nextinst[i]];
             assign next3_pa_rd[i] = pa_rd[nextinst[i]];
-            assign next3_rs1_ready[i] = next2_rs1_order[i];
-            assign next3_rs2_ready[i] = next2_rs2_order[i];
-            assign next3_rd_ready[i] = next2_rd_order[i];
+            assign next3_rs1_ready[i] = rs1_ready[nextinst[i]];
+            assign next3_rs2_ready[i] = rs2_ready[nextinst[i]];
+            assign next3_rd_ready[i] = rd_ready[nextinst[i]];
             assign next3_flag[i] =
                   (branch_hazard & |(hazard_context_info & next3_context[i]))
                 & next2_flag[i];
