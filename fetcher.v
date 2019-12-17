@@ -155,7 +155,7 @@ module fetch #(
         end
     endgenerate
 
-    // decide next load
+    // decide next fetch
     wire [`FETCH_CLOCK-1:0] fetching_flag;
     wire [LEN_MEMISTR_ADDR-1:0] fetching_addr[`FETCH_CLOCK-1:0];
     wire [LEN_MEMISTR_ADDR-1:0] last_output;
