@@ -239,6 +239,7 @@ module inst_window(
     wire [`LEN_EXEC_TYPE-1:0] pre_exec_type;
     wire [`LEN_INST_VREG-1:0] pre_inst_vreg;
     wire [`LEN_WORD-1:0]      pre_d_imm;
+    wire [`LEN_WORD-1:0]      pre_d_imm_temp;
     wire                      pre_io_type;
     wire [`LEN_FUNC3-1:0]     pre_func3;
     wire [`LEN_FUNC7-1:0]     pre_func7;
@@ -246,13 +247,12 @@ module inst_window(
     wire [`LEN_CONTEXT-1:0]   pre_b_f_context;
 
     wire [`LEN_WORD-1:0]      pre_d_rs1 =
-        (  pre_exec_type[`EXEC_TYPE_ALU_NON_EXT]
-         | pre_exec_type[`EXEC_TYPE_JUMP])
+        (pre_exec_type[`EXEC_TYPE_ALU_NON_EXT])
             ? `WORD_ZERO : pre_d_imm;
     wire [`LEN_WORD-1:0]      pre_d_rs2 =
         (  pre_exec_type[`EXEC_TYPE_ALU_NON_EXT]
          | pre_exec_type[`EXEC_TYPE_JUMP])
-            ? pre_d_imm : `WORD_ZERO;
+            ? pre_d_imm_temp : `WORD_ZERO;
     wire [`LEN_PREG_ADDR-1:0] pre_pa_rd = `PREG_ZERO;
     wire                      pre_rs1_order;
     wire                      pre_rs2_order;
@@ -265,9 +265,27 @@ module inst_window(
     wire [`LEN_VREG_ADDR-1:0] pre_va_rd;
     wire [`LEN_CONTEXT-1:0]   pre_context;
 
+    generate
+        if (`LEN_CONTEXT < 12) begin
+            assign pre_d_imm =
+                jump
+                    ? {{(`LEN_WORD-2*`LEN_CONTEXT){pre_context_b_t[`LEN_CONTEXT-1]}},
+                       pre_context_b_t,
+                       pre_context_b_f}
+                    : pre_d_imm_temp;
+        end
+        else begin
+            assign pre_d_imm =
+                jump
+                    ? {{(`LEN_WORD-`LEN_CONTEXT){pre_context_b_f[11]}},
+                       pre_context_b_f}
+                    : pre_d_imm_temp;
+        end
+    endgenerate
+
     unpack_dec_exec_info m_up_d_e_info(
         d_dec_exec_info,
-        pre_exec_type, pre_inst_vreg, pre_d_imm, pre_io_type,
+        pre_exec_type, pre_inst_vreg, pre_d_imm_temp, pre_io_type,
         pre_func3, pre_func7, pre_context_b_t, pre_context_b_f);
 
     unpack_struct_inst_vreg m_up_pre_inst_vreg(
