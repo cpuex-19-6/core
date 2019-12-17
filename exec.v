@@ -172,7 +172,7 @@ module exec(
         uart_order, uart_accepted, uart_done,
         clk, rstn);
 
-    assign accepted = (
+    assign accepted =
         alu_accepted     |
         alu_ext_accepted |
         fpu_accepted     |
@@ -180,10 +180,9 @@ module exec(
         jump_accepted    |
         branch_accepted  |
         subst_accepted   |
-        io_accepted
-    );
+        io_accepted;
 
-    assign done = (
+    assign done =
         alu_done     |
         alu_ext_done |
         fpu_done     |
@@ -191,8 +190,7 @@ module exec(
         jump_done    |
         branch_done  |
         subst_done   |
-        io_done
-    );
+        io_done;
 
     wire [32-1:0] rd_buf;
     wire [32-1:0] next_rd_buf =
