@@ -66,6 +66,7 @@ module fetch #(
         output wire                 done,
         input  wire [`LEN_WORD-1:0] pc,
         output wire [`LEN_WORD-1:0] instr,
+        input  wire [`LEN_WORD-1:0] lr_d;
 
         // メモリ
         // 並列化しない
@@ -73,9 +74,6 @@ module fetch #(
         output wire [FETCH_PARA-1:0]           wen_mem,
         input  wire [`LEN_INST*FETCH_PARA-1:0] d_inst_mem_in,
         input  wire [`LEN_INST*FETCH_PARA-1:0] d_inst_mem_out,
-
-        // context_manage
-        input  wire [`LEN_WORD-1:0] lr_d;
 
         // prold mode
         input  wire                 prold_mode;
@@ -304,6 +302,30 @@ module fetch #(
         end
     endgenerate
 
+    // for prold
+    wire [FETCH_PARA-1:0] next_wen_mem;
+    wire [`LEN_INST-1:0] before_prold_data;
+    wire 
+    generate
+        for (i=0; i<FETCH_PARA; i=i+1) begin
+            assign next_wen_mem[`LEN_INST*(i+1)-1:`LEN_INST*i] =
+                  prold_mode & prold_order
+                & (prold_pc[FETCH_PARA+2-1:2] == i[FETCH_PARA-1:00]);
+            assign
+        end
+    endgenerate
+
+    temp_reg #(FETCH_PARA) r_wen_mem(
+        1'b1, next_wen_mem, wen_mem, clk, rstn);
+    temp_reg #(`LEN_INST) r_wen_mem(
+        1'b1, prold_data, before_prold_data, clk, rstn);
+    
+    generate
+        for (i=0; i<FETCH_PARA; i=i+1) begin
+            assign d_inst_mem_in[`LEN_INST*(i+1)-1:`LEN_INST*i] =
+                wen_mem[i] ? before_prold_data : 32'b0;
+        end
+    endgenerate
 
 endmodule
 
