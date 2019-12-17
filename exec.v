@@ -11,11 +11,10 @@ module exec
 */
 
 module exec(
+        // inst_window
         input  wire order,
         output wire accepted,
-        output wire done,
 
-        // from inst_window
         input  wire [`LEN_EXEC_TYPE-1:0] exec_type,
 
         input  wire                      io_type,
@@ -31,8 +30,7 @@ module exec(
         input  wire [`LEN_CONTEXT-1:0]   b_f_context,
 
         // to register_manage
-        output wire [`LEN_WORD-1:0]      d_rd,
-        output wire [`LEN_PREG_ADDR-1:0] pa_rd_out,
+        output wire [`LEN_WRITE_D_R-1:0] write_d_r,
 
         // to context_manage
         output wire [`LEN_CONTEXT-1:0] jump_context,
@@ -45,7 +43,7 @@ module exec(
         output wire [`LEN_CONTEXT-1:0] branch_safe_context,
 
         // momory_access
-        output wire [`LEN_MEMDATA_ADDR-1:0] mem_s,
+        output wire [`LEN_MEMDATA_ADDR-1:0] mem_a,
         output wire [`LEN_WORD-1:0]         mem_sd,
         input  wire [`LEN_WORD-1:0]         mem_ld,
         output wire [4-1:0]                 mem_write,
@@ -58,8 +56,8 @@ module exec(
         output wire uart_write_flag,
         output wire uart_order,
         input  wire uart_accepted,
-        input  wire uart_done
-        
+        input  wire uart_done,
+
         input  wire clk,
         input  wire rstn);
 
@@ -121,7 +119,7 @@ module exec(
 
     memory m_mem(
         mem_order, mem_accepted, mem_done,
-        io, d_rs1, d_rs2,
+        io_type, d_rs1, d_rs2,
         mem_rd,
         mem_a, mem_sd, mem_ld, mem_write, mem_en,
         clk, rstn);
@@ -167,7 +165,7 @@ module exec(
 
     io_core io_c(
         io_order, io_accepted, io_done,
-        io, func3, rs1, io_rd,
+        io_type, func3, rs1, io_rd,
         uart_write_flag, uart_size, uart_o_data, uart_i_data,
         uart_order, uart_accepted, uart_done,
         clk, rstn);
@@ -182,7 +180,7 @@ module exec(
         subst_accepted   |
         io_accepted;
 
-    assign done =
+    wire done =
         alu_done     |
         alu_ext_done |
         fpu_done     |
@@ -204,14 +202,15 @@ module exec(
         io_done      ? io_rd      :
         rd_buf;
     temp_reg r_rd_buf(1'b1, next_rd_buf, rd_buf, clk, rstn);
-    assign d_rd = next_rd_buf;
 
     wire [`LEN_PREG_ADDR-1:0] pa_rd_buf;
     wire [`LEN_PREG_ADDR-1:0] next_pa_rd_buf =
         accepted ? pa_rd_in : pa_rd_buf;
     temp_reg #(`LEN_PREG_ADDR) r_pa_rd_buf(
         1'b1, next_pa_rd_buf, pa_rd_buf, clk, rstn);
-    assign pa_rd = next_pa_rd_buf;
+
+    pack_struct_write_d_r p_write_d_r(
+        done, next_pa_rd_buf, next_rd_buf, write_d_r);
 
 endmodule
 

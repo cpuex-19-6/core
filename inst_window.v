@@ -56,8 +56,21 @@ module inst_window(
         // exec
         // EXECUTE_PARAの分だけ並列化
         output wire order,
-        input  wire accepted, 
-        // 後で
+        input  wire accepted,
+
+        output wire [`LEN_EXEC_TYPE-1:0] e_exec_type,
+
+        output wire                      e_io_type,
+        output wire [`LEN_FUNC3-1:0]     e_func3,
+        output wire [`LEN_FUNC7-1:0]     e_func7,
+        output wire [`LEN_PREG_ADDR-1:0] e_pa_rd_in,
+
+        output wire [`LEN_WORD-1:0]      e_d_rs1,
+        output wire [`LEN_WORD-1:0]      e_d_rs2,
+
+        output wire [`LEN_CONTEXT-1:0]   e_context;
+        output wire [`LEN_CONTEXT-1:0]   e_b_t_context,
+        output wire [`LEN_CONTEXT-1:0]   e_b_f_context,
 
         input  wire clk,
         input  wire rstn);
@@ -85,8 +98,15 @@ module inst_window(
     wire [`SIZE_INST_W-1:0]   rs2_ready;
     wire [`SIZE_INST_W-1:0]   rd_ready;
 
-    wire [`SIZE_INST_W-1:0]   all_ready =
-        rs1_ready & rs2_ready & rd_ready & flag;
+    wire [`SIZE_INST_W-1:0]   all_ready;
+    
+    generate
+        for (i=0; i<`SIZE_INST_W; i=i+1) begin
+            assign all_ready[i] =
+                  rs1_ready[i] & rs2_ready[i] & rd_ready[i]
+                & flag[i] & |(exec_type[i]);
+        end
+    endgenerate
 
     // choose inst to execute
     wire [`SIZE_INST_W-1:0] next1_flag;
@@ -113,6 +133,17 @@ module inst_window(
         assign next1_flag[`SIZE_INST_W-1:`LEN_IW_E_ABLE] =
             flag[`SIZE_INST_W-1:`LEN_IW_E_ABLE];
     endgenerate
+
+    assign e_exec_type = exec_type[order_id];
+    assign e_io_type = io_type[order_id];
+    assign e_func3 = func3[order_id];
+    assign e_func7 = func7[order_id];
+    assign e_pa_rd_in = pa_rd_in[order_id];
+    assign e_d_rs1 = d_rs1[order_id];
+    assign e_d_rs2 = d_rs2[order_id];
+    assign e_context = context[order_id];
+    assign e_b_t_context = b_t_context[order_id];
+    assign e_b_f_context = b_f_context[order_id];
 
     // replace insts into inst window
     wire [`LEN_INST_W_ID-1:0] nextinst[`SIZE_INST_W-1:0];
@@ -162,7 +193,7 @@ module inst_window(
     endgenerate
     assign accept_able =
         &~next2_flag[`SIZE_INST_W-1:`DECODE_BASE];
-    
+
     // register assignment
     wire [`SIZE_INST_W-1:0]   next3_flag;
     wire [`LEN_EXEC_TYPE-1:0] next3_exec_type[`SIZE_INST_W-1:0];
