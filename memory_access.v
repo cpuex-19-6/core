@@ -7,12 +7,14 @@ module memory
      output wire                     accepted,
      output wire                     done,
 
+     // cpu
      input  wire                     io,
      input  wire [`LEN_WORD-1:0]     address,
      input  wire [`LEN_WORD-1:0]     i_data,
 
      output wire [`LEN_WORD-1:0]     o_data,
 
+     // mem
      output wire [`LEN_MEMDATA_ADDR-1:0] a_mem,
      output wire [`LEN_WORD-1:0]         sd_mem,
      input  wire [`LEN_WORD-1:0]         ld_mem,
