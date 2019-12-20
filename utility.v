@@ -83,8 +83,6 @@ module fullassociative
         output wire [FIND_PARA-1:0]           found,
         output wire [FIND_PARA*LEN_DATA-1:0]  found_data,
 
-        input  wire                           all_clear,
-
         input  wire clk,
         input  wire rstn);
 
@@ -145,7 +143,7 @@ module fullassociative
     generate
         wire [DEPTH-1:0] prio_update[FIND_PARA-1:0];
         for (j=0; j<FIND_PARA; j=j+1) begin
-            wire finding = find[j];
+            wire finding = find_order[j];
             wire [LEN_INDEX-1:0] index =
                 find_key[LEN_INDEX*(j-1)-1:LEN_INDEX*j];
 
@@ -155,17 +153,18 @@ module fullassociative
             assign found_d[0] = next1_data[0];
             for (i=0; i<DEPTH; i=i+1) begin
                 assign found_k[i] =
-                    finding & next1_flag & (next1_key[i] == index);
+                    next1_flag[i] & (next1_key[i] == index);
                 assign found_d[i+1] =
                     found_k[i] ? next1_data[i] : found_d[i];
             end
-            assign found[j] = |found_k;
+            assign found[j] = finding & |found_k;
             assign found_data[LEN_DATA*(j+1)-1:LEN_DATA*j] =
                 found_d[DEPTH];
             assign prio_update[j] = found_k;
         end
 
         // prio update -> しない(読み取った命令は基本不要なので)
+        // 優先順位は後半(アドレスの大きい方)が高い
         for (i=0; i<DEPTH; i=i+1) begin
             /*
             wire [DEPTH-1:0] prio_upd[FIND_PARA:0];
@@ -182,12 +181,8 @@ module fullassociative
         end
     endgenerate
 
-    // all clear
-    wire [DEPTH-1:0] next3_flag =
-        all_clear ? all_zero : next1_flag;
-    
     // regs
-    temp_reg #(DEPTH) r_flag(1'b1, next3_flag, flag, clk, rstn);
+    temp_reg #(DEPTH) r_flag(1'b1, next1_flag, flag, clk, rstn);
     generate
         for (i=0; i<DEPTH; i=i+1) begin
             temp_Reg #(DEPTH) r_prio(1'b1, next2_prio, prio, clk, rstn);
