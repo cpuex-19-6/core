@@ -215,7 +215,7 @@ module onehot_to_binary
     generate
         for (i=0; i<BIN_LENGTH; i=i+1) begin
             localparam L = 2**(BIN_LENGTH - (i+1));
-            wire bin_sub[L];
+            wire[L-1:0] bin_sub;
             for (j=0; j<L; j=j+1) begin
                 assign bin_sub[j] = | one_hot[(j+1)*(2**(i+1)) -1 : (2*j + 1)*(2**i)];
             end
