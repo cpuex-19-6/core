@@ -210,20 +210,18 @@ module onehot_to_binary
         input  wire [2**BIN_LENGTH-1:0] one_hot,
         output wire [BIN_LENGTH-1:0]    bin);
 
-    wire [BIN_LENGTH-1:0] bins[2**(BIN_LENGTH-1):0];
     genvar i;
     genvar j;
     generate
         for (i=0; i<BIN_LENGTH; i=i+1) begin
-            assign bins[0][i] = 1'b0;
-            for (j=0; j<2**(BIN_LENGTH-1); j=j+1) begin
-                assign bins[j+1][i] =
-                    one_hot[2**i+j*(2**(BIN_LENGTH-1-i))]
-                        ? 1'b1 : bins[j][i];
+            localparam L = 2**(BIN_LENGTH - (i+1));
+            wire bin_sub[L];
+            for (j=0; j<L; j=j+1) begin
+                assign bin_sub[j] = | one_hot[(j+1)*(2**(i+1)) -1 : (2*j + 1)*(2**i)];
             end
+            assign bin[i] = |bin_sub;
         end
     endgenerate
-    assign bin = bins[2**(BIN_LENGTH-1)];
 endmodule
 
 module shift_left_round
