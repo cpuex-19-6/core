@@ -83,7 +83,7 @@ module reg_manage(
     wire [`LEN_CONTEXT-1:0] context_read_update[`EXECUTE_PARA:0][2**`LEN_PREG_ADDR-1:0];
 
     generate
-        for (pa_reg = 0; pa_reg < 2**`LEN_PREG_ADDR-1:0; pa_reg = pa_reg+1) begin : write_init
+        for (pa_reg = 0; pa_reg < 2**`LEN_PREG_ADDR; pa_reg = pa_reg+1) begin : write_init
             assign forwarding_update[0][pa_reg] =
                 `E_PARA_ID_ZERO;
             assign forwarding[pa_reg] =
@@ -100,7 +100,7 @@ module reg_manage(
         for (w = 0; w < 1; w = w+1) begin : write_loop
             // ---- write -------------------------
             unpack_struct_write_d_r m_write_d_r(
-                w1_write_d_r, w_order, w_pa_rd, w_d_rd);
+                w_write_d_r, w_order, w_pa_rd, w_d_rd);
 
             assign forwarding_data[w] = w_d_rd;
 
@@ -129,7 +129,7 @@ module reg_manage(
     // wire [`LEN_PREG_ADDR-1:0] v_reg_dict[2**`LEN_VREG_ADDR-1:0];
 
     generate
-        for (pa_reg = 0; pa_reg < 2**`LEN_PREG_ADDR-1:0; pa_reg = pa_reg+1) begin : read_init
+        for (pa_reg = 0; pa_reg < 2**`LEN_PREG_ADDR; pa_reg = pa_reg+1) begin : read_init
             assign context_write_update[0][pa_reg] =
                 context_read[pa_reg];
             assign context_write[pa_reg] =

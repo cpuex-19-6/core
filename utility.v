@@ -133,7 +133,7 @@ module fullassociative
             assign next1_data[i] =
                 push_place[i] ? push_data : data[i];
             assign next1_prio[i] =
-                push_place[i] ? all_one : (prio & ~push_place);
+                push_place[i] ? all_one : (prio[i] & ~push_place);
         end
     endgenerate
 
@@ -185,9 +185,9 @@ module fullassociative
     temp_reg #(DEPTH) r_flag(1'b1, next1_flag, flag, clk, rstn);
     generate
         for (i=0; i<DEPTH; i=i+1) begin
-            temp_Reg #(DEPTH) r_prio(1'b1, next2_prio, prio, clk, rstn);
-            temp_Reg #(LEN_INDEX) r_key(1'b1, next1_key, key, clk, rstn);
-            temp_Reg #(LEN_DATA) r_data(1'b1, next1_data, data, clk, rstn);
+            temp_reg #(DEPTH) r_prio(1'b1, next2_prio, prio, clk, rstn);
+            temp_reg #(LEN_INDEX) r_key(1'b1, next1_key, key, clk, rstn);
+            temp_reg #(LEN_DATA) r_data(1'b1, next1_data, data, clk, rstn);
         end
     endgenerate
 endmodule

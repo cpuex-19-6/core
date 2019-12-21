@@ -25,7 +25,7 @@ module exec(
         input  wire [`LEN_WORD-1:0]      d_rs1,
         input  wire [`LEN_WORD-1:0]      d_rs2,
 
-        input  wire [`LEN_CONTEXT-1:0]   context;
+        input  wire [`LEN_CONTEXT-1:0]   contex,
         input  wire [`LEN_CONTEXT-1:0]   b_t_context,
         input  wire [`LEN_CONTEXT-1:0]   b_f_context,
 
@@ -129,7 +129,7 @@ module exec(
     wire jump_accepted;
     wire jump_done;
     wire [32-1:0] jump_rd = d_rs2;
-    assign jump_context = context;
+    assign jump_context = contex;
     assign jump_next_pc = d_rs1;
     assign jump_next_pc_ready = jump_order;
 
@@ -145,7 +145,7 @@ module exec(
         branch_result);
 
     assign branch_hazard = branch_order;
-    assign branch_context = context;
+    assign branch_context = contex;
     assign branch_hazard_context =
         branch_result ? b_f_context : b_t_context;
     assign branch_safe_context =

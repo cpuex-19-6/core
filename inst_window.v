@@ -63,12 +63,12 @@ module inst_window(
         output wire                      e_io_type,
         output wire [`LEN_FUNC3-1:0]     e_func3,
         output wire [`LEN_FUNC7-1:0]     e_func7,
-        output wire [`LEN_PREG_ADDR-1:0] e_pa_rd_in,
+        output wire [`LEN_PREG_ADDR-1:0] e_pa_rd,
 
         output wire [`LEN_WORD-1:0]      e_d_rs1,
         output wire [`LEN_WORD-1:0]      e_d_rs2,
 
-        output wire [`LEN_CONTEXT-1:0]   e_context;
+        output wire [`LEN_CONTEXT-1:0]   e_context,
         output wire [`LEN_CONTEXT-1:0]   e_b_t_context,
         output wire [`LEN_CONTEXT-1:0]   e_b_f_context,
 
@@ -139,7 +139,7 @@ module inst_window(
     assign e_io_type = io_type[order_id];
     assign e_func3 = func3[order_id];
     assign e_func7 = func7[order_id];
-    assign e_pa_rd_in = pa_rd_in[order_id];
+    assign e_pa_rd = pa_rd[order_id];
     assign e_d_rs1 = d_rs1[order_id];
     assign e_d_rs2 = d_rs2[order_id];
     assign e_context = context[order_id];
@@ -150,7 +150,7 @@ module inst_window(
     // 実行開始した(acceptされた)ものやhazardで消されたものを
     // 取り除いて、前から詰める
     wire [`LEN_INST_W_ID-1:0] nextinst[`SIZE_INST_W-1:0];
-    wire [`LEN_INST_W_ID-1:0] next2_flag[`SIZE_INST_W-1:0];
+    wire [`SIZE_INST_W-1:0]   next2_flag;
     wire [`SIZE_INST_W-1:0]   next2_rs1_order;
     wire [`SIZE_INST_W-1:0]   next2_rs2_order;
     wire [`SIZE_INST_W-1:0]   next2_rd_order;
@@ -175,12 +175,12 @@ module inst_window(
                 nextinst_table[i] ^ (nextinst_table[i] << 1);
             assign next2_flag[i] = |nextinst_onehot;
             if ((2**`LEN_INST_W_ID) == `SIZE_INST_W) begin
-                onehot_to_binary #(`LEN_INST_W_ID) m_o_t_b_nextinst(
+                onehot_to_binary #(`LEN_INST_W_ID) m_o_t_b_nextinst1(
                     nextinst_onehot, nextinst[i]);
             end
             else begin
                 wire [(2**`LEN_INST_W_ID)-`SIZE_INST_W-1:0] fullsize_help = 'b0;
-                onehot_to_binary #(`LEN_INST_W_ID) m_o_t_b_nextinst(
+                onehot_to_binary #(`LEN_INST_W_ID) m_o_t_b_nextinst2(
                     {fullsize_help, nextinst_onehot}, nextinst[i]);
             end
             assign next2_rs1_order[i] =
@@ -192,7 +192,7 @@ module inst_window(
         end
     endgenerate
     assign accept_able =
-        ~|next2_flag[`SIZE_INST_W-1:`DECODE_BASE];
+        ~|(next2_flag[`SIZE_INST_W-1:`DECODE_BASE]);
 
     // register substitution
     wire [`SIZE_INST_W-1:0]   next3_flag;
@@ -231,7 +231,7 @@ module inst_window(
             assign next3_context[i] = context[nextinst[i]];
         end
         // レジスタ代入によって更新される部分
-        for (i=0; i<0`INST_W_PARA; i=i+1) begin
+        for (i=0; i<`INST_W_PARA; i=i+1) begin
             // reg_manageと接続している部分
             // 引数の値を更新する
             pack_struct_inst_vreg m_p_i_vreg(
@@ -267,7 +267,7 @@ module inst_window(
                 (  rs1_ready_temp
                  & (  next3_exec_type[i][`EXEC_TYPE_MEM]
                     | next3_exec_type[i][`EXEC_TYPE_JUMP]))
-                    ? rs1_temp + d_imm :
+                    ? rs1_temp + next3_d_imm[i] :
                 rs1_ready_temp
                     ? rs1_temp
                     : d_rs1[nextinst[i]];
@@ -334,21 +334,21 @@ module inst_window(
                 : pre_d_imm_temp;
         if (`LEN_CONTEXT < 12) begin
             assign pre_jump_imm =
-                {{(`LEN_WORD-2*`LEN_CONTEXT){pre_context_b_t[`LEN_CONTEXT-1]}},
-                 pre_context_b_t,
-                 pre_context_b_f};
+                {{(`LEN_WORD-2*`LEN_CONTEXT){pre_b_t_context[`LEN_CONTEXT-1]}},
+                 pre_b_t_context,
+                 pre_b_f_context};
         end
         else begin
             assign pre_jump_imm =
-                {{(`LEN_WORD-12){pre_context_b_f[11]}},
-                 pre_context_b_f[12-1:0]};
+                {{(`LEN_WORD-12){pre_b_f_context[11]}},
+                 pre_b_f_context[12-1:0]};
         end
     endgenerate
 
     unpack_dec_exec_info m_up_d_e_info(
         d_dec_exec_info,
         pre_exec_type, pre_inst_vreg, pre_d_imm_temp, pre_io_type,
-        pre_func3, pre_func7, pre_context_b_t, pre_context_b_f);
+        pre_func3, pre_func7, pre_b_t_context, pre_b_f_context);
 
     unpack_struct_inst_vreg m_up_pre_inst_vreg(
         pre_inst_vreg,

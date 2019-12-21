@@ -84,10 +84,10 @@ module fetch #(
         output wire [`LEN_INST*FETCH_PARA-1:0] d_inst_mem_w,
 
         // prold mode
-        input  wire                 prold_mode;
-        input  wire                 prold_order;
-        input  wire [`LEN_WORD-1:0] prold_pc;
-        input  wire [`LEN_INST-1:0] prold_data;
+        input  wire                 prold_mode,
+        input  wire                 prold_order,
+        input  wire [`LEN_WORD-1:0] prold_pc,
+        input  wire [`LEN_INST-1:0] prold_data,
 
         input  wire clk,
         input  wire rstn);
@@ -132,9 +132,9 @@ module fetch #(
     wire access_done;
     wire [LEN_MEMISTR_ADDR-1:0] accessed_addr;
 
-    fetch_mem_access #(
+    fetch_timing #(
             LEN_MEMISTR_ADDR,
-            `FETCH_PREDICT_SIZE+2) m_mem_access(
+            `FETCH_PREDICT_SIZE+2) m_fetch_timing(
         access_order, access_done,
         access_addr, accessed_addr, accessed_inst,
         a_inst_mem, d_inst_mem_r,
