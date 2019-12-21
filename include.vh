@@ -157,6 +157,8 @@
 
 // wire structs
 
+// prold_info
+`define LEN_PROLD_INFO ((`LEN_WORD)+(`LEN_INST)+2)
 // inst_vregs
 `define LEN_INST_VREG ((`LEN_VREG_ADDR)*3+(`LEN_CONTEXT)+3)
 // inst_d_r
@@ -175,3 +177,9 @@
 `define EXEC_TYPE_IO          0
 // dec_exec_info
 `define LEN_D_E_INFO ((`LEN_INST_VREG)+(`LEN_EXEC_TYPE)+(`LEN_WORD)+(`LEN_FUNC3)+(`LEN_FUNC7)+(`LEN_CONTEXT)*2+1)
+// exec_info
+`define LEN_EXEC_INFO ((`LEN_EXEC_TYPE)+(`LEN_FUNC3)+(`LEN_FUNC7)+(`LEN_PREG_ADDR)+(`LEN_WORD)*2+(`LEN_CONTEXT)*3+1)
+// j_b_info
+`define LEN_J_B_INFO ((`LEN_CONTEXT)*4+(`LEN_WORD)+2)
+// to_uart
+`define LEN_TO_UART ((`LEN_WORD)+3)

@@ -101,12 +101,18 @@ module decode(
                     |((opecode == `OP_FPU) & ~func7[5]));
 
 
-    wire   va_rd   = no_use_rd  ? 6'b0
-                                : { rd_float, instr[11: 7]};
-    wire   va_rs1  = no_use_rs1 ? 6'b0
-                                : {rs1_float, instr[19:15]};
-    wire   va_rs2  = no_use_rs2 ? 6'b0
-                                : {rs2_float, instr[24:20]};
+    wire [`LEN_VREG_ADDR-1:0] va_rd =
+        no_use_rd
+            ? 6'b0
+            : { rd_float, instr[11: 7]};
+    wire [`LEN_VREG_ADDR-1:0] va_rs1 =
+        no_use_rs1
+            ? 6'b0
+            : {rs1_float, instr[19:15]};
+    wire [`LEN_VREG_ADDR-1:0] va_rs2 =
+        no_use_rs2
+            ? 6'b0
+            : {rs2_float, instr[24:20]};
 
     wire [`LEN_IMM12-1:0] imm12i;
     wire [`LEN_IMM12-1:0] imm12s;
@@ -161,8 +167,6 @@ module decode(
         |va_rd,  va_rd,
         context_in,
         inst_vreg);
-
-    assign context_out = context_in;
 
     wire io_type = (io | mem) & (opecode[5]);
 

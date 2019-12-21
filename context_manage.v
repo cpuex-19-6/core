@@ -68,16 +68,8 @@ module context_manage(
         // reg_manage
         input wire [`LEN_WORD-1:0]     lr_d,
 
-        // exec jump
-        input  wire [`LEN_CONTEXT-1:0] exec_jump_context,
-        input  wire                    exec_next_pc_ready,
-        input  wire [`LEN_WORD-1:0]    exec_next_pc,
-
-        // exec branch
-        input  wire [`LEN_CONTEXT-1:0] exec_branch_context,
-        input  wire                    exec_branch_hazard,
-        input  wire [`LEN_CONTEXT-1:0] exec_hazard_context,
-        input  wire [`LEN_CONTEXT-1:0] exec_safe_context,
+        // exec
+        input wire [`LEN_J_B_INFO-1:0] j_b_info,
 
         input  wire clk,
         input  wire rstn);
@@ -92,10 +84,25 @@ module context_manage(
     genvar cntx;
 
     // hazard check / exec jump
+
     wire [`LEN_CONTEXT-1:0] cntx_next1_hot;
     wire [`LEN_CONTEXT-1:0] cntx_next1_info[`LEN_CONTEXT-1:0];
     wire [`LEN_CONTEXT-1:0] cntx_next1_non_fetch;
     wire [`LEN_WORD-1:0]    cntx_next1_next_pc[`LEN_CONTEXT-1:0];
+
+    wire [`LEN_CONTEXT-1:0] exec_jump_context;
+    wire                    exec_next_pc_ready;
+    wire [`LEN_WORD-1:0]    exec_next_pc;
+    wire [`LEN_CONTEXT-1:0] exec_branch_context;
+    wire                    exec_branch_hazard;
+    wire [`LEN_CONTEXT-1:0] exec_hazard_context;
+    wire [`LEN_CONTEXT-1:0] exec_safe_context;
+
+    unpack_j_b_info m_u_j_b_info(
+        j_b_info,
+        exec_jump_context, exec_next_pc_ready, exec_next_pc,
+        exec_branch_context, exec_branch_hazard,
+        exec_hazard_context, exec_safe_context);
 
     wire [`LEN_CONTEXT_ID-1:0] exec_b_cntx_id;
     wire [`LEN_CONTEXT_ID-1:0] hazard_context_id;
@@ -170,6 +177,7 @@ module context_manage(
 
     // PC update / new branch
     wire [`LEN_CONTEXT-1:0] next2_last_publish;
+    wire [`LEN_CONTEXT-1:0] cntx_next2_hot;
     wire [`LEN_WORD-1:0] cntx_next2_next_pc[`LEN_CONTEXT-1:0];
     wire [`LEN_CONTEXT-1:0] cntx_next2_non_fetch;
     wire [`LEN_CONTEXT-1:0] cntx_next2_info[`LEN_CONTEXT-1:0];
@@ -180,7 +188,7 @@ module context_manage(
     generate
         for (cntx=0; cntx<`LEN_CONTEXT; cntx=cntx+1) begin
             assign cntx_next2_next_pc[cntx] =
-                (decode_next_pc_ready & decode_context[cntx])
+                (decode_next_pc_ready & cntx_next1_hot[cntx])
                     ? decode_next_pc :
                 (decode_branch & decode_context_b_t[cntx])
                     ? decode_next_pc :
@@ -188,7 +196,7 @@ module context_manage(
                     ? decode_next_pc_f
                     : cntx_next1_next_pc[cntx];
             assign cntx_next2_non_fetch[cntx] =
-                  (decode_next_pc_ready & decode_context[cntx])
+                  (decode_next_pc_ready & cntx_next1_hot[cntx])
                 | (decode_branch & (  (decode_context_b_t[cntx])
                                     | (decode_context_b_f[cntx])))
                 | cntx_next1_non_fetch[cntx];
@@ -204,9 +212,9 @@ module context_manage(
         end
     endgenerate
 
-    wire [`LEN_CONTEXT-1:0] next2_last_publish =
+    assign next2_last_publish =
         decode_branch ? decode_context_b_f : last_publish;
-    wire [`LEN_CONTEXT-1:0] cntx_next2_hot =
+    assign cntx_next2_hot =
         decode_branch ? decode_context_b_t : cntx_next1_hot;
 
     // 並列化ここまで

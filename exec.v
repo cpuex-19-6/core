@@ -15,32 +15,13 @@ module exec(
         input  wire order,
         output wire accepted,
 
-        input  wire [`LEN_EXEC_TYPE-1:0] exec_type,
-
-        input  wire                      io_type,
-        input  wire [`LEN_FUNC3-1:0]     func3,
-        input  wire [`LEN_FUNC7-1:0]     func7,
-        input  wire [`LEN_PREG_ADDR-1:0] pa_rd_in,
-
-        input  wire [`LEN_WORD-1:0]      d_rs1,
-        input  wire [`LEN_WORD-1:0]      d_rs2,
-
-        input  wire [`LEN_CONTEXT-1:0]   contex,
-        input  wire [`LEN_CONTEXT-1:0]   b_t_context,
-        input  wire [`LEN_CONTEXT-1:0]   b_f_context,
+        input  wire [`LEN_EXEC_INFO-1:0] exec_info,
 
         // to register_manage
         output wire [`LEN_WRITE_D_R-1:0] write_d_r,
 
         // to context_manage
-        output wire [`LEN_CONTEXT-1:0] jump_context,
-        output wire                    jump_next_pc_ready,
-        output wire [`LEN_WORD-1:0]    jump_next_pc,
-
-        output wire [`LEN_CONTEXT-1:0] branch_context,
-        output wire                    branch_hazard,
-        output wire [`LEN_CONTEXT-1:0] branch_hazard_context,
-        output wire [`LEN_CONTEXT-1:0] branch_safe_context,
+        output wire [`LEN_J_B_INFO-1:0] j_b_info,
 
         // momory_access
         output wire [`LEN_MEMDATA_ADDR-1:0] mem_a,
@@ -50,10 +31,8 @@ module exec(
         output wire                         mem_en,
 
         // io
-        output wire [2-1:0]         uart_size,
-        output wire [`LEN_WORD-1:0] uart_o_data,
         input  wire [`LEN_WORD-1:0] uart_i_data,
-        output wire uart_write_flag,
+        output wire [`LEN_TO_UART-1:0] to_uart,
         output wire uart_order,
         input  wire uart_accepted,
         input  wire uart_done,
@@ -61,6 +40,36 @@ module exec(
         input  wire clk,
         input  wire rstn);
 
+    wire [`LEN_EXEC_TYPE-1:0] exec_type;
+    wire                      io_type;
+    wire [`LEN_FUNC3-1:0]     func3;
+    wire [`LEN_FUNC7-1:0]     func7;
+    wire [`LEN_PREG_ADDR-1:0] pa_rd_in;
+    wire [`LEN_WORD-1:0]      d_rs1;
+    wire [`LEN_WORD-1:0]      d_rs2;
+    wire [`LEN_CONTEXT-1:0]   contex;
+    wire [`LEN_CONTEXT-1:0]   b_t_context;
+    wire [`LEN_CONTEXT-1:0]   b_f_context;
+
+    unpack_exec_info m_u_exec_info(
+        exec_info,
+        exec_type, io_type, func3, func7, pa_rd_in,
+        d_rs1, d_rs2, contex, b_t_context, b_f_context);
+    
+    wire [`LEN_CONTEXT-1:0] jump_context;
+    wire                    jump_next_pc_ready;
+    wire [`LEN_WORD-1:0]    jump_next_pc;
+    wire [`LEN_CONTEXT-1:0] branch_context;
+    wire                    branch_hazard;
+    wire [`LEN_CONTEXT-1:0] branch_hazard_context;
+    wire [`LEN_CONTEXT-1:0] branch_safe_context;
+    pack_j_b_info m_p_j_b_info(
+        jump_context, jump_next_pc_ready, jump_next_pc,
+        branch_context, branch_hazard,
+        branch_hazard_context, branch_safe_context,
+        j_b_info);
+
+    wire done;
     wire busy;
     wire next_busy = (~done) & (busy | accepted);
     temp_reg #(1) r_busy(1'b1, next_busy, busy, clk, rstn);
@@ -155,7 +164,7 @@ module exec(
     wire subst_order = order_able & exec_type[`EXEC_TYPE_SUBST];
     wire subst_accepted = subst_order;
     wire subst_done = subst_order;
-    wire [32-1:0] subst_rd = rs1;
+    wire [32-1:0] subst_rd = d_rs1;
 
     // io
     wire io_order = order_able & exec_type[`EXEC_TYPE_IO];
@@ -163,12 +172,19 @@ module exec(
     wire io_done;
     wire [32-1:0] io_rd;
 
+    wire [2-1:0]         uart_size;
+    wire [`LEN_WORD-1:0] uart_o_data;
+    wire                 uart_write_flag;
     io_core io_c(
         io_order, io_accepted, io_done,
-        io_type, func3, rs1, io_rd,
+        io_type, func3, d_rs1, io_rd,
         uart_write_flag, uart_size, uart_o_data, uart_i_data,
         uart_order, uart_accepted, uart_done,
         clk, rstn);
+
+    pack_to_uart m_p_to_uart(
+        uart_size, uart_o_data, uart_write_flag,
+        to_uart);
 
     assign accepted =
         alu_accepted     |
@@ -180,7 +196,7 @@ module exec(
         subst_accepted   |
         io_accepted;
 
-    wire done =
+    assign done =
         alu_done     |
         alu_ext_done |
         fpu_done     |

@@ -84,10 +84,7 @@ module fetch #(
         output wire [`LEN_INST*FETCH_PARA-1:0] d_inst_mem_w,
 
         // prold mode
-        input  wire                 prold_mode,
-        input  wire                 prold_order,
-        input  wire [`LEN_WORD-1:0] prold_pc,
-        input  wire [`LEN_INST-1:0] prold_data,
+        input  wire [`LEN_PROLD_INFO-1:0] prold_info,
 
         input  wire clk,
         input  wire rstn);
@@ -114,7 +111,13 @@ module fetch #(
     wire [LEN_MEMISTR_ADDR-1:0] failure_addr;
     wire                        failure_found_f;
 
+    wire                 prold_mode;
+    wire                 prold_order;
+    wire [`LEN_WORD-1:0] prold_pc;
+    wire [`LEN_INST-1:0] prold_data;
+
     genvar i;
+    genvar j;
 
     // memory access part
     wire [LEN_MEMISTR_ADDR-1:0] access_addr;
@@ -136,8 +139,7 @@ module fetch #(
             LEN_MEMISTR_ADDR,
             `FETCH_PREDICT_SIZE+2) m_fetch_timing(
         access_order, access_done,
-        access_addr, accessed_addr, accessed_inst,
-        a_inst_mem, d_inst_mem_r,
+        access_addr, accessed_addr,
         {predict_addr_1d, lr_addr, failure_addr},
         {predict_found_f, lr_found_f, failure_found_f},
         clk, rstn);
@@ -145,7 +147,7 @@ module fetch #(
     // 命令を受け取る
     wire [CACHE_LINE_SIZE-1:0] accessed_inst = d_inst_mem_r;
 
-    temp_reg #(LEN_MEMISTR_ADDR) r_cache_order(
+    temp_reg #(1) r_cache_order(
         1'b1, access_done, cache_order, clk, rstn);
     temp_reg #(LEN_MEMISTR_ADDR) r_cache_key(
         1'b1, accessed_addr, cache_key, clk, rstn);
@@ -156,15 +158,11 @@ module fetch #(
 
     // 下位bitを無視
     wire [LEN_MEMISTR_ADDR*`DECODE_PARA-1:0] addr;
-    wire [LOG_FETCH_PARA-1:0] addr_under[LEN_MEMISTR_ADDR-1:0];
     generate
         for (i=0; i<`DECODE_PARA; i=i+1) begin
             assign addr[LEN_MEMISTR_ADDR*(i+1)-1:LEN_MEMISTR_ADDR*i] =
                 pc[`LEN_WORD*i+LEN_MEMISTR_ADDR+LOG_FETCH_PARA+2-1
                   :`LEN_WORD*i+LOG_FETCH_PARA+2];
-            assign addr_under[i] =
-                pc[`LEN_WORD*i+LOG_FETCH_PARA+2-1
-                  :`LEN_WORD*i+2];
         end
     endgenerate
 
@@ -178,7 +176,7 @@ module fetch #(
             `DECODE_PARA + `FETCH_PREDICT_SIZE + 1) m_cache(
         cache_order, cache_key, cache_data,
         {{(`FETCH_PREDICT_SIZE){1'b1}},  1'b1,       order},       
-        {predict_addr_1d,                lr_d,       addr},
+        {predict_addr_1d,                lr_addr,    addr},
         {predict_found_c,                lr_found_c, done},
         {predict_instr,                  lr_instr,   inst_lines},
         clk, rstn);
@@ -194,8 +192,17 @@ module fetch #(
                 assign i_table[FETCH_PARA-j-1] =
                     i_line[`LEN_INST*(j+1)-1:`LEN_INST*j];
             end
-            assign instr[`LEN_INST*(i+1)-1:`LEN_INST*i] =
-                i_table[addr_under[i]];
+            if (LOG_FETCH_PARA > 0) begin
+                wire [LOG_FETCH_PARA-1:0] addr_under =
+                    pc[`LEN_WORD*i+LOG_FETCH_PARA+2-1
+                      :`LEN_WORD*i+2];
+                assign instr[`LEN_INST*(i+1)-1:`LEN_INST*i] =
+                    i_table[addr_under];
+            end
+            else begin
+                assign instr[`LEN_INST*(i+1)-1:`LEN_INST*i] =
+                    i_table[0];
+            end
         end
     endgenerate
 
@@ -255,7 +262,7 @@ module fetch #(
         for (i=0; i<`FETCH_PREDICT_SIZE; i=i+1) begin
             assign predict_addr[i] =
                 predict_base + (`FETCH_PREDICT_SIZE-i);
-            assign predict_addr_1d[LEN_MEMISTR_ADDR*(i+1)
+            assign predict_addr_1d[LEN_MEMISTR_ADDR*(i+1)-1
                                   :LEN_MEMISTR_ADDR*i] =
                 predict_addr[i];
         end
@@ -298,26 +305,35 @@ module fetch #(
                       :FETCH_PARA+2] :
         failure_non_fetching    ? failure_addr :
         |(predict_non_fetching) ? one_predict_addr
-                                : ld_addr;
+                                : lr_addr;
 
     temp_reg #(LEN_MEMISTR_ADDR) r_last_found(
         1'b1, next_last_found, last_found, clk, rstn);
 
     // for prold
+    unpack_prold_info m_u_prold_info(
+        prold_info,
+        prold_mode, prold_order, prold_pc, prold_data);
     wire [FETCH_PARA-1:0] next_wen_mem;
     wire [`LEN_INST-1:0] before_prold_data;
     generate
         for (i=0; i<FETCH_PARA; i=i+1) begin
-            assign next_wen_mem[FETCH_PARA-i-1] =
-                  prold_mode
-                & prold_order
-                & (prold_pc[LOG_FETCH_PARA+2-1:2] == i[LOG_FETCH_PARA-1:0]);
+            if (LOG_FETCH_PARA > 0) begin
+                assign next_wen_mem[FETCH_PARA-i-1] =
+                      prold_mode
+                    & prold_order
+                    & (prold_pc[LOG_FETCH_PARA+2-1:2] == i);
+            end
+            else begin
+                assign next_wen_mem[FETCH_PARA-i-1] =
+                    prold_mode & prold_order;
+            end
         end
     endgenerate
 
     temp_reg #(FETCH_PARA) r_wen_mem(
         1'b1, next_wen_mem, wen_mem, clk, rstn);
-    temp_reg #(`LEN_INST) r_wen_mem(
+    temp_reg #(`LEN_INST) r_prold_data(
         1'b1, prold_data, before_prold_data, clk, rstn);
 
     generate

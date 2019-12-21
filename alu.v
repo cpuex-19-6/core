@@ -17,8 +17,8 @@ module alu(
         input  wire clk,
         input  wire rstn);
 
-    wire accepted = order;
-    wire done = order;
+    assign accepted = order;
+    assign done = order;
 
     wire mode_flag = func7[5];
 
@@ -69,8 +69,9 @@ module alu_ext(
     // using external module
     
     // divu_remu --------------------
-    wire divu_remu_order = order_able & extention_flag &
-        ((func3 == `FUNC3_REMU) | (func3 == `FUNC3_DIVU));
+    wire divu_remu_order = order_able &
+        ((func3 == `FUNC3_REMU) |
+         (func3 == `FUNC3_DIVU));
     wire divu_remu_accepted;
     wire divu_remu_done;
     wire [32-1:0] divu_remu_rd;

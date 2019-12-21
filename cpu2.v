@@ -34,24 +34,20 @@ module cpu(
         input  wire usr_load,
         output wire [6-1:0] led_stat,
 
-        output reg                  prold_mode,
-        output reg                  prold_order,
-        output reg  [`LEN_WORD-1:0] prold_pc,
-        output reg  [`LEN_INST-1:0] prold_data,
+        output wire [`LEN_PROLD_INFO-1:0] prold_info,
 
-        input  wire [2-1:0]         uart_size_in,
-        input  wire [`LEN_WORD-1:0] uart_o_data_in,
-        input  wire uart_write_in,
-        input  wire uart_order_in,
-        input  wire uart_accepted_in,
+        input  wire [`LEN_TO_UART-1:0] to_uart_in,
+        input  wire                    uart_order_in,
 
         output wire [2-1:0]         uart_size_out,
         output wire [`LEN_WORD-1:0] uart_o_data_out,
         output wire uart_write_out,
         output wire uart_order_out,
+    
+        input  wire uart_accepted_in,
 
         input  wire i_w_accept_able_in,
-        output wire i_w_accept_abke_out);
+        output wire i_w_accept_able_out);
 
     reg [`STATE_NUM-1:0] state;
     reg [32-1:0] clock_counter;

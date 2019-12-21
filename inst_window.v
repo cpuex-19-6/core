@@ -58,19 +58,7 @@ module inst_window(
         output wire order,
         input  wire accepted,
 
-        output wire [`LEN_EXEC_TYPE-1:0] e_exec_type,
-
-        output wire                      e_io_type,
-        output wire [`LEN_FUNC3-1:0]     e_func3,
-        output wire [`LEN_FUNC7-1:0]     e_func7,
-        output wire [`LEN_PREG_ADDR-1:0] e_pa_rd,
-
-        output wire [`LEN_WORD-1:0]      e_d_rs1,
-        output wire [`LEN_WORD-1:0]      e_d_rs2,
-
-        output wire [`LEN_CONTEXT-1:0]   e_context,
-        output wire [`LEN_CONTEXT-1:0]   e_b_t_context,
-        output wire [`LEN_CONTEXT-1:0]   e_b_f_context,
+        output wire [`LEN_EXEC_INFO-1:0] e_exec_info,
 
         input  wire clk,
         input  wire rstn);
@@ -135,16 +123,13 @@ module inst_window(
             flag[`SIZE_INST_W-1:`LEN_IW_E_ABLE];
     endgenerate
 
-    assign e_exec_type = exec_type[order_id];
-    assign e_io_type = io_type[order_id];
-    assign e_func3 = func3[order_id];
-    assign e_func7 = func7[order_id];
-    assign e_pa_rd = pa_rd[order_id];
-    assign e_d_rs1 = d_rs1[order_id];
-    assign e_d_rs2 = d_rs2[order_id];
-    assign e_context = context[order_id];
-    assign e_b_t_context = b_t_context[order_id];
-    assign e_b_f_context = b_f_context[order_id];
+    pack_exec_info m_p_exec_info(
+        exec_type[order_id], io_type[order_id],
+        func3[order_id], func7[order_id],
+        pa_rd[order_id], d_rs1[order_id], d_rs2[order_id],
+        context[order_id],
+        b_t_context[order_id], b_f_context[order_id],
+        e_exec_info);
 
     // replace insts into inst window
     // 実行開始した(acceptされた)ものやhazardで消されたものを

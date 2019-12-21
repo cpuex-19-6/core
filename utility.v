@@ -145,7 +145,7 @@ module fullassociative
         for (j=0; j<FIND_PARA; j=j+1) begin
             wire finding = find_order[j];
             wire [LEN_INDEX-1:0] index =
-                find_key[LEN_INDEX*(j-1)-1:LEN_INDEX*j];
+                find_key[LEN_INDEX*(j+1)-1:LEN_INDEX*j];
 
             wire [DEPTH-1:0] found_k;
             wire [LEN_DATA-1:0] found_d[DEPTH:0];
@@ -185,9 +185,9 @@ module fullassociative
     temp_reg #(DEPTH) r_flag(1'b1, next1_flag, flag, clk, rstn);
     generate
         for (i=0; i<DEPTH; i=i+1) begin
-            temp_reg #(DEPTH) r_prio(1'b1, next2_prio, prio, clk, rstn);
-            temp_reg #(LEN_INDEX) r_key(1'b1, next1_key, key, clk, rstn);
-            temp_reg #(LEN_DATA) r_data(1'b1, next1_data, data, clk, rstn);
+            temp_reg #(DEPTH) r_prio(1'b1, next2_prio[i], prio[i], clk, rstn);
+            temp_reg #(LEN_INDEX) r_key(1'b1, next1_key[i], key[i], clk, rstn);
+            temp_reg #(LEN_DATA) r_data(1'b1, next1_data[i], data[i], clk, rstn);
         end
     endgenerate
 endmodule
@@ -267,7 +267,7 @@ module shift_left_diff_in_half
             assign range[i] = range[i-1] | base_shift;
         end
     endgenerate
-    assign rd = |(rs & (range[LENGTH/2:0]));
+    assign rd = |(rs & (range[LENGTH/2]));
 endmodule
 
 `default_nettype wire
