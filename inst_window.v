@@ -109,6 +109,7 @@ module inst_window(
     endgenerate
 
     // choose inst to execute
+    // 決めるところは最後に回したい
     wire [`SIZE_INST_W-1:0] next1_flag;
     wire [`LEN_IW_E_ABLE_ID-1:0] order_id_decide[`LEN_IW_E_ABLE:0];
     wire [`LEN_IW_E_ABLE_ID-1:0] order_id;
@@ -146,43 +147,42 @@ module inst_window(
     assign e_b_f_context = b_f_context[order_id];
 
     // replace insts into inst window
+    // 実行開始した(acceptされた)ものやhazardで消されたものを
+    // 取り除いて、前から詰める
     wire [`LEN_INST_W_ID-1:0] nextinst[`SIZE_INST_W-1:0];
     wire [`LEN_INST_W_ID-1:0] next2_flag[`SIZE_INST_W-1:0];
     wire [`SIZE_INST_W-1:0]   next2_rs1_order;
     wire [`SIZE_INST_W-1:0]   next2_rs2_order;
     wire [`SIZE_INST_W-1:0]   next2_rd_order;
     generate
-        wire [`LEN_INST_W_ID-1:0] id_table[2**`SIZE_INST_W-1:0];
-        wire [`LEN_INST_W_ID-1:0] newplace[`SIZE_INST_W-1:0];
-        for (i=0; i<2**`SIZE_INST_W; i=i+1) begin
-            wire [`LEN_INST_W_ID-1:0] hot_sum[`SIZE_INST_W:0];
-            assign hot_sum[0] = `INST_W_ID_ZERO;
-            for (j=0; j<`SIZE_INST_W; j=j+1) begin
-                assign hot_sum[j+1] = hot_sum[j] + i[j];
+        wire [`SIZE_INST_W-1:0] nextinst_table[`SIZE_INST_W-1:0];
+        assign nextinst_table[0][0] = next1_flag[0];
+        for (j=0; j<`SIZE_INST_W-1; j=j+1) begin
+            assign nextinst_table[0][j+1] =
+                  nextinst_table[0][j]
+                | next1_flag[j+1];
+        end
+        for (i=1; i<`SIZE_INST_W; i=i+1) begin
+            assign nextinst_table[i][0] = 1'b0;
+            for (j=0; j<`SIZE_INST_W-1; j=j+1) begin
+                assign nextinst_table[i][j+1] =
+                  nextinst_table[i][j]
+                | (nextinst_table[i-1][j] & next1_flag[j+1]);
             end
-            assign id_table[i] = hot_sum[`SIZE_INST_W];
         end
         for (i=0; i<`SIZE_INST_W; i=i+1) begin
-            wire [`SIZE_INST_W-1:0] masked_flag
-                = next1_flag << (`SIZE_INST_W-i);
-            assign newplace[i] = id_table[masked_flag];
-        end
-        for (i=0; i<`SIZE_INST_W; i=i+1) begin
-            wire [`SIZE_INST_W-1:0] n2_flag_update;
-            for (j=0; j<`SIZE_INST_W; j=j+1) begin
-                assign n2_flag_update[j] =
-                    next1_flag[j] & (newplace[j] == i);
-            end
+            wire [`SIZE_INST_W-1:0] nextinst_onehot =
+                nextinst_table[i] ^ (nextinst_table[i] << 1);
+            assign next2_flag[i] = |nextinst_onehot;
             if ((2**`LEN_INST_W_ID) == `SIZE_INST_W) begin
                 onehot_to_binary #(`LEN_INST_W_ID) m_o_t_b_nextinst(
-                    n2_flag_update, nextinst[i]);
+                    nextinst_onehot, nextinst[i]);
             end
             else begin
                 wire [(2**`LEN_INST_W_ID)-`SIZE_INST_W-1:0] fullsize_help = 'b0;
                 onehot_to_binary #(`LEN_INST_W_ID) m_o_t_b_nextinst(
-                    {fullsize_help, n2_flag_update}, nextinst[i]);
+                    {fullsize_help, nextinst_onehot}, nextinst[i]);
             end
-            assign next2_flag[i] = |n2_flag_update;
             assign next2_rs1_order[i] =
                 next2_flag[i] & ~rs1_ready[nextinst[i]];
             assign next2_rs2_order[i] =
@@ -192,9 +192,9 @@ module inst_window(
         end
     endgenerate
     assign accept_able =
-        &~next2_flag[`SIZE_INST_W-1:`DECODE_BASE];
+        ~|next2_flag[`SIZE_INST_W-1:`DECODE_BASE];
 
-    // register assignment
+    // register substitution
     wire [`SIZE_INST_W-1:0]   next3_flag;
     wire [`LEN_EXEC_TYPE-1:0] next3_exec_type[`SIZE_INST_W-1:0];
     wire [`LEN_WORD-1:0]      next3_d_imm[`SIZE_INST_W-1:0];
@@ -216,6 +216,7 @@ module inst_window(
     wire [`SIZE_INST_W-1:0]   next3_rd_ready;
 
     generate
+        // レジスタ代入によって更新されない部分
         for (i=0; i<`SIZE_INST_W; i=i+1) begin
             assign next3_exec_type[i] = exec_type[nextinst[i]];
             assign next3_d_imm[i] = d_imm[nextinst[i]];
@@ -229,8 +230,10 @@ module inst_window(
             assign next3_va_rd[i] = va_rd[nextinst[i]];
             assign next3_context[i] = context[nextinst[i]];
         end
+        // レジスタ代入によって更新される部分
         for (i=0; i<0`INST_W_PARA; i=i+1) begin
-
+            // reg_manageと接続している部分
+            // 引数の値を更新する
             pack_struct_inst_vreg m_p_i_vreg(
                 next2_rs1_order[i], next3_va_rs1[i],
                 next2_rs2_order[i], next3_va_rs2[i],
@@ -278,6 +281,8 @@ module inst_window(
                     : pa_rd[nextinst[i]];
         end
         for (i=`INST_W_PARA; i<`SIZE_INST_W; i=i+1) begin
+            // reg_manageと接続していない部分
+            // 引数の値を更新せず、hazardのみ確認する
             assign next3_d_rs1[i] = d_rs1[nextinst[i]];
             assign next3_d_rs2[i] = d_rs2[nextinst[i]];
             assign next3_pa_rd[i] = pa_rd[nextinst[i]];
@@ -322,20 +327,21 @@ module inst_window(
     wire [`LEN_CONTEXT-1:0]   pre_context;
 
     generate
+        wire [`LEN_WORD-1:0] pre_jump_imm;
+        assign pre_d_imm =
+            pre_exec_type[`EXEC_TYPE_JUMP]
+                ? pre_jump_imm
+                : pre_d_imm_temp;
         if (`LEN_CONTEXT < 12) begin
-            assign pre_d_imm =
-                jump
-                    ? {{(`LEN_WORD-2*`LEN_CONTEXT){pre_context_b_t[`LEN_CONTEXT-1]}},
-                       pre_context_b_t,
-                       pre_context_b_f}
-                    : pre_d_imm_temp;
+            assign pre_jump_imm =
+                {{(`LEN_WORD-2*`LEN_CONTEXT){pre_context_b_t[`LEN_CONTEXT-1]}},
+                 pre_context_b_t,
+                 pre_context_b_f};
         end
         else begin
-            assign pre_d_imm =
-                jump
-                    ? {{(`LEN_WORD-`LEN_CONTEXT){pre_context_b_f[11]}},
-                       pre_context_b_f}
-                    : pre_d_imm_temp;
+            assign pre_jump_imm =
+                {{(`LEN_WORD-12){pre_context_b_f[11]}},
+                 pre_context_b_f[12-1:0]};
         end
     endgenerate
 
@@ -350,9 +356,9 @@ module inst_window(
         pre_rs2_order, pre_va_rs2,
         pre_rd_order, pre_va_rd,
         pre_context);
-    assign pre_rs1_ready = ~pre_rs1_order;
-    assign pre_rs2_ready = ~pre_rs2_order;
-    assign pre_rd_ready = ~pre_rd_order;
+    assign pre_rs1_ready = pre_flag & ~pre_rs1_order;
+    assign pre_rs2_ready = pre_flag & ~pre_rs2_order;
+    assign pre_rd_ready = pre_flag & ~pre_rd_order;
 
     // reg
     generate

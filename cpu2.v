@@ -26,10 +26,7 @@ module cpu
 
 `define STATE_END          8'b00000001
 
-module cpu #(
-    LEN_MEMISTR_ADDR = `LEN_MEMISTR_ADDR,
-    LOG_FETCH_PARA = `LOG_FETCH_PARA,
-    FETCH_PARA = 2**LOG_FETCH_PARA)(
+module cpu(
         input  wire clk,
         input  wire rstn,
         input  wire native_rstn,

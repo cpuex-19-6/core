@@ -183,7 +183,7 @@ module decode(
             assign temp_context_b_t = context_b_t;
             assign temp_context_b_f = 
                 jump
-                    ? {(`LEN_CONTEXT-12){{1'b0}},imm12i[`LEN_CONTEXT-1:0]}
+                    ? {{(`LEN_CONTEXT-12){1'b0}},imm12i}
                     : context_b_f;
         end
     endgenerate
