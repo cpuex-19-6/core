@@ -56,8 +56,21 @@ module inst_window(
         // exec
         // EXECUTE_PARAの分だけ並列化
         output wire order,
-        input  wire accepted, 
-        // 後で
+        input  wire accepted,
+
+        output wire [`LEN_EXEC_TYPE-1:0] e_exec_type,
+
+        output wire                      e_io_type,
+        output wire [`LEN_FUNC3-1:0]     e_func3,
+        output wire [`LEN_FUNC7-1:0]     e_func7,
+        output wire [`LEN_PREG_ADDR-1:0] e_pa_rd_in,
+
+        output wire [`LEN_WORD-1:0]      e_d_rs1,
+        output wire [`LEN_WORD-1:0]      e_d_rs2,
+
+        output wire [`LEN_CONTEXT-1:0]   e_context;
+        output wire [`LEN_CONTEXT-1:0]   e_b_t_context,
+        output wire [`LEN_CONTEXT-1:0]   e_b_f_context,
 
         input  wire clk,
         input  wire rstn);
@@ -85,8 +98,15 @@ module inst_window(
     wire [`SIZE_INST_W-1:0]   rs2_ready;
     wire [`SIZE_INST_W-1:0]   rd_ready;
 
-    wire [`SIZE_INST_W-1:0]   all_ready =
-        rs1_ready & rs2_ready & rd_ready & flag;
+    wire [`SIZE_INST_W-1:0]   all_ready;
+    
+    generate
+        for (i=0; i<`SIZE_INST_W; i=i+1) begin
+            assign all_ready[i] =
+                  rs1_ready[i] & rs2_ready[i] & rd_ready[i]
+                & flag[i] & |(exec_type[i]);
+        end
+    endgenerate
 
     // choose inst to execute
     wire [`SIZE_INST_W-1:0] next1_flag;
@@ -113,6 +133,17 @@ module inst_window(
         assign next1_flag[`SIZE_INST_W-1:`LEN_IW_E_ABLE] =
             flag[`SIZE_INST_W-1:`LEN_IW_E_ABLE];
     endgenerate
+
+    assign e_exec_type = exec_type[order_id];
+    assign e_io_type = io_type[order_id];
+    assign e_func3 = func3[order_id];
+    assign e_func7 = func7[order_id];
+    assign e_pa_rd_in = pa_rd_in[order_id];
+    assign e_d_rs1 = d_rs1[order_id];
+    assign e_d_rs2 = d_rs2[order_id];
+    assign e_context = context[order_id];
+    assign e_b_t_context = b_t_context[order_id];
+    assign e_b_f_context = b_f_context[order_id];
 
     // replace insts into inst window
     wire [`LEN_INST_W_ID-1:0] nextinst[`SIZE_INST_W-1:0];
@@ -162,7 +193,7 @@ module inst_window(
     endgenerate
     assign accept_able =
         &~next2_flag[`SIZE_INST_W-1:`DECODE_BASE];
-    
+
     // register assignment
     wire [`SIZE_INST_W-1:0]   next3_flag;
     wire [`LEN_EXEC_TYPE-1:0] next3_exec_type[`SIZE_INST_W-1:0];
@@ -208,29 +239,51 @@ module inst_window(
 
             wire [`LEN_WORD-1:0] rs1_temp;
             wire [`LEN_WORD-1:0] rs2_temp;
+            wire [`LEN_PREG_ADDR-1:0] rd_temp;
+            wire rs1_ready_temp;
+            wire rs2_ready_temp;
+            wire rd_ready_temp;
+            wire branch_hazard_temp;
             unpack_struct_inst_d_r m_up_inst_d_r(
                 r_inst_d_r,
-                next3_rs1_ready[i], rs1_temp,
-                next3_rs2_ready[i], rs2_temp,
-                next3_rd_ready[i], next3_pa_rd[i],
-                next3_flag[i]);
+                rs1_ready_temp, rs1_temp,
+                rs2_ready_temp, rs2_temp,
+                rd_ready_temp, rd_temp,
+                branch_hazard_temp);
 
-                assign next3_d_rs1[i] =
-                    (  next3_rs1_ready[i] & next2_rs1_order[i]
-                     & ~exec_type[`EXEC_TYPE_ALU_NON_EXT])
-                        ? rs1_temp + d_imm : rs1_temp;
-                assign next3_d_rs2[i] =
-                    (  next3_rs2_ready[i] & next2_rs2_order[i]
-                     & exec_type[`EXEC_TYPE_ALU_NON_EXT])
-                        ? rs1_temp + d_imm : rs1_temp;
+            assign next3_rs1_ready[i] =
+                rs1_ready_temp | rs1_ready[nextinst[i]];
+            assign next3_rs2_ready[i] =
+                rs2_ready_temp | rs2_ready[nextinst[i]];
+            assign next3_rd_ready[i] =
+                rd_ready_temp | rd_ready[nextinst[i]];
+            assign next3_flag[i] =
+                next2_flag[i] & ~branch_hazard_temp;
+
+            assign next3_d_rs1[i] =
+                (  rs1_ready_temp
+                 & (  next3_exec_type[i][`EXEC_TYPE_MEM]
+                    | next3_exec_type[i][`EXEC_TYPE_JUMP]))
+                    ? rs1_temp + d_imm :
+                rs1_ready_temp
+                    ? rs1_temp
+                    : d_rs1[nextinst[i]];
+            assign next3_d_rs2[i] =
+                rs2_ready_temp
+                    ? rs2_temp
+                    : d_rs2[nextinst[i]];
+            assign next3_pa_rd[i] =
+                rd_ready_temp
+                    ? rd_temp
+                    : pa_rd[nextinst[i]];
         end
         for (i=`INST_W_PARA; i<`SIZE_INST_W; i=i+1) begin
             assign next3_d_rs1[i] = d_rs1[nextinst[i]];
             assign next3_d_rs2[i] = d_rs2[nextinst[i]];
             assign next3_pa_rd[i] = pa_rd[nextinst[i]];
-            assign next3_rs1_ready[i] = next2_rs1_order[i];
-            assign next3_rs2_ready[i] = next2_rs2_order[i];
-            assign next3_rd_ready[i] = next2_rd_order[i];
+            assign next3_rs1_ready[i] = rs1_ready[nextinst[i]];
+            assign next3_rs2_ready[i] = rs2_ready[nextinst[i]];
+            assign next3_rd_ready[i] = rd_ready[nextinst[i]];
             assign next3_flag[i] =
                   (branch_hazard & |(hazard_context_info & next3_context[i]))
                 & next2_flag[i];
@@ -242,6 +295,7 @@ module inst_window(
     wire [`LEN_EXEC_TYPE-1:0] pre_exec_type;
     wire [`LEN_INST_VREG-1:0] pre_inst_vreg;
     wire [`LEN_WORD-1:0]      pre_d_imm;
+    wire [`LEN_WORD-1:0]      pre_d_imm_temp;
     wire                      pre_io_type;
     wire [`LEN_FUNC3-1:0]     pre_func3;
     wire [`LEN_FUNC7-1:0]     pre_func7;
@@ -249,11 +303,12 @@ module inst_window(
     wire [`LEN_CONTEXT-1:0]   pre_b_f_context;
 
     wire [`LEN_WORD-1:0]      pre_d_rs1 =
-        (~exec_type[`EXEC_TYPE_ALU_NON_EXT])
-            ? d_imm : `WORD_ZERO;
+        (pre_exec_type[`EXEC_TYPE_ALU_NON_EXT])
+            ? `WORD_ZERO : pre_d_imm;
     wire [`LEN_WORD-1:0]      pre_d_rs2 =
-        (exec_type[`EXEC_TYPE_ALU_NON_EXT])
-            ? d_imm : `WORD_ZERO;
+        (  pre_exec_type[`EXEC_TYPE_ALU_NON_EXT]
+         | pre_exec_type[`EXEC_TYPE_JUMP])
+            ? pre_d_imm_temp : `WORD_ZERO;
     wire [`LEN_PREG_ADDR-1:0] pre_pa_rd = `PREG_ZERO;
     wire                      pre_rs1_order;
     wire                      pre_rs2_order;
@@ -266,9 +321,27 @@ module inst_window(
     wire [`LEN_VREG_ADDR-1:0] pre_va_rd;
     wire [`LEN_CONTEXT-1:0]   pre_context;
 
+    generate
+        if (`LEN_CONTEXT < 12) begin
+            assign pre_d_imm =
+                jump
+                    ? {{(`LEN_WORD-2*`LEN_CONTEXT){pre_context_b_t[`LEN_CONTEXT-1]}},
+                       pre_context_b_t,
+                       pre_context_b_f}
+                    : pre_d_imm_temp;
+        end
+        else begin
+            assign pre_d_imm =
+                jump
+                    ? {{(`LEN_WORD-`LEN_CONTEXT){pre_context_b_f[11]}},
+                       pre_context_b_f}
+                    : pre_d_imm_temp;
+        end
+    endgenerate
+
     unpack_dec_exec_info m_up_d_e_info(
         d_dec_exec_info,
-        pre_exec_type, pre_inst_vreg, pre_d_imm, pre_io_type,
+        pre_exec_type, pre_inst_vreg, pre_d_imm_temp, pre_io_type,
         pre_func3, pre_func7, pre_context_b_t, pre_context_b_f);
 
     unpack_struct_inst_vreg m_up_pre_inst_vreg(

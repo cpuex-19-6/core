@@ -159,7 +159,7 @@ module fpu
         rs1, rs2, fcomp_rd,
         func3, clk, rstn);
     
-    // none-instruction
+    // non-instruction
     wire error_order = order_able &
         (func7 != `FUNC7_FADD)  &
         (func7 != `FUNC7_FSUB)  &

@@ -134,8 +134,7 @@ module decode(
 
     wire use_imm12i = (opecode == `OP_ALUI )
                     | (opecode == `OP_MEML )
-                    | (opecode == `OP_FMEML)
-                    | (opecode == `OP_JALR );
+                    | (opecode == `OP_FMEML);
 
     wire use_imm12s = (opecode == `OP_MEMS )
                     | (opecode == `OP_FMEMS);
@@ -143,6 +142,7 @@ module decode(
     wire [`LEN_WORD-1:0] d_imm =
         use_imm12i              ? d_imm12i :
         use_imm12s              ? d_imm12s :
+        jump                    ? pc + 32'd4 :
         (opecode == `OP_JAL   ) ? pc + 32'd4 :
         (opecode == `OP_LUI   ) ? d_imm32 :
         (opecode == `OP_AUIPC ) ? d_imm32 + pc :
@@ -156,9 +156,9 @@ module decode(
 
     wire [`LEN_INST_VREG-1:0] inst_vreg;
     pack_struct_inst_vreg m_p_inst_vreg(
-        ~|va_rs1, va_rs1,
-        ~|va_rs2, va_rs2,
-        ~|va_rd,  va_rd,
+        |va_rs1, va_rs1,
+        |va_rs2, va_rs2,
+        |va_rd,  va_rd,
         context_in,
         inst_vreg);
 
@@ -166,9 +166,31 @@ module decode(
 
     wire io_type = (io | mem) & (opecode[5]);
 
+    wire [`LEN_CONTEXT-1:0] temp_context_b_t;
+    wire [`LEN_CONTEXT-1:0] temp_context_b_f;
+    generate
+        if (`LEN_CONTEXT <= 16) begin
+            assign temp_context_b_t =
+                jump
+                    ? d_imm12i[`LEN_CONTEXT*2-1:`LEN_CONTEXT]
+                    : context_b_t;
+            assign temp_context_b_f =
+                jump
+                    ? d_imm12i[`LEN_CONTEXT-1:0]
+                    : context_b_f;
+        end
+        else begin
+            assign temp_context_b_t = context_b_t;
+            assign temp_context_b_f = 
+                jump
+                    ? {(`LEN_CONTEXT-12){{1'b0}},imm12i[`LEN_CONTEXT-1:0]}
+                    : context_b_f;
+        end
+    endgenerate
+
     pack_dec_exec_info m_p_d_e_info(
         exec_type, inst_vreg, d_imm, io_type,
-        func3, func7, context_b_t, context_b_f,
+        func3, func7, temp_context_b_t, temp_context_b_f,
         dec_exec_info);
 
     assign next_pc_ready =
