@@ -162,7 +162,7 @@
 // inst_vregs
 `define LEN_INST_VREG ((`LEN_VREG_ADDR)*3+(`LEN_CONTEXT)+3)
 // inst_d_r
-`define LEN_INST_D_R ((`LEN_WORD)*3+(`LEN_PREG_ADDR)+4)
+`define LEN_INST_D_R ((`LEN_WORD)*2+(`LEN_PREG_ADDR)+4)
 // write_d_r
 `define LEN_WRITE_D_R ((`LEN_PREG_ADDR)+(`LEN_WORD)+1)
 // exec_type
