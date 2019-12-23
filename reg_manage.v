@@ -136,7 +136,7 @@ module reg_manage(
             assign context_write[pa_reg] =
                 context_write_update[`INST_W_PARA][pa_reg];
         end
-        for (r = 0; r < 1; r = r+1) begin : read_loop
+        for (r = 0; r < `INST_W_PARA; r = r+1) begin : read_loop
             // ---- read 1 -------------------------
             wire r_rs1_order;
             wire r_rs2_order;
@@ -157,13 +157,19 @@ module reg_manage(
             assign r_pa_rs2 = r_va_rs2;
             assign r_pa_rd = r_va_rd;
 
+            // branch_hazard
+            wire r_branch_hazard =
+                  branch_hazard
+                & |(hazard_context_info & r_context);
+
             // rs1
             wire [`LEN_WORD-1:0] r_d_rs1_in =
                 (|(forwarding_id[r_pa_rs1]))
                     ? forwarding_data[forwarding_id[r_pa_rs1]] : r_d_rs1;
             wire r_rs1_ready =
                   r_rs1_order
-                & (~|(context_write_update[r][r_pa_rs1]));
+                & (~|(context_write_update[r][r_pa_rs1]))
+                & ~r_branch_hazard;
 
             // rs2
             wire [`LEN_WORD-1:0] r_d_rs2_in =
@@ -171,17 +177,14 @@ module reg_manage(
                     ? forwarding_data[forwarding_id[r_pa_rs2]] : r_d_rs2;
             wire r_rs2_ready =
                   r_rs1_order
-                & (~|(context_write_update[r][r_pa_rs2]));
-
-            // branch_hazard
-            wire r_branch_hazard =
-                  branch_hazard
-                & |(hazard_context_info & r_context);
+                & (~|(context_write_update[r][r_pa_rs2]))
+                & ~r_branch_hazard;
 
             // rd
             wire r_rd_ready =
                   (r_rd_order & ~r_branch_hazard)
-                & (~|(context_write_update[r][r_pa_rd]));
+                & (~|(context_write_update[r][r_pa_rd]))
+                & ~r_branch_hazard;
 
             // output
             pack_struct_inst_d_r m_r_p_inst_d_r(
@@ -195,7 +198,7 @@ module reg_manage(
                 `CONTEXT_ZERO;
             for (pa_reg = 1; pa_reg < 2**`LEN_PREG_ADDR; pa_reg = pa_reg+1) begin : read_loop_reg
                 assign context_write_update[r+1][pa_reg] =
-                    ((pa_reg == r_pa_rd) & r_rd_ready)
+                    ((pa_reg == r_pa_rd) & r_rd_ready & ~r_branch_hazard)
                         ? r_context
                         : context_write_update[r][pa_reg];
             end
