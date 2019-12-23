@@ -25,7 +25,7 @@ module fetch_timing #(
         output wire [LEN_MEMISTR_ADDR-1:0] a_inst_fetch_out,
 
         input  wire [LEN_MEMISTR_ADDR*FIND_PARA-1:0] find_addr,
-        input  wire [FIND_PARA-1:0]                  found,
+        output wire [FIND_PARA-1:0]                  found,
 
         input  wire clk,
         input  wire rstn);

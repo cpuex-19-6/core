@@ -70,24 +70,28 @@ module reg_manage(
     wire [`LEN_CONTEXT-1:0] before_context[2**`LEN_PREG_ADDR-1:0];
 
     // ---- writer loop -------------------------
-    // forwarding
+    // forwarding_id
     // forwarding_data
     // context_read
 
-    wire [`LEN_E_PARA_ID-1:0] forwarding[2**`LEN_PREG_ADDR-1:0];
-    wire [`LEN_E_PARA_ID-1:0] forwarding_update[`EXECUTE_PARA:0][2**`LEN_PREG_ADDR-1:0];
-
+    wire [`LEN_E_PARA_ID-1:0] forwarding_id[2**`LEN_PREG_ADDR-1:0];
     wire [`LEN_WORD-1:0] forwarding_data[`EXECUTE_PARA-1:0];
 
     wire [`LEN_CONTEXT-1:0] context_read[2**`LEN_PREG_ADDR-1:0];
-    wire [`LEN_CONTEXT-1:0] context_read_update[`EXECUTE_PARA:0][2**`LEN_PREG_ADDR-1:0];
 
     generate
+        wire [`EXECUTE_PARA-1:0] forwarding_id_update[2**`LEN_PREG_ADDR-1:0];
+        wire [`LEN_CONTEXT-1:0] context_read_update[`EXECUTE_PARA:0][2**`LEN_PREG_ADDR-1:0];
         for (pa_reg = 0; pa_reg < 2**`LEN_PREG_ADDR; pa_reg = pa_reg+1) begin : write_init
-            assign forwarding_update[0][pa_reg] =
-                `E_PARA_ID_ZERO;
-            assign forwarding[pa_reg] =
-                forwarding_update[`EXECUTE_PARA][pa_reg];
+            if ((2**`LEN_E_PARA_ID) == `EXECUTE_PARA) begin
+                onehot_to_binary #(`LEN_E_PARA_ID) m_o_t_b_forwarding_id1(
+                    forwarding_id_update[pa_reg], forwarding_id[pa_reg]);
+            end
+            else begin
+                wire [(2**`LEN_E_PARA_ID)-`EXECUTE_PARA-1:0] fullsize_help = 'b0;
+                onehot_to_binary #(`LEN_E_PARA_ID) m_o_t_b_forwarding_id2(
+                    {fullsize_help, forwarding_id_update[pa_reg]}, forwarding_id[pa_reg]);
+            end
             assign context_read_update[0][pa_reg] =
                 before_context[pa_reg];
             assign context_read[pa_reg] =
@@ -104,15 +108,12 @@ module reg_manage(
 
             assign forwarding_data[w] = w_d_rd;
 
-            assign forwarding_update[w+1][0] =
-                `E_PARA_ID_ZERO;
-            assign context_read_update[w+1][0] =
+            assign forwarding_id_update[0][w] = 1'b0;
+            assign context_read_update[0][w+1] =
                 `CONTEXT_ZERO;
             for (pa_reg = 1; pa_reg < 2**`LEN_PREG_ADDR; pa_reg = pa_reg+1) begin : write_loop_reg
-                assign forwarding_update[w+1][pa_reg] =
-                    (w_order & (pa_reg == w_pa_rd))
-                        ? w[`LEN_E_PARA_ID-1:0]
-                        : forwarding_update[w][pa_reg];
+                assign forwarding_id_update[pa_reg][w] =
+                    pa_reg[`LEN_PREG_ADDR-1:0] == w_pa_rd;
                 assign context_read_update[w+1][pa_reg] =
                     (w_order & (pa_reg == w_pa_rd))
                         ? `CONTEXT_ZERO
@@ -158,16 +159,16 @@ module reg_manage(
 
             // rs1
             wire [`LEN_WORD-1:0] r_d_rs1_in =
-                (|(forwarding[r_pa_rs1]))
-                    ? forwarding_data[forwarding[r_pa_rs1]] : r_d_rs1;
+                (|(forwarding_id[r_pa_rs1]))
+                    ? forwarding_data[forwarding_id[r_pa_rs1]] : r_d_rs1;
             wire r_rs1_ready =
                   r_rs1_order
                 & (~|(context_write_update[r][r_pa_rs1]));
 
             // rs2
             wire [`LEN_WORD-1:0] r_d_rs2_in =
-                (|(forwarding[r_pa_rs2]))
-                    ? forwarding_data[forwarding[r_pa_rs2]] : r_d_rs2;
+                (|(forwarding_id[r_pa_rs2]))
+                    ? forwarding_data[forwarding_id[r_pa_rs2]] : r_d_rs2;
             wire r_rs2_ready =
                   r_rs1_order
                 & (~|(context_write_update[r][r_pa_rs2]));
