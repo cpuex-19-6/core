@@ -44,7 +44,9 @@ module cpu(
         output wire uart_write_out,
         output wire uart_order_out,
     
-        input  wire uart_accepted_in,
+        input  wire                 uart_accepted_in,
+        input  wire                 uart_done,
+        input  wire [`LEN_WORD-1:0] uart_r_data,
 
         input  wire i_w_accept_able_in,
         output wire i_w_accept_able_out);

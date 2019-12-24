@@ -259,4 +259,22 @@ module unpack_prold_info(
         = prold_info;
 endmodule
 
+// ---- from_uart -------------------------------
+module pack_to_uart(
+        input  wire                    uart_accepted,
+        input  wire                    uart_done,
+        input  wire [`LEN_WORD-1:0]    uart_r_data,
+        output wire [`LEN_FR_UART-1:0] from_uart);
+    assign from_uart =
+        {uart_accepted, uart_done, uart_r_data};
+endmodule
+module unpack_to_uart(
+        input  wire [`LEN_FR_UART-1:0] from_uart,
+        output wire                    uart_accepted,
+        output wire                    uart_done,
+        output wire [`LEN_WORD-1:0]    uart_r_data);
+    assign to_uart =
+        {uart_size, uart_o_data, uart_write_flag};
+endmodule
+
 `default_nettype wire
