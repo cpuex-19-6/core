@@ -222,19 +222,22 @@ endmodule
 // ---- to_uart -------------------------------
 // exec -> cpu
 module pack_to_uart(
+        input  wire                    uart_order,
         input  wire [2-1:0]            uart_size,
         input  wire [`LEN_WORD-1:0]    uart_o_data,
         input  wire                    uart_write_flag,
         output wire [`LEN_TO_UART-1:0] to_uart);
     assign to_uart =
-        {uart_size, uart_o_data, uart_write_flag};
+        {uart_order, uart_size, uart_o_data, uart_write_flag};
 endmodule
 module unpack_to_uart(
         input  wire [`LEN_TO_UART-1:0] to_uart,
+        output wire                    uart_order,
         output wire [2-1:0]            uart_size,
         output wire [`LEN_WORD-1:0]    uart_o_data,
         output wire                    uart_write_flag);
-    assign {uart_size, uart_o_data, uart_write_flag} =
+    assign {uart_order, uart_size, 
+            uart_o_data, uart_write_flag} =
         to_uart;
 endmodule
 
@@ -260,21 +263,21 @@ module unpack_prold_info(
 endmodule
 
 // ---- from_uart -------------------------------
-module pack_to_uart(
+module pack_from_uart(
         input  wire                    uart_accepted,
         input  wire                    uart_done,
-        input  wire [`LEN_WORD-1:0]    uart_r_data,
+        input  wire [`LEN_WORD-1:0]    uart_i_data,
         output wire [`LEN_FR_UART-1:0] from_uart);
     assign from_uart =
-        {uart_accepted, uart_done, uart_r_data};
+        {uart_accepted, uart_done, uart_i_data};
 endmodule
-module unpack_to_uart(
+module unpack_from_uart(
         input  wire [`LEN_FR_UART-1:0] from_uart,
         output wire                    uart_accepted,
         output wire                    uart_done,
-        output wire [`LEN_WORD-1:0]    uart_r_data);
-    assign to_uart =
-        {uart_size, uart_o_data, uart_write_flag};
+        output wire [`LEN_WORD-1:0]    uart_i_data);
+    assign {uart_accepted, uart_done, uart_i_data} =
+        from_uart;
 endmodule
 
 `default_nettype wire

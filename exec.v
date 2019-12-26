@@ -31,11 +31,8 @@ module exec(
         output wire                         mem_en,
 
         // io
-        input  wire [`LEN_WORD-1:0] uart_i_data,
         output wire [`LEN_TO_UART-1:0] to_uart,
-        output wire uart_order,
-        input  wire uart_accepted,
-        input  wire uart_done,
+        input  wire [`LEN_FR_UART-1:0] from_uart,
 
         input  wire clk,
         input  wire rstn);
@@ -172,9 +169,13 @@ module exec(
     wire io_done;
     wire [32-1:0] io_rd;
 
+    wire                 uart_order;
     wire [2-1:0]         uart_size;
     wire [`LEN_WORD-1:0] uart_o_data;
     wire                 uart_write_flag;
+    wire [`LEN_WORD-1:0] uart_i_data;
+    wire                 uart_accepted;
+    wire                 uart_done;
     io_core io_c(
         io_order, io_accepted, io_done,
         io_type, func3, d_rs1, io_rd,
@@ -183,8 +184,12 @@ module exec(
         clk, rstn);
 
     pack_to_uart m_p_to_uart(
-        uart_size, uart_o_data, uart_write_flag,
+        uart_order, uart_size, uart_o_data, uart_write_flag,
         to_uart);
+
+    unpack_from_uart m_u_from_uart(
+        from_uart,
+        uart_accepted, uart_done, uart_i_data);
 
     assign accepted =
         alu_accepted     |

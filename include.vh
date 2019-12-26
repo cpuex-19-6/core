@@ -182,6 +182,6 @@
 // j_b_info
 `define LEN_J_B_INFO ((`LEN_CONTEXT)*4+(`LEN_WORD)+2)
 // to_uart
-`define LEN_TO_UART ((`LEN_WORD)+3)
+`define LEN_TO_UART ((`LEN_WORD)+4)
 // from_uart
 `define LEN_FR_UART ((`LEN_WORD)+2)
