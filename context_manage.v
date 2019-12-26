@@ -66,10 +66,13 @@ module context_manage(
         output wire [`LEN_D_E_INFO-1:0] i_w_dec_exec_info,
 
         // reg_manage
-        input wire [`LEN_WORD-1:0]     lr_d,
+        input  wire [`LEN_WORD-1:0]     lr_d,
 
         // exec
-        input wire [`LEN_J_B_INFO-1:0] j_b_info,
+        input  wire [`LEN_J_B_INFO-1:0] j_b_info,
+
+        // cpu
+        input  wire init,
 
         input  wire clk,
         input  wire rstn);
@@ -89,6 +92,7 @@ module context_manage(
     wire [`LEN_CONTEXT-1:0] cntx_next1_info[`LEN_CONTEXT-1:0];
     wire [`LEN_CONTEXT-1:0] cntx_next1_non_fetch;
     wire [`LEN_WORD-1:0]    cntx_next1_next_pc[`LEN_CONTEXT-1:0];
+    wire [`LEN_CONTEXT-1:0] next1_last_publish;
 
     wire [`LEN_CONTEXT-1:0] exec_jump_context;
     wire                    exec_next_pc_ready;
@@ -115,26 +119,35 @@ module context_manage(
     assign hazard_context_info = cntx_info[hazard_context_id];
 
     assign cntx_next1_hot =
+        init ? `CONTEXT_INIT :
         (branch_hazard & (|(hazard_context_info & cntx_hot)))
                 ? exec_safe_context
                 : cntx_hot;
+
+    assign next1_last_publish =
+        init ? `CONTEXT_INIT : last_publish;
 
     generate
         for (cntx=0; cntx<`LEN_CONTEXT; cntx=cntx+1) begin
             wire [`LEN_CONTEXT-1:0] masked_cntx_info =
                 (~cntx_info[exec_b_cntx_id]) & (cntx_info[cntx]);
             assign cntx_next1_info[cntx] =
+                (init & (cntx == `CONTEXT_INIT_ID))
+                    ? `CONTEXT_INIT :
                 branch_hazard
                     ? (|(hazard_context_info & masked_cntx_info))
                         ? `CONTEXT_ZERO : masked_cntx_info
                     : cntx_info[cntx];
             assign cntx_next1_non_fetch[cntx] =
-                (  (branch_hazard & |(hazard_context_info & masked_cntx_info))
-                 | (cntx_hot[cntx]))
+                (init & (cntx == `CONTEXT_INIT_ID))
+                    ? 1'b1 :
+                (branch_hazard & (hazard_context_info[cntx]))
                     ? 1'b0
                     : (  cntx_non_fetch[cntx]
                        | (exec_next_pc_ready & exec_jump_context[cntx]));
             assign cntx_next1_next_pc[cntx] =
+                (init & (cntx == `CONTEXT_INIT_ID))
+                    ? `WORD_ZERO :
                 (exec_next_pc_ready & exec_jump_context[cntx])
                     ? exec_next_pc : cntx_next_pc[cntx];
         end
@@ -155,9 +168,9 @@ module context_manage(
     wire [`LEN_CONTEXT-1:0] decode_context_b_t;
     wire [`LEN_CONTEXT-1:0] decode_context_b_f;
     shift_left_round #(`LEN_CONTEXT) m_sl1(
-        last_publish, decode_context_b_t);
+        next1_last_publish, decode_context_b_t);
     shift_left_round2 #(`LEN_CONTEXT) m_sl2(
-        last_publish, decode_context_b_f);
+        next1_last_publish, decode_context_b_f);
 
     // decode
     wire decode_next_pc_ready;
@@ -213,7 +226,7 @@ module context_manage(
     endgenerate
 
     assign next2_last_publish =
-        decode_branch ? decode_context_b_f : last_publish;
+        decode_branch ? decode_context_b_f : next1_last_publish;
     assign cntx_next2_hot =
         decode_branch ? decode_context_b_t : cntx_next1_hot;
 

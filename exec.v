@@ -132,8 +132,8 @@ module exec(
 
     // jump
     wire jump_order = order_able & exec_type[`EXEC_TYPE_JUMP];
-    wire jump_accepted;
-    wire jump_done;
+    wire jump_accepted = jump_order;
+    wire jump_done = jump_order;
     wire [32-1:0] jump_rd = d_rs2;
     assign jump_context = contex;
     assign jump_next_pc = d_rs1;
@@ -142,7 +142,7 @@ module exec(
     // branch
     wire branch_order = order_able & exec_type[`EXEC_TYPE_BRANCH];
     wire branch_accepted = branch_order;
-    wire branch_done = branch_done;
+    wire branch_done = branch_order;
     wire [32-1:0] branch_rd = 32'b0;
     wire branch_result;
 

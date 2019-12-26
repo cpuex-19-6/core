@@ -111,13 +111,13 @@ module inst_window(
             // 実行できるものを探して実行
             // 同時に複数実行するときには優先度に注意
             assign order_decide[i+1] =
-                all_ready[i] & order_decide[i];
+                all_ready[i] | order_decide[i];
             assign order_id_decide[i+1] =
                 (all_ready[i] & (~order_decide[i]))
                     ? i[`LEN_IW_E_ABLE_ID-1:0] : order_id_decide[i];
             assign next1_flag[i] =
                 (all_ready[i] & (~order_decide[i]))
-                    ? accepted : flag[i];
+                    ? ~accepted : flag[i];
         end
         assign next1_flag[`SIZE_INST_W-1:`LEN_IW_E_ABLE] =
             flag[`SIZE_INST_W-1:`LEN_IW_E_ABLE];

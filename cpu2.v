@@ -50,7 +50,9 @@ module cpu(
 
         // DECODE_PARAの分だけ並列化
         input  wire i_w_accept_able_in,
-        output wire i_w_accept_able_out);
+        output wire i_w_accept_able_out,
+        
+        output wire context_manage_init);
 
     reg [`STATE_NUM-1:0] state;
     reg [32-1:0] clock_counter;
@@ -71,6 +73,8 @@ module cpu(
 
     // init -------------------------------
     reg [7:0] init_wait;
+    reg       r_context_manage_init;
+    assign context_manage_init = r_context_manage_init;
 
     // run -------------------------------
     wire cpu_run = state[`STATE_RUN_INDEX];
@@ -88,11 +92,13 @@ module cpu(
         cpu_run ? uart_order_temp
                 : (r_prold_mode | r_io_init);
     assign uart_size =
-        cpu_run      ? uart_order_temp :
-        r_prold_mode ? 2'b00 :
-                       2'b10;
+        cpu_run   ? uart_order_temp :
+        r_io_init ? 2'b10 : 2'b00;
     assign uart_o_data =
         r_io_init ? 32'haa : uart_o_data_temp;
+    assign uart_write =
+        cpu_run   ? uart_write_temp :
+        r_io_init ? 1'b1 : 1'b0;
 
     wire                 uart_accepted_temp;
     wire                 uart_done_temp;
@@ -123,6 +129,9 @@ module cpu(
             r_prold_data <= 32'b0;
 
             r_io_init <= 1'b0;
+
+            init_wait <= 8'b0;
+            r_context_manage_init <= 1'b0;
         end
         // reset init ---------------------------
         else if (usr_rst) begin
@@ -135,25 +144,31 @@ module cpu(
             r_prold_data <= 32'b0;
 
             r_io_init <= 1'b0;
+
+            init_wait <= 8'b0;
+            r_context_manage_init <= 1'b0;
         end
         // reset pro_ld ---------------------------
         else if (usr_load) begin
             state <= `STATE_PRO_LD1;
             clock_counter <= 32'b0;
 
-            r_prold_mode <= 1'b1;
+            r_prold_mode <= 1'b0;
             r_prold_order <= 1'b0;
             r_prold_pc <= 32'b0;
             r_prold_data <= 32'b0;
 
             r_io_init <= 1'b0;
+
+            init_wait <= 8'b0;
+            r_context_manage_init <= 1'b0;
         end
         // pro_ld ---------------------------
         else if (state == `STATE_PRO_LD1) begin
-            r_io_prold <= 1'b1;
+            r_prold_mode <= 1'b1;
             if (uart_done) begin
                 r_prold_order <= 1'b1;
-                pro_ld_inst <= uart_r_data;
+                r_prold_data <= uart_r_data;
                 state <= `STATE_PRO_LD2;
             end
         end
@@ -182,11 +197,16 @@ module cpu(
             end
             if (uart_done) begin
                 r_io_init <= 1'b0;
+                r_context_manage_init <= 1'b1;
                 state <= `STATE_RUN;
             end
         end
-        else begin
+        else if (state == `STATE_RUN) begin
+            r_context_manage_init <= 1'b0;
             clock_counter <= clock_counter + 32'b1;
+        end
+        else begin
+            state <= `STATE_NONE;
         end
     end
 

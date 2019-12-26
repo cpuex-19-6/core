@@ -156,7 +156,7 @@ module decode(
 
     wire [`LEN_EXEC_TYPE-1:0] exec_type;
     pack_exec_type m_pet(
-        alu_non_imm, alu_non_imm, fpu,
+        alu_non_imm, alu_non_ext, fpu,
         mem, jump, branch, subst, io,
         exec_type);
 

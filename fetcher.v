@@ -158,11 +158,14 @@ module fetch #(
 
     // 下位bitを無視
     wire [LEN_MEMISTR_ADDR*`DECODE_PARA-1:0] addr;
+    wire [LEN_MEMISTR_ADDR-1:0] addr_table[`DECODE_PARA-1:0];
     generate
         for (i=0; i<`DECODE_PARA; i=i+1) begin
             assign addr[LEN_MEMISTR_ADDR*(i+1)-1:LEN_MEMISTR_ADDR*i] =
                 pc[`LEN_WORD*i+LEN_MEMISTR_ADDR+LOG_FETCH_PARA+2-1
                   :`LEN_WORD*i+LOG_FETCH_PARA+2];
+            assign addr_table[i] =
+                addr[LEN_MEMISTR_ADDR*(i+1)-1:LEN_MEMISTR_ADDR*i];
         end
     endgenerate
 
@@ -221,19 +224,19 @@ module fetch #(
         end else begin
             assign non_failure_stop =
                   ~order[0]
-                | (  ~order[`DECODE_PARA-1:1]
-                   & done[`DECODE_PARA-2:0]);
+                | (|(  ~order[`DECODE_PARA-1:1]
+                     & done[`DECODE_PARA-2:0]));
         end
 
         // failure_addr
         wire [LEN_MEMISTR_ADDR-1:0] failure_addr_find[`DECODE_PARA-1:0];
         assign failure_addr_find[`DECODE_PARA-1] =
-            failure_addr_find[`DECODE_PARA-1];
+            addr_table[`DECODE_PARA-1];
         assign failure_addr = failure_addr_find[0];
         for (i=0; i<`DECODE_PARA-1; i=i+1) begin
             assign failure_addr_find[i] =
                 (order[i] & (~done[i]))
-                    ? addr[i]
+                    ? addr_table[i]
                     : failure_addr_find[i+1];
         end
 
@@ -244,7 +247,7 @@ module fetch #(
         for (i=0; i<`DECODE_PARA; i=i+1) begin
             assign last_found_find[i+1] =
                 (order[i] & done[i])
-                    ? addr[i]
+                    ? addr_table[i]
                     : last_found_find[i];
         end
     endgenerate
@@ -270,7 +273,7 @@ module fetch #(
 
     // 予測の候補がこれからfetchすべきかどうか
     wire failure_non_fetching =
-        ~(failure_found_f & find_failure);
+        ~(failure_found_f | find_failure);
     wire lr_non_fetching =
         ~(lr_found_f | lr_found_c);
     wire [`FETCH_PREDICT_SIZE-1:0] predict_non_fetching =

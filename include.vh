@@ -13,6 +13,8 @@
 `define LEN_CONTEXT 8
 // コンテキストの初期値
 `define CONTEXT_INIT 8'b1
+// コンテキストの初期値のID
+`define CONTEXT_INIT_ID 3'd0
 // コンテキストの0(リセット初期化用)
 `define CONTEXT_ZERO 8'b0
 
