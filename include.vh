@@ -96,7 +96,8 @@
 `define OP_MEML   7'b0000011
 `define OP_MEMS   7'b0100011
 
-`define OP_BRANCH 7'b1100011
+`define OP_BRANCH  7'b1100011
+`define OP_FBRANCH 7'b1111011
 
 `define OP_JAL    7'b1101111
 `define OP_JALR   7'b1100111
@@ -135,6 +136,11 @@
 `define FUNC3_BGE  3'b101
 `define FUNC3_BLTU 3'b110
 `define FUNC3_BGTU 3'b111
+
+`define FUNC3_FBEQ 3'b000
+`define FUNC3_FBNE 3'b001 
+`define FUNC3_FBLT 3'b100
+`define FUNC3_FBGE 3'b101
 
 // FUNC7
 
