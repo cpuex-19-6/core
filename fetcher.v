@@ -66,7 +66,7 @@ endmodule
 module fetch #(
     LEN_MEMISTR_ADDR = `LEN_MEMISTR_ADDR,
     LOG_FETCH_PARA = `LOG_FETCH_PARA,
-     FETCH_PARA = 2**LOG_FETCH_PARA)(
+    FETCH_PARA = 2**LOG_FETCH_PARA)(
         // context_manager
         // DECODE_PARAの分だけ並列化
         input  wire [`DECODE_PARA-1:0]           order,
@@ -104,12 +104,8 @@ module fetch #(
 
     wire [LEN_MEMISTR_ADDR-1:0] lr_addr =
         lr_d[LEN_MEMISTR_ADDR+FETCH_PARA+2-1:FETCH_PARA+2];
-    wire [CACHE_LINE_SIZE-1:0]  lr_instr;
     wire                        lr_found_c;
     wire                        lr_found_f;
-
-    wire [LEN_MEMISTR_ADDR-1:0] failure_addr;
-    wire                        failure_found_f;
 
     wire                 prold_mode;
     wire                 prold_order;
@@ -137,11 +133,11 @@ module fetch #(
 
     fetch_timing #(
             LEN_MEMISTR_ADDR,
-            `FETCH_PREDICT_SIZE+2) m_fetch_timing(
+            `FETCH_PREDICT_SIZE+1) m_fetch_timing(
         access_order, access_done,
         access_addr, accessed_addr,
-        {predict_addr_1d, lr_addr, failure_addr},
-        {predict_found_f, lr_found_f, failure_found_f},
+        {predict_addr_1d, lr_addr},
+        {predict_found_f, lr_found_f},
         clk, rstn);
 
     // 命令を受け取る
@@ -172,6 +168,7 @@ module fetch #(
     // cache
     wire [CACHE_LINE_SIZE*`DECODE_PARA-1:0] inst_lines;
     wire [CACHE_LINE_SIZE*`FETCH_PREDICT_SIZE-1:0] predict_instr;
+    wire [CACHE_LINE_SIZE-1:0] lr_instr;
     fullassociative #(
             `DEPTH_FETCH_CACHE,
             LEN_MEMISTR_ADDR,
@@ -211,6 +208,7 @@ module fetch #(
 
     // decide next fetch
     wire [LEN_MEMISTR_ADDR-1:0] last_found;
+    wire [LEN_MEMISTR_ADDR-1:0] failure_addr;
 
     // 直前のcache探索の結果の集計
     wire non_failure_stop;
@@ -264,7 +262,7 @@ module fetch #(
     generate
         for (i=0; i<`FETCH_PREDICT_SIZE; i=i+1) begin
             assign predict_addr[i] =
-                predict_base + (`FETCH_PREDICT_SIZE-i);
+                predict_base + (`FETCH_PREDICT_SIZE-i-1);
             assign predict_addr_1d[LEN_MEMISTR_ADDR*(i+1)-1
                                   :LEN_MEMISTR_ADDR*i] =
                 predict_addr[i];
@@ -272,8 +270,6 @@ module fetch #(
     endgenerate
 
     // 予測の候補がこれからfetchすべきかどうか
-    wire failure_non_fetching =
-        ~(failure_found_f | find_failure);
     wire lr_non_fetching =
         ~(lr_found_f | lr_found_c);
     wire [`FETCH_PREDICT_SIZE-1:0] predict_non_fetching =
@@ -299,14 +295,12 @@ module fetch #(
     // 次にfetchすべきかどうか決める
     assign next_access_order =
           (~prold_mode)
-        & (  failure_non_fetching
-           | |(predict_non_fetching)
+        & (  |(predict_non_fetching)
            | (lr_non_fetching & non_failure_stop));
     assign next_access_addr =
         prold_mode
             ? prold_pc[LEN_MEMISTR_ADDR+FETCH_PARA+2-1
                       :FETCH_PARA+2] :
-        failure_non_fetching    ? failure_addr :
         |(predict_non_fetching) ? one_predict_addr
                                 : lr_addr;
 

@@ -89,7 +89,6 @@ module fullassociative
     wire [LEN_INDEX-1:0] key[DEPTH-1:0];
     wire [LEN_DATA-1:0] data[DEPTH-1:0];
     wire [DEPTH-1:0] prio[DEPTH-1:0];
-    wire [DEPTH-1:0] flag;
     genvar i;
     genvar j;
     
@@ -106,7 +105,6 @@ module fullassociative
     wire [LEN_INDEX-1:0] next1_key[DEPTH-1:0];
     wire [LEN_DATA-1:0] next1_data[DEPTH-1:0];
     wire [DEPTH-1:0] next1_prio[DEPTH-1:0];
-    wire [DEPTH-1:0] next1_flag;
 
     generate
         wire [DEPTH-1:0] push_key_match;
@@ -115,17 +113,20 @@ module fullassociative
         for (i=0; i<DEPTH; i=i+1) begin
             assign push_key_match[i] =
                 push_order & (push_key == key[i]);
+            wire [DEPTH-1:0] i_onehot;
+            for (j=0; j<DEPTH; j=j+1) begin
+                assign i_onehot[j] = i==j;
+            end
             assign push_able[i] =
                 (|push_key_match)
                     ? push_key_match[i]
-                    : (push_order & ~|(prio[i]));
+                    : (push_order & ~|(prio[i]&~i_onehot));
         end
         assign push_place[0] = push_able[0];
         for (i=1; i<DEPTH; i=i+1) begin
             assign push_place[i] =
                 push_able[i] & ~|(push_able[i-1:0]);
         end
-        assign next1_flag = flag | push_place;
         for (i=0; i<DEPTH; i=i+1) begin
             assign all_one[i]=1'b1;
             assign next1_key[i] =
@@ -153,7 +154,7 @@ module fullassociative
             assign found_d[0] = next1_data[0];
             for (i=0; i<DEPTH; i=i+1) begin
                 assign found_k[i] =
-                    next1_flag[i] & (next1_key[i] == index);
+                    next1_prio[i][i] & (next1_key[i] == index);
                 assign found_d[i+1] =
                     found_k[i] ? next1_data[i] : found_d[i];
             end
@@ -182,7 +183,6 @@ module fullassociative
     endgenerate
 
     // regs
-    temp_reg #(DEPTH) r_flag(1'b1, next1_flag, flag, clk, rstn);
     generate
         for (i=0; i<DEPTH; i=i+1) begin
             temp_reg #(DEPTH) r_prio(1'b1, next2_prio[i], prio[i], clk, rstn);
