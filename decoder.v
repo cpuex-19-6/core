@@ -36,21 +36,23 @@ module decode(
 
     wire [`LEN_OPECODE-1:0] opecode = instr[ 6: 0];
 
-    wire alu    = (opecode == `OP_ALU)
-                | (opecode == `OP_ALUI);
-    wire fpu    = (opecode == `OP_FPU);
-    wire mem    = (opecode == `OP_MEML)
-                | (opecode == `OP_MEMS)
-                | (opecode == `OP_FMEML)
-                | (opecode == `OP_FMEMS);
-    wire jump   = (opecode == `OP_JALR);
-    wire subst  = (opecode == `OP_LUI)
-                | (opecode == `OP_JAL)
-                | (opecode == `OP_AUIPC);
-    wire io     = (opecode == `OP_INPUT)
-                | (opecode == `OP_OUTPUT);
+    wire alu     = (opecode == `OP_ALU)
+                 | (opecode == `OP_ALUI);
+    wire fpu     = (opecode == `OP_FPU);
+    wire mem     = (opecode == `OP_MEML)
+                 | (opecode == `OP_MEMS)
+                 | (opecode == `OP_FMEML)
+                 | (opecode == `OP_FMEMS);
+    wire jump    = (opecode == `OP_JALR);
+    wire subst   = (opecode == `OP_LUI)
+                 | (opecode == `OP_JAL)
+                 | (opecode == `OP_AUIPC);
+    wire io      = (opecode == `OP_INPUT)
+                 | (opecode == `OP_OUTPUT);
+    wire ibranch = (opecode == `OP_BRANCH);
+    wire fbranch = (opecode == `OP_FBRANCH);
 
-    assign branch = (opecode == `OP_BRANCH);
+    assign branch = ibranch | fbranch;
 
     wire alu_imm = (opecode == `OP_ALUI);
     wire alu_ext = (opecode == `OP_ALU) & instr[25];
@@ -73,22 +75,22 @@ module decode(
     wire float  = (opecode == `OP_FPU)
                 | (opecode == `OP_FMEML)
                 | (opecode == `OP_FMEMS)
+                | (opecode == `OP_FBRANCH)
                 | (io & func7[5]);
 
     wire rs1_float = float & ~mem
                    & (  ~func7[6]
-                      | (func7[3] ^ func7[4])
-                      | (io));
+                      | (func7[3] ^ func7[4]));
     wire rs2_float = float;
     wire rd_float  = float
                    & (  ~func7[6]
-                      | ~(func7[3] ^ func7[4])
-                      | (io));
+                      | ~(func7[3] ^ func7[4]));
 
     wire no_use_rd  = (opecode == `OP_MEMS)
                     | (opecode == `OP_FMEMS)
                     | (opecode == `OP_OUTPUT)
-                    | (opecode == `OP_BRANCH);
+                    | (opecode == `OP_BRANCH)
+                    | (opecode == `OP_FBRANCH);
     wire no_use_rs1 = (opecode == `OP_LUI)
                     | (opecode == `OP_JAL)
                     | (opecode == `OP_AUIPC)
@@ -96,6 +98,7 @@ module decode(
     wire no_use_rs2 = ~(
                       (opecode == `OP_ALU)
                     | (opecode == `OP_BRANCH)
+                    | (opecode == `OP_FBRANCH)
                     | (opecode == `OP_MEMS)
                     | (opecode == `OP_FMEMS)
                     |((opecode == `OP_FPU) & ~func7[5]));
@@ -157,7 +160,7 @@ module decode(
     wire [`LEN_EXEC_TYPE-1:0] exec_type;
     pack_exec_type m_pet(
         alu_non_imm, alu_non_ext, fpu,
-        mem, jump, branch, subst, io,
+        mem, jump, ibranch, fbranch, subst, io,
         exec_type);
 
     wire [`LEN_INST_VREG-1:0] inst_vreg;

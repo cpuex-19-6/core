@@ -11,12 +11,13 @@ module pack_exec_type(
         input  wire mem,
         input  wire jump,
         input  wire branch,
+        input  wire fbranch,
         input  wire subst,
         input  wire io,
         output wire [`LEN_EXEC_TYPE-1:0] exec_type);
     assign exec_type =
         {alu_non_imm, alu_non_ext, fpu,
-         mem, jump, branch, subst, io};
+         mem, jump, branch, fbranch, subst, io};
 endmodule
 module unpack_exec_type(
         input  wire [`LEN_EXEC_TYPE-1:0] exec_type,
@@ -26,10 +27,11 @@ module unpack_exec_type(
         output wire mem,
         output wire jump,
         output wire branch,
+        output wire fbranch,
         output wire subst,
         output wire io);
     assign {alu_non_imm, alu_non_ext, fpu,
-         mem, jump, branch, subst, io} = exec_type;
+         mem, jump, branch, fbranch, subst, io} = exec_type;
 endmodule
 module alu_exec_type(
         input  wire [`LEN_EXEC_TYPE-1:0] exec_type,

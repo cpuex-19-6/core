@@ -140,18 +140,33 @@ module exec(
     assign jump_next_pc_ready = jump_order;
 
     // branch
-    wire branch_order = order_able & exec_type[`EXEC_TYPE_BRANCH];
-    wire branch_accepted = branch_order;
-    wire branch_done = branch_order;
-    wire [32-1:0] branch_rd = 32'b0;
-    wire branch_result;
+    wire ibranch_order = order_able & exec_type[`EXEC_TYPE_BRANCH];
+    wire ibranch_accepted = ibranch_order;
+    wire ibranch_done = ibranch_order;
+    wire [32-1:0] ibranch_rd = 32'b0;
+    wire ibranch_result;
 
     branch m_br(
         func3, d_rs1, d_rs2,
-        branch_result);
+        ibranch_result);
 
-    assign branch_hazard = branch_order;
+    // fbranch
+    wire fbranch_order = order_able & exec_type[`EXEC_TYPE_FBRANCH];
+    wire fbranch_accepted = fbranch_order;
+    wire fbranch_done = fbranch_order;
+    wire [32-1:0] fbranch_rd = 32'b0;
+    wire fbranch_result;
+
+    fbranch m_fbr(
+        func3, d_rs1, d_rs2,
+        fbranch_result);
+
+    // branches
+    assign branch_hazard = ibranch_order | fbranch_order;
     assign branch_context = contex;
+    wire branch_result =
+          (ibranch_order & ibranch_result)
+        | (fbranch_order & fbranch_result);
     assign branch_hazard_context =
         branch_result ? b_f_context : b_t_context;
     assign branch_safe_context =
@@ -197,7 +212,8 @@ module exec(
         fpu_accepted     |
         mem_accepted     |
         jump_accepted    |
-        branch_accepted  |
+        ibranch_accepted |
+        fbranch_accepted |
         subst_accepted   |
         io_accepted;
 
@@ -207,7 +223,8 @@ module exec(
         fpu_done     |
         mem_done     |
         jump_done    |
-        branch_done  |
+        ibranch_done |
+        fbranch_done |
         subst_done   |
         io_done;
 
@@ -218,7 +235,8 @@ module exec(
         fpu_done     ? fpu_rd     :
         mem_done     ? mem_rd     :
         jump_done    ? jump_rd    :
-        branch_done  ? branch_rd  :
+        ibranch_done ? ibranch_rd :
+        fbranch_done ? fbranch_rd :
         subst_done   ? subst_rd   :
         io_done      ? io_rd      :
         rd_buf;
