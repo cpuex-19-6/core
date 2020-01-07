@@ -23,20 +23,29 @@
 # 2. The following source(s) files that were local or imported into the original project.
 #    (Please see the '$orig_proj_dir' and '$origin_dir' variable setting below at the start of the script)
 #
-#    "../vivado-project/ver1_wrapper.v"
-#    "../vivado-project/ver1_sim_wrapper.v"
+#    "../vivado-project/ver2_wrapper.v"
+#    "../vivado-project/ver2_sim_wrapper.v"
+#    "../vivado-project/cpu_main/ver2_sim_wrapper_behav.wcfg"
 #
 # 3. The following remote source files that were added to the original project:-
 #
 #    "../include.vh"
+#    "../struct.v"
+#    "../cpu2.v"
+#    "../reset.v"
+#    "../reg.v"
+#    "../uart_rx.v"
+#    "../uart_tx.v"
+#    "../utility.v"
+#    "../uart.v"
+#    "../inst_window.v"
 #    "../alu.v"
 #    "../branch.v"
-#    "../decoder.v"
 #    "../divrem.v"
 #    "../FPU/fadd.v"
+#    "../fbranch.v"
 #    "../FPU/fcomp.v"
 #    "../FPU/fdiv.v"
-#    "../fetcher.v"
 #    "../FPU/ffloor.v"
 #    "../FPU/fmul.v"
 #    "../fpu.v"
@@ -46,13 +55,11 @@
 #    "../io.v"
 #    "../FPU/itof.v"
 #    "../memory_access.v"
-#    "../reg.v"
-#    "../cpu.v"
-#    "../reset.v"
-#    "../uart_rx.v"
-#    "../uart_tx.v"
-#    "../uart_util.v"
-#    "../uart.v"
+#    "../exec.v"
+#    "../reg_manage.v"
+#    "../decoder.v"
+#    "../context_manage.v"
+#    "../fetcher.v"
 #    "../uart_input_test.v"
 #    "../bin_code/uart_loopback.coe"
 #    "../bin_code/conversational_fib.coe"
@@ -66,6 +73,9 @@
 #    "../bin_code/conversational_fib_float.coe"
 #    "../bin_code/float-check-3.coe"
 #    "../bin_code/raytrace128.coe"
+#    "../bin_code/fib30.coe"
+#    "../bin_code/fib5.coe"
+#    "../bin_code/fib15.coe"
 #    "../constraint.xdc"
 #
 #*****************************************************************************************
@@ -169,14 +179,14 @@ set_property -name "mem.enable_memory_map_generation" -value "1" -objects $obj
 set_property -name "sim.central_dir" -value "$proj_dir/${_xil_proj_name_}.ip_user_files" -objects $obj
 set_property -name "sim.ip.auto_export_scripts" -value "1" -objects $obj
 set_property -name "simulator_language" -value "Mixed" -objects $obj
-set_property -name "webtalk.activehdl_export_sim" -value "5" -objects $obj
-set_property -name "webtalk.ies_export_sim" -value "5" -objects $obj
-set_property -name "webtalk.modelsim_export_sim" -value "5" -objects $obj
-set_property -name "webtalk.questa_export_sim" -value "5" -objects $obj
-set_property -name "webtalk.riviera_export_sim" -value "5" -objects $obj
-set_property -name "webtalk.vcs_export_sim" -value "5" -objects $obj
-set_property -name "webtalk.xsim_export_sim" -value "5" -objects $obj
-set_property -name "webtalk.xsim_launch_sim" -value "5" -objects $obj
+set_property -name "webtalk.activehdl_export_sim" -value "38" -objects $obj
+set_property -name "webtalk.ies_export_sim" -value "38" -objects $obj
+set_property -name "webtalk.modelsim_export_sim" -value "38" -objects $obj
+set_property -name "webtalk.questa_export_sim" -value "38" -objects $obj
+set_property -name "webtalk.riviera_export_sim" -value "38" -objects $obj
+set_property -name "webtalk.vcs_export_sim" -value "38" -objects $obj
+set_property -name "webtalk.xsim_export_sim" -value "38" -objects $obj
+set_property -name "webtalk.xsim_launch_sim" -value "84" -objects $obj
 set_property -name "xpm_libraries" -value "XPM_CDC XPM_MEMORY" -objects $obj
 
 # Create 'sources_1' fileset (if not found)
@@ -188,14 +198,22 @@ if {[string equal [get_filesets -quiet sources_1] ""]} {
 set obj [get_filesets sources_1]
 set files [list \
  [file normalize "${origin_dir}/../include.vh"] \
+ [file normalize "${origin_dir}/../struct.v"] \
+ [file normalize "${origin_dir}/../cpu2.v"] \
+ [file normalize "${origin_dir}/../reset.v"] \
+ [file normalize "${origin_dir}/../reg.v"] \
+ [file normalize "${origin_dir}/../uart_rx.v"] \
+ [file normalize "${origin_dir}/../uart_tx.v"] \
+ [file normalize "${origin_dir}/../utility.v"] \
+ [file normalize "${origin_dir}/../uart.v"] \
+ [file normalize "${origin_dir}/../inst_window.v"] \
  [file normalize "${origin_dir}/../alu.v"] \
  [file normalize "${origin_dir}/../branch.v"] \
- [file normalize "${origin_dir}/../decoder.v"] \
  [file normalize "${origin_dir}/../divrem.v"] \
  [file normalize "${origin_dir}/../FPU/fadd.v"] \
+ [file normalize "${origin_dir}/../fbranch.v"] \
  [file normalize "${origin_dir}/../FPU/fcomp.v"] \
  [file normalize "${origin_dir}/../FPU/fdiv.v"] \
- [file normalize "${origin_dir}/../fetcher.v"] \
  [file normalize "${origin_dir}/../FPU/ffloor.v"] \
  [file normalize "${origin_dir}/../FPU/fmul.v"] \
  [file normalize "${origin_dir}/../fpu.v"] \
@@ -205,13 +223,11 @@ set files [list \
  [file normalize "${origin_dir}/../io.v"] \
  [file normalize "${origin_dir}/../FPU/itof.v"] \
  [file normalize "${origin_dir}/../memory_access.v"] \
- [file normalize "${origin_dir}/../reg.v"] \
- [file normalize "${origin_dir}/../cpu.v"] \
- [file normalize "${origin_dir}/../reset.v"] \
- [file normalize "${origin_dir}/../uart_rx.v"] \
- [file normalize "${origin_dir}/../uart_tx.v"] \
- [file normalize "${origin_dir}/../uart_util.v"] \
- [file normalize "${origin_dir}/../uart.v"] \
+ [file normalize "${origin_dir}/../exec.v"] \
+ [file normalize "${origin_dir}/../reg_manage.v"] \
+ [file normalize "${origin_dir}/../decoder.v"] \
+ [file normalize "${origin_dir}/../context_manage.v"] \
+ [file normalize "${origin_dir}/../fetcher.v"] \
  [file normalize "${origin_dir}/../uart_input_test.v"] \
  [file normalize "${origin_dir}/../bin_code/uart_loopback.coe"] \
  [file normalize "${origin_dir}/../bin_code/conversational_fib.coe"] \
@@ -225,13 +241,16 @@ set files [list \
  [file normalize "${origin_dir}/../bin_code/conversational_fib_float.coe"] \
  [file normalize "${origin_dir}/../bin_code/float-check-3.coe"] \
  [file normalize "${origin_dir}/../bin_code/raytrace128.coe"] \
+ [file normalize "${origin_dir}/../bin_code/fib30.coe"] \
+ [file normalize "${origin_dir}/../bin_code/fib5.coe"] \
+ [file normalize "${origin_dir}/../bin_code/fib15.coe"] \
 ]
 add_files -norecurse -fileset $obj $files
 
 # Import local files from the original project
 set files [list \
- [file normalize "${origin_dir}/ver1_wrapper.v"]\
- [file normalize "${origin_dir}/ver1_sim_wrapper.v"]\
+ [file normalize "${origin_dir}/ver2_wrapper.v" ]\
+ [file normalize "${origin_dir}/ver2_sim_wrapper.v" ]\
 ]
 set imported_files [import_files -fileset sources_1 $files]
 
@@ -247,7 +266,7 @@ set_property -name "file_type" -value "Verilog Header" -objects $file_obj
 
 # Set 'sources_1' fileset properties
 set obj [get_filesets sources_1]
-set_property -name "top" -value "ver1_wrapper" -objects $obj
+set_property -name "top" -value "ver2_wrapper" -objects $obj
 set_property -name "top_auto_set" -value "0" -objects $obj
 
 # Create 'constrs_1' fileset (if not found)
@@ -276,11 +295,21 @@ if {[string equal [get_filesets -quiet sim_1] ""]} {
 
 # Set 'sim_1' fileset object
 set obj [get_filesets sim_1]
-# Empty (no sources present)
+# Import local files from the original project
+set files [list \
+ [file normalize "${origin_dir}/cpu_main/ver2_sim_wrapper_behav.wcfg" ]\
+]
+set imported_files [import_files -fileset sim_1 $files]
+
+# Set 'sim_1' fileset file properties for remote files
+# None
+
+# Set 'sim_1' fileset file properties for local files
+# None
 
 # Set 'sim_1' fileset properties
 set obj [get_filesets sim_1]
-set_property -name "top" -value "ver1_sim_wrapper" -objects $obj
+set_property -name "top" -value "ver2_sim_wrapper" -objects $obj
 set_property -name "top_auto_set" -value "0" -objects $obj
 set_property -name "top_lib" -value "xil_defaultlib" -objects $obj
 
@@ -296,14 +325,56 @@ set obj [get_filesets utils_1]
 if { [get_files include.vh] == "" } {
   import_files -quiet -fileset sources_1 ../include.vh
 }
+if { [get_files struct.v] == "" } {
+  import_files -quiet -fileset sources_1 ../struct.v
+}
+if { [get_files cpu2.v] == "" } {
+  import_files -quiet -fileset sources_1 ../cpu2.v
+}
+if { [get_files reset.v] == "" } {
+  import_files -quiet -fileset sources_1 ../reset.v
+}
+if { [get_files include.vh] == "" } {
+  import_files -quiet -fileset sources_1 ../include.vh
+}
+if { [get_files reg.v] == "" } {
+  import_files -quiet -fileset sources_1 ../reg.v
+}
+if { [get_files uart_rx.v] == "" } {
+  import_files -quiet -fileset sources_1 ../uart_rx.v
+}
+if { [get_files uart_tx.v] == "" } {
+  import_files -quiet -fileset sources_1 ../uart_tx.v
+}
+if { [get_files utility.v] == "" } {
+  import_files -quiet -fileset sources_1 ../utility.v
+}
+if { [get_files uart.v] == "" } {
+  import_files -quiet -fileset sources_1 ../uart.v
+}
+if { [get_files include.vh] == "" } {
+  import_files -quiet -fileset sources_1 ../include.vh
+}
+if { [get_files reg.v] == "" } {
+  import_files -quiet -fileset sources_1 ../reg.v
+}
+if { [get_files struct.v] == "" } {
+  import_files -quiet -fileset sources_1 ../struct.v
+}
+if { [get_files utility.v] == "" } {
+  import_files -quiet -fileset sources_1 ../utility.v
+}
+if { [get_files inst_window.v] == "" } {
+  import_files -quiet -fileset sources_1 ../inst_window.v
+}
+if { [get_files include.vh] == "" } {
+  import_files -quiet -fileset sources_1 ../include.vh
+}
 if { [get_files alu.v] == "" } {
   import_files -quiet -fileset sources_1 ../alu.v
 }
 if { [get_files branch.v] == "" } {
   import_files -quiet -fileset sources_1 ../branch.v
-}
-if { [get_files decoder.v] == "" } {
-  import_files -quiet -fileset sources_1 ../decoder.v
 }
 if { [get_files divrem.v] == "" } {
   import_files -quiet -fileset sources_1 ../divrem.v
@@ -311,14 +382,14 @@ if { [get_files divrem.v] == "" } {
 if { [get_files fadd.v] == "" } {
   import_files -quiet -fileset sources_1 ../FPU/fadd.v
 }
+if { [get_files fbranch.v] == "" } {
+  import_files -quiet -fileset sources_1 ../fbranch.v
+}
 if { [get_files fcomp.v] == "" } {
   import_files -quiet -fileset sources_1 ../FPU/fcomp.v
 }
 if { [get_files fdiv.v] == "" } {
   import_files -quiet -fileset sources_1 ../FPU/fdiv.v
-}
-if { [get_files fetcher.v] == "" } {
-  import_files -quiet -fileset sources_1 ../fetcher.v
 }
 if { [get_files ffloor.v] == "" } {
   import_files -quiet -fileset sources_1 ../FPU/ffloor.v
@@ -350,11 +421,11 @@ if { [get_files memory_access.v] == "" } {
 if { [get_files reg.v] == "" } {
   import_files -quiet -fileset sources_1 ../reg.v
 }
-if { [get_files cpu.v] == "" } {
-  import_files -quiet -fileset sources_1 ../cpu.v
+if { [get_files struct.v] == "" } {
+  import_files -quiet -fileset sources_1 ../struct.v
 }
-if { [get_files reset.v] == "" } {
-  import_files -quiet -fileset sources_1 ../reset.v
+if { [get_files exec.v] == "" } {
+  import_files -quiet -fileset sources_1 ../exec.v
 }
 if { [get_files include.vh] == "" } {
   import_files -quiet -fileset sources_1 ../include.vh
@@ -362,30 +433,60 @@ if { [get_files include.vh] == "" } {
 if { [get_files reg.v] == "" } {
   import_files -quiet -fileset sources_1 ../reg.v
 }
-if { [get_files uart_rx.v] == "" } {
-  import_files -quiet -fileset sources_1 ../uart_rx.v
+if { [get_files struct.v] == "" } {
+  import_files -quiet -fileset sources_1 ../struct.v
 }
-if { [get_files uart_tx.v] == "" } {
-  import_files -quiet -fileset sources_1 ../uart_tx.v
+if { [get_files utility.v] == "" } {
+  import_files -quiet -fileset sources_1 ../utility.v
 }
-if { [get_files uart_util.v] == "" } {
-  import_files -quiet -fileset sources_1 ../uart_util.v
+if { [get_files reg_manage.v] == "" } {
+  import_files -quiet -fileset sources_1 ../reg_manage.v
 }
-if { [get_files uart.v] == "" } {
-  import_files -quiet -fileset sources_1 ../uart.v
+if { [get_files include.vh] == "" } {
+  import_files -quiet -fileset sources_1 ../include.vh
+}
+if { [get_files decoder.v] == "" } {
+  import_files -quiet -fileset sources_1 ../decoder.v
+}
+if { [get_files reg.v] == "" } {
+  import_files -quiet -fileset sources_1 ../reg.v
+}
+if { [get_files struct.v] == "" } {
+  import_files -quiet -fileset sources_1 ../struct.v
+}
+if { [get_files utility.v] == "" } {
+  import_files -quiet -fileset sources_1 ../utility.v
+}
+if { [get_files context_manage.v] == "" } {
+  import_files -quiet -fileset sources_1 ../context_manage.v
+}
+if { [get_files include.vh] == "" } {
+  import_files -quiet -fileset sources_1 ../include.vh
+}
+if { [get_files reg.v] == "" } {
+  import_files -quiet -fileset sources_1 ../reg.v
+}
+if { [get_files struct.v] == "" } {
+  import_files -quiet -fileset sources_1 ../struct.v
+}
+if { [get_files utility.v] == "" } {
+  import_files -quiet -fileset sources_1 ../utility.v
+}
+if { [get_files fetcher.v] == "" } {
+  import_files -quiet -fileset sources_1 ../fetcher.v
 }
 
 
-# Proc to create BD ver1
-proc cr_bd_ver1 { parentCell } {
+# Proc to create BD ver2
+proc cr_bd_ver2 { parentCell } {
 # The design that will be created by this Tcl proc contains the following 
 # module references:
-# cpu, simple_reset_gen, uart_manage
+# context_manage, cpu, exec, fetch, inst_window, reg_manage, simple_reset_gen, uart_manage
 
 
 
   # CHANGE DESIGN NAME HERE
-  set design_name ver1
+  set design_name ver2
 
   common::send_msg_id "BD_TCL-003" "INFO" "Currently there is no design <$design_name> in project, so creating one..."
 
@@ -426,7 +527,12 @@ proc cr_bd_ver1 { parentCell } {
   set bCheckModules 1
   if { $bCheckModules == 1 } {
      set list_check_mods "\ 
+  context_manage\
   cpu\
+  exec\
+  fetch\
+  inst_window\
+  reg_manage\
   simple_reset_gen\
   uart_manage\
   "
@@ -512,6 +618,17 @@ proc cr_bd_ver1 { parentCell } {
    CONFIG.USE_BOARD_FLOW {true} \
  ] $clk_wiz_0
 
+  # Create instance: context_manage_0, and set properties
+  set block_name context_manage
+  set block_cell_name context_manage_0
+  if { [catch {set context_manage_0 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
+     catch {common::send_msg_id "BD_TCL-105" "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   } elseif { $context_manage_0 eq "" } {
+     catch {common::send_msg_id "BD_TCL-106" "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   }
+  
   # Create instance: cpu_0, and set properties
   set block_name cpu
   set block_cell_name cpu_0
@@ -543,6 +660,28 @@ proc cr_bd_ver1 { parentCell } {
    CONFIG.use_bram_block {Stand_Alone} \
  ] $data_mem
 
+  # Create instance: exec_0, and set properties
+  set block_name exec
+  set block_cell_name exec_0
+  if { [catch {set exec_0 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
+     catch {common::send_msg_id "BD_TCL-105" "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   } elseif { $exec_0 eq "" } {
+     catch {common::send_msg_id "BD_TCL-106" "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   }
+  
+  # Create instance: fetch_0, and set properties
+  set block_name fetch
+  set block_cell_name fetch_0
+  if { [catch {set fetch_0 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
+     catch {common::send_msg_id "BD_TCL-105" "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   } elseif { $fetch_0 eq "" } {
+     catch {common::send_msg_id "BD_TCL-106" "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   }
+  
   # Create instance: inst_mem, and set properties
   set inst_mem [ create_bd_cell -type ip -vlnv xilinx.com:ip:blk_mem_gen:8.4 inst_mem ]
   set_property -dict [ list \
@@ -560,6 +699,28 @@ proc cr_bd_ver1 { parentCell } {
    CONFIG.use_bram_block {Stand_Alone} \
  ] $inst_mem
 
+  # Create instance: inst_window_0, and set properties
+  set block_name inst_window
+  set block_cell_name inst_window_0
+  if { [catch {set inst_window_0 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
+     catch {common::send_msg_id "BD_TCL-105" "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   } elseif { $inst_window_0 eq "" } {
+     catch {common::send_msg_id "BD_TCL-106" "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   }
+  
+  # Create instance: reg_manage_0, and set properties
+  set block_name reg_manage
+  set block_cell_name reg_manage_0
+  if { [catch {set reg_manage_0 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
+     catch {common::send_msg_id "BD_TCL-105" "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   } elseif { $reg_manage_0 eq "" } {
+     catch {common::send_msg_id "BD_TCL-106" "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   }
+  
   # Create instance: simple_reset_gen_0, and set properties
   set block_name simple_reset_gen
   set block_cell_name simple_reset_gen_0
@@ -582,7 +743,7 @@ proc cr_bd_ver1 { parentCell } {
      return 1
    }
     set_property -dict [ list \
-   CONFIG.BAUD {9600} \
+   CONFIG.BAUD {19200} \
    CONFIG.CLK_FREQ {90000000} \
  ] $uart_manage_0
 
@@ -600,29 +761,52 @@ proc cr_bd_ver1 { parentCell } {
   connect_bd_net -net GPIO_SW_S_1 [get_bd_ports GPIO_SW_S] [get_bd_pins simple_reset_gen_0/usr_load_in]
   connect_bd_net -net USB_UART_TX_1 [get_bd_ports USB_UART_TX] [get_bd_pins uart_manage_0/rxd] [get_bd_pins xlconcat_0/In2]
   connect_bd_net -net clk_wiz_0_locked [get_bd_pins clk_wiz_0/locked] [get_bd_pins simple_reset_gen_0/sys_rstn]
-  connect_bd_net -net clk_wiz_1_clk_out1 [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins cpu_0/clk] [get_bd_pins data_mem/clka] [get_bd_pins inst_mem/clka] [get_bd_pins uart_manage_0/clk]
-  connect_bd_net -net cpu_0_a_inst [get_bd_pins cpu_0/a_inst] [get_bd_pins inst_mem/addra]
-  connect_bd_net -net cpu_0_a_mem [get_bd_pins cpu_0/a_mem] [get_bd_pins data_mem/addra]
+  connect_bd_net -net clk_wiz_1_clk_out1 [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins context_manage_0/clk] [get_bd_pins cpu_0/clk] [get_bd_pins data_mem/clka] [get_bd_pins exec_0/clk] [get_bd_pins fetch_0/clk] [get_bd_pins inst_mem/clka] [get_bd_pins inst_window_0/clk] [get_bd_pins reg_manage_0/clk] [get_bd_pins uart_manage_0/clk]
+  connect_bd_net -net context_manage_0_branch_hazard [get_bd_pins context_manage_0/branch_hazard] [get_bd_pins inst_window_0/branch_hazard] [get_bd_pins reg_manage_0/branch_hazard]
+  connect_bd_net -net context_manage_0_fetch_hint [get_bd_pins context_manage_0/fetch_hint] [get_bd_pins fetch_0/lr_d]
+  connect_bd_net -net context_manage_0_fetch_order [get_bd_pins context_manage_0/fetch_order] [get_bd_pins fetch_0/order]
+  connect_bd_net -net context_manage_0_fetch_pc [get_bd_pins context_manage_0/fetch_pc] [get_bd_pins fetch_0/pc]
+  connect_bd_net -net context_manage_0_hazard_context_info [get_bd_pins context_manage_0/hazard_context_info] [get_bd_pins inst_window_0/hazard_context_info] [get_bd_pins reg_manage_0/hazard_context_info]
+  connect_bd_net -net context_manage_0_i_w_dec_exec_info [get_bd_pins context_manage_0/i_w_dec_exec_info] [get_bd_pins inst_window_0/d_dec_exec_info]
+  connect_bd_net -net context_manage_0_i_w_done [get_bd_pins context_manage_0/i_w_done] [get_bd_pins inst_window_0/d_done]
+  connect_bd_net -net cpu_0_a_inst [get_bd_pins fetch_0/a_inst_mem] [get_bd_pins inst_mem/addra]
+  connect_bd_net -net cpu_0_a_mem [get_bd_pins data_mem/addra] [get_bd_pins exec_0/mem_a]
+  connect_bd_net -net cpu_0_context_manage_init [get_bd_pins context_manage_0/init] [get_bd_pins cpu_0/context_manage_init]
+  connect_bd_net -net cpu_0_e_from_uart [get_bd_pins cpu_0/e_from_uart] [get_bd_pins exec_0/from_uart]
+  connect_bd_net -net cpu_0_i_w_accept_abke_out [get_bd_pins context_manage_0/i_w_accept_able] [get_bd_pins cpu_0/i_w_accept_able_out]
   connect_bd_net -net cpu_0_led_stat [get_bd_pins cpu_0/led_stat] [get_bd_pins xlconcat_0/In0]
-  connect_bd_net -net cpu_0_mem_read_flag [get_bd_pins cpu_0/mem_read_flag] [get_bd_pins data_mem/ena]
-  connect_bd_net -net cpu_0_mem_write_flag [get_bd_pins cpu_0/mem_write_flag] [get_bd_pins data_mem/wea]
-  connect_bd_net -net cpu_0_prold_set_address [get_bd_pins cpu_0/prold_set_address] [get_bd_pins inst_mem/dina]
-  connect_bd_net -net cpu_0_prold_write_flag [get_bd_pins cpu_0/prold_write_flag] [get_bd_pins inst_mem/wea]
-  connect_bd_net -net cpu_0_sd_mem [get_bd_pins cpu_0/sd_mem] [get_bd_pins data_mem/dina]
+  connect_bd_net -net cpu_0_mem_read_flag [get_bd_pins data_mem/ena] [get_bd_pins exec_0/mem_en]
+  connect_bd_net -net cpu_0_mem_write_flag [get_bd_pins data_mem/wea] [get_bd_pins exec_0/mem_write]
+  connect_bd_net -net cpu_0_prold_info [get_bd_pins cpu_0/prold_info] [get_bd_pins fetch_0/prold_info]
+  connect_bd_net -net cpu_0_prold_set_address [get_bd_pins fetch_0/d_inst_mem_w] [get_bd_pins inst_mem/dina]
+  connect_bd_net -net cpu_0_prold_write_flag [get_bd_pins fetch_0/wen_mem] [get_bd_pins inst_mem/wea]
+  connect_bd_net -net cpu_0_sd_mem [get_bd_pins data_mem/dina] [get_bd_pins exec_0/mem_sd]
   connect_bd_net -net cpu_0_uart_o_data [get_bd_pins cpu_0/uart_o_data] [get_bd_pins uart_manage_0/write_data]
   connect_bd_net -net cpu_0_uart_order [get_bd_pins cpu_0/uart_order] [get_bd_pins uart_manage_0/order]
   connect_bd_net -net cpu_0_uart_size [get_bd_pins cpu_0/uart_size] [get_bd_pins uart_manage_0/size]
-  connect_bd_net -net cpu_0_uart_write_flag [get_bd_pins cpu_0/uart_write_flag] [get_bd_pins uart_manage_0/write_flag]
-  connect_bd_net -net data_mem_douta [get_bd_pins cpu_0/ld_mem] [get_bd_pins data_mem/douta]
-  connect_bd_net -net inst_mem_douta [get_bd_pins cpu_0/d_inst] [get_bd_pins inst_mem/douta]
+  connect_bd_net -net cpu_0_uart_write_flag [get_bd_pins cpu_0/uart_write] [get_bd_pins uart_manage_0/write_flag]
+  connect_bd_net -net data_mem_douta [get_bd_pins data_mem/douta] [get_bd_pins exec_0/mem_ld]
+  connect_bd_net -net exec_0_accepted [get_bd_pins exec_0/accepted] [get_bd_pins inst_window_0/accepted]
+  connect_bd_net -net exec_0_j_b_info [get_bd_pins context_manage_0/j_b_info] [get_bd_pins exec_0/j_b_info]
+  connect_bd_net -net exec_0_to_uart [get_bd_pins cpu_0/e_to_uart] [get_bd_pins exec_0/to_uart]
+  connect_bd_net -net exec_0_write_d_r [get_bd_pins exec_0/write_d_r] [get_bd_pins reg_manage_0/w_write_d_r]
+  connect_bd_net -net fetch_0_done [get_bd_pins context_manage_0/fetch_done] [get_bd_pins fetch_0/done]
+  connect_bd_net -net fetch_0_instr [get_bd_pins context_manage_0/fetch_instr] [get_bd_pins fetch_0/instr]
+  connect_bd_net -net inst_mem_douta [get_bd_pins fetch_0/d_inst_mem_r] [get_bd_pins inst_mem/douta]
+  connect_bd_net -net inst_window_0_accept_able [get_bd_pins cpu_0/i_w_accept_able_in] [get_bd_pins inst_window_0/accept_able]
+  connect_bd_net -net inst_window_0_e_exec_info [get_bd_pins exec_0/exec_info] [get_bd_pins inst_window_0/e_exec_info]
+  connect_bd_net -net inst_window_0_order [get_bd_pins exec_0/order] [get_bd_pins inst_window_0/order]
+  connect_bd_net -net inst_window_0_r_inst_vreg [get_bd_pins inst_window_0/r_inst_vreg] [get_bd_pins reg_manage_0/r_inst_vreg]
+  connect_bd_net -net reg_manage_0_lr_d [get_bd_pins context_manage_0/lr_d] [get_bd_pins reg_manage_0/lr_d]
+  connect_bd_net -net reg_manage_0_r_inst_d_r [get_bd_pins inst_window_0/r_inst_d_r] [get_bd_pins reg_manage_0/r_inst_d_r]
   connect_bd_net -net reset_1 [get_bd_ports reset] [get_bd_pins clk_wiz_0/reset]
   connect_bd_net -net simple_reset_gen_0_native_rstn [get_bd_pins cpu_0/native_rstn] [get_bd_pins simple_reset_gen_0/native_rstn]
-  connect_bd_net -net simple_reset_gen_0_rstn [get_bd_pins cpu_0/rstn] [get_bd_pins simple_reset_gen_0/rstn] [get_bd_pins uart_manage_0/rstn]
+  connect_bd_net -net simple_reset_gen_0_rstn [get_bd_pins context_manage_0/rstn] [get_bd_pins cpu_0/rstn] [get_bd_pins exec_0/rstn] [get_bd_pins fetch_0/rstn] [get_bd_pins inst_window_0/rstn] [get_bd_pins reg_manage_0/rstn] [get_bd_pins simple_reset_gen_0/rstn] [get_bd_pins uart_manage_0/rstn]
   connect_bd_net -net simple_reset_gen_0_usr_load_out [get_bd_pins cpu_0/usr_load] [get_bd_pins simple_reset_gen_0/usr_load_out]
   connect_bd_net -net simple_reset_gen_0_usr_rst_out [get_bd_pins cpu_0/usr_rst] [get_bd_pins simple_reset_gen_0/usr_rst_out]
   connect_bd_net -net uart_manage_0_accepted [get_bd_pins cpu_0/uart_accepted] [get_bd_pins uart_manage_0/accepted]
   connect_bd_net -net uart_manage_0_done [get_bd_pins cpu_0/uart_done] [get_bd_pins uart_manage_0/done]
-  connect_bd_net -net uart_manage_0_read_data [get_bd_pins cpu_0/uart_i_data] [get_bd_pins uart_manage_0/read_data]
+  connect_bd_net -net uart_manage_0_read_data [get_bd_pins cpu_0/uart_r_data] [get_bd_pins uart_manage_0/read_data]
   connect_bd_net -net uart_manage_0_txd [get_bd_ports USB_UART_RX] [get_bd_pins uart_manage_0/txd] [get_bd_pins xlconcat_0/In1]
   connect_bd_net -net xlconcat_0_dout [get_bd_ports GPIO_LED] [get_bd_pins xlconcat_0/dout]
 
@@ -643,11 +827,38 @@ proc cr_bd_ver1 { parentCell } {
   save_bd_design
   close_bd_design $design_name 
 }
-# End of cr_bd_ver1()
-cr_bd_ver1 ""
-set_property REGISTERED_WITH_MANAGER "1" [get_files ver1.bd ] 
-set_property SYNTH_CHECKPOINT_MODE "Hierarchical" [get_files ver1.bd ] 
+# End of cr_bd_ver2()
+cr_bd_ver2 ""
+set_property REGISTERED_WITH_MANAGER "1" [get_files ver2.bd ] 
+set_property SYNTH_CHECKPOINT_MODE "Hierarchical" [get_files ver2.bd ] 
 
+if { [get_files include.vh] == "" } {
+  import_files -quiet -fileset sources_1 ../include.vh
+}
+if { [get_files decoder.v] == "" } {
+  import_files -quiet -fileset sources_1 ../decoder.v
+}
+if { [get_files reg.v] == "" } {
+  import_files -quiet -fileset sources_1 ../reg.v
+}
+if { [get_files struct.v] == "" } {
+  import_files -quiet -fileset sources_1 ../struct.v
+}
+if { [get_files utility.v] == "" } {
+  import_files -quiet -fileset sources_1 ../utility.v
+}
+if { [get_files context_manage.v] == "" } {
+  import_files -quiet -fileset sources_1 ../context_manage.v
+}
+if { [get_files include.vh] == "" } {
+  import_files -quiet -fileset sources_1 ../include.vh
+}
+if { [get_files struct.v] == "" } {
+  import_files -quiet -fileset sources_1 ../struct.v
+}
+if { [get_files cpu2.v] == "" } {
+  import_files -quiet -fileset sources_1 ../cpu2.v
+}
 if { [get_files include.vh] == "" } {
   import_files -quiet -fileset sources_1 ../include.vh
 }
@@ -657,23 +868,20 @@ if { [get_files alu.v] == "" } {
 if { [get_files branch.v] == "" } {
   import_files -quiet -fileset sources_1 ../branch.v
 }
-if { [get_files decoder.v] == "" } {
-  import_files -quiet -fileset sources_1 ../decoder.v
-}
 if { [get_files divrem.v] == "" } {
   import_files -quiet -fileset sources_1 ../divrem.v
 }
 if { [get_files fadd.v] == "" } {
   import_files -quiet -fileset sources_1 ../FPU/fadd.v
 }
+if { [get_files fbranch.v] == "" } {
+  import_files -quiet -fileset sources_1 ../fbranch.v
+}
 if { [get_files fcomp.v] == "" } {
   import_files -quiet -fileset sources_1 ../FPU/fcomp.v
 }
 if { [get_files fdiv.v] == "" } {
   import_files -quiet -fileset sources_1 ../FPU/fdiv.v
-}
-if { [get_files fetcher.v] == "" } {
-  import_files -quiet -fileset sources_1 ../fetcher.v
 }
 if { [get_files ffloor.v] == "" } {
   import_files -quiet -fileset sources_1 ../FPU/ffloor.v
@@ -705,8 +913,56 @@ if { [get_files memory_access.v] == "" } {
 if { [get_files reg.v] == "" } {
   import_files -quiet -fileset sources_1 ../reg.v
 }
-if { [get_files cpu.v] == "" } {
-  import_files -quiet -fileset sources_1 ../cpu.v
+if { [get_files struct.v] == "" } {
+  import_files -quiet -fileset sources_1 ../struct.v
+}
+if { [get_files exec.v] == "" } {
+  import_files -quiet -fileset sources_1 ../exec.v
+}
+if { [get_files include.vh] == "" } {
+  import_files -quiet -fileset sources_1 ../include.vh
+}
+if { [get_files reg.v] == "" } {
+  import_files -quiet -fileset sources_1 ../reg.v
+}
+if { [get_files struct.v] == "" } {
+  import_files -quiet -fileset sources_1 ../struct.v
+}
+if { [get_files utility.v] == "" } {
+  import_files -quiet -fileset sources_1 ../utility.v
+}
+if { [get_files fetcher.v] == "" } {
+  import_files -quiet -fileset sources_1 ../fetcher.v
+}
+if { [get_files include.vh] == "" } {
+  import_files -quiet -fileset sources_1 ../include.vh
+}
+if { [get_files reg.v] == "" } {
+  import_files -quiet -fileset sources_1 ../reg.v
+}
+if { [get_files struct.v] == "" } {
+  import_files -quiet -fileset sources_1 ../struct.v
+}
+if { [get_files utility.v] == "" } {
+  import_files -quiet -fileset sources_1 ../utility.v
+}
+if { [get_files inst_window.v] == "" } {
+  import_files -quiet -fileset sources_1 ../inst_window.v
+}
+if { [get_files include.vh] == "" } {
+  import_files -quiet -fileset sources_1 ../include.vh
+}
+if { [get_files reg.v] == "" } {
+  import_files -quiet -fileset sources_1 ../reg.v
+}
+if { [get_files struct.v] == "" } {
+  import_files -quiet -fileset sources_1 ../struct.v
+}
+if { [get_files utility.v] == "" } {
+  import_files -quiet -fileset sources_1 ../utility.v
+}
+if { [get_files reg_manage.v] == "" } {
+  import_files -quiet -fileset sources_1 ../reg_manage.v
 }
 if { [get_files reset.v] == "" } {
   import_files -quiet -fileset sources_1 ../reset.v
@@ -723,24 +979,24 @@ if { [get_files uart_rx.v] == "" } {
 if { [get_files uart_tx.v] == "" } {
   import_files -quiet -fileset sources_1 ../uart_tx.v
 }
-if { [get_files uart_util.v] == "" } {
-  import_files -quiet -fileset sources_1 ../uart_util.v
+if { [get_files utility.v] == "" } {
+  import_files -quiet -fileset sources_1 ../utility.v
 }
 if { [get_files uart.v] == "" } {
   import_files -quiet -fileset sources_1 ../uart.v
 }
 
 
-# Proc to create BD ver1_sim
-proc cr_bd_ver1_sim { parentCell } {
+# Proc to create BD ver2_sim
+proc cr_bd_ver2_sim { parentCell } {
 # The design that will be created by this Tcl proc contains the following 
 # module references:
-# cpu, simple_reset_gen, uart_manage
+# context_manage, cpu, exec, fetch, inst_window, reg_manage, simple_reset_gen, uart_manage
 
 
 
   # CHANGE DESIGN NAME HERE
-  set design_name ver1_sim
+  set design_name ver2_sim
 
   common::send_msg_id "BD_TCL-003" "INFO" "Currently there is no design <$design_name> in project, so creating one..."
 
@@ -754,12 +1010,12 @@ proc cr_bd_ver1_sim { parentCell } {
   if { $bCheckIPs == 1 } {
      set list_check_ips "\ 
   xilinx.com:ip:c_counter_binary:12.0\
+  xilinx.com:ip:c_shift_ram:12.0\
   xilinx.com:ip:clk_wiz:6.0\
   xilinx.com:ip:blk_mem_gen:8.4\
   xilinx.com:ip:sim_clk_gen:1.0\
   xilinx.com:ip:sim_rst_gen:1.0\
   xilinx.com:ip:util_vector_logic:2.0\
-  xilinx.com:ip:xlconcat:2.1\
   xilinx.com:ip:xlconstant:1.1\
   xilinx.com:ip:xlslice:1.0\
   "
@@ -787,7 +1043,12 @@ proc cr_bd_ver1_sim { parentCell } {
   set bCheckModules 1
   if { $bCheckModules == 1 } {
      set list_check_mods "\ 
+  context_manage\
   cpu\
+  exec\
+  fetch\
+  inst_window\
+  reg_manage\
   simple_reset_gen\
   uart_manage\
   "
@@ -843,16 +1104,25 @@ proc cr_bd_ver1_sim { parentCell } {
   # Create interface ports
 
   # Create ports
-  set GPIO_LED [ create_bd_port -dir O -from 7 -to 0 -type data GPIO_LED ]
   set USB_UART_RX [ create_bd_port -dir O -type data USB_UART_RX ]
 
   # Create instance: c_counter_binary_0, and set properties
   set c_counter_binary_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:c_counter_binary:12.0 c_counter_binary_0 ]
   set_property -dict [ list \
    CONFIG.Final_Count_Value {10} \
-   CONFIG.Output_Width {8} \
+   CONFIG.Output_Width {9} \
    CONFIG.Restrict_Count {true} \
  ] $c_counter_binary_0
+
+  # Create instance: c_shift_ram_0, and set properties
+  set c_shift_ram_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:c_shift_ram:12.0 c_shift_ram_0 ]
+  set_property -dict [ list \
+   CONFIG.AsyncInitVal {0} \
+   CONFIG.DefaultData {0} \
+   CONFIG.Depth {1} \
+   CONFIG.SyncInitVal {0} \
+   CONFIG.Width {1} \
+ ] $c_shift_ram_0
 
   # Create instance: clk_wiz_0, and set properties
   set clk_wiz_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:clk_wiz:6.0 clk_wiz_0 ]
@@ -870,6 +1140,17 @@ proc cr_bd_ver1_sim { parentCell } {
    CONFIG.USE_BOARD_FLOW {true} \
  ] $clk_wiz_0
 
+  # Create instance: context_manage_0, and set properties
+  set block_name context_manage
+  set block_cell_name context_manage_0
+  if { [catch {set context_manage_0 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
+     catch {common::send_msg_id "BD_TCL-105" "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   } elseif { $context_manage_0 eq "" } {
+     catch {common::send_msg_id "BD_TCL-106" "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   }
+  
   # Create instance: cpu_0, and set properties
   set block_name cpu
   set block_cell_name cpu_0
@@ -901,11 +1182,33 @@ proc cr_bd_ver1_sim { parentCell } {
    CONFIG.use_bram_block {Stand_Alone} \
  ] $data_mem
 
+  # Create instance: exec_0, and set properties
+  set block_name exec
+  set block_cell_name exec_0
+  if { [catch {set exec_0 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
+     catch {common::send_msg_id "BD_TCL-105" "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   } elseif { $exec_0 eq "" } {
+     catch {common::send_msg_id "BD_TCL-106" "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   }
+  
+  # Create instance: fetch_0, and set properties
+  set block_name fetch
+  set block_cell_name fetch_0
+  if { [catch {set fetch_0 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
+     catch {common::send_msg_id "BD_TCL-105" "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   } elseif { $fetch_0 eq "" } {
+     catch {common::send_msg_id "BD_TCL-106" "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   }
+  
   # Create instance: inst_mem, and set properties
   set inst_mem [ create_bd_cell -type ip -vlnv xilinx.com:ip:blk_mem_gen:8.4 inst_mem ]
   set_property -dict [ list \
    CONFIG.Byte_Size {9} \
-   CONFIG.Coe_File {../../../../../../../../bin_code/div_rem_test.coe} \
+   CONFIG.Coe_File {../../../../../../../../bin_code/fib15.coe} \
    CONFIG.EN_SAFETY_CKT {false} \
    CONFIG.Enable_32bit_Address {false} \
    CONFIG.Enable_A {Always_Enabled} \
@@ -918,6 +1221,28 @@ proc cr_bd_ver1_sim { parentCell } {
    CONFIG.use_bram_block {Stand_Alone} \
  ] $inst_mem
 
+  # Create instance: inst_window_0, and set properties
+  set block_name inst_window
+  set block_cell_name inst_window_0
+  if { [catch {set inst_window_0 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
+     catch {common::send_msg_id "BD_TCL-105" "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   } elseif { $inst_window_0 eq "" } {
+     catch {common::send_msg_id "BD_TCL-106" "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   }
+  
+  # Create instance: reg_manage_0, and set properties
+  set block_name reg_manage
+  set block_cell_name reg_manage_0
+  if { [catch {set reg_manage_0 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
+     catch {common::send_msg_id "BD_TCL-105" "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   } elseif { $reg_manage_0 eq "" } {
+     catch {common::send_msg_id "BD_TCL-106" "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   }
+  
   # Create instance: sim_clk_gen_0, and set properties
   set sim_clk_gen_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:sim_clk_gen:1.0 sim_clk_gen_0 ]
   set_property -dict [ list \
@@ -952,13 +1277,16 @@ proc cr_bd_ver1_sim { parentCell } {
      return 1
    }
     set_property -dict [ list \
+   CONFIG.BAUD {19200} \
    CONFIG.CLK_FREQ {90000000} \
  ] $uart_manage_0
 
   # Create instance: util_vector_logic_0, and set properties
   set util_vector_logic_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 util_vector_logic_0 ]
   set_property -dict [ list \
+   CONFIG.C_OPERATION {not} \
    CONFIG.C_SIZE {1} \
+   CONFIG.LOGO_FILE {data/sym_notgate.png} \
  ] $util_vector_logic_0
 
   # Create instance: util_vector_logic_1, and set properties
@@ -972,24 +1300,10 @@ proc cr_bd_ver1_sim { parentCell } {
   # Create instance: util_vector_logic_2, and set properties
   set util_vector_logic_2 [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 util_vector_logic_2 ]
   set_property -dict [ list \
-   CONFIG.C_OPERATION {not} \
+   CONFIG.C_OPERATION {or} \
    CONFIG.C_SIZE {1} \
-   CONFIG.LOGO_FILE {data/sym_notgate.png} \
+   CONFIG.LOGO_FILE {data/sym_orgate.png} \
  ] $util_vector_logic_2
-
-  # Create instance: util_vector_logic_3, and set properties
-  set util_vector_logic_3 [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 util_vector_logic_3 ]
-  set_property -dict [ list \
-   CONFIG.C_OPERATION {not} \
-   CONFIG.C_SIZE {1} \
-   CONFIG.LOGO_FILE {data/sym_notgate.png} \
- ] $util_vector_logic_3
-
-  # Create instance: xlconcat_0, and set properties
-  set xlconcat_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 xlconcat_0 ]
-  set_property -dict [ list \
-   CONFIG.NUM_PORTS {3} \
- ] $xlconcat_0
 
   # Create instance: xlconstant_2, and set properties
   set xlconstant_2 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 xlconstant_2 ]
@@ -1005,7 +1319,7 @@ proc cr_bd_ver1_sim { parentCell } {
   set_property -dict [ list \
    CONFIG.DIN_FROM {4} \
    CONFIG.DIN_TO {4} \
-   CONFIG.DIN_WIDTH {8} \
+   CONFIG.DIN_WIDTH {9} \
    CONFIG.DOUT_WIDTH {1} \
  ] $xlslice_0
 
@@ -1014,39 +1328,60 @@ proc cr_bd_ver1_sim { parentCell } {
 
   # Create port connections
   connect_bd_net -net c_counter_binary_0_Q [get_bd_pins c_counter_binary_0/Q] [get_bd_pins xlslice_0/Din]
-  connect_bd_net -net clk_wiz_0_locked [get_bd_pins clk_wiz_0/locked] [get_bd_pins simple_reset_gen_0/sys_rstn] [get_bd_pins util_vector_logic_2/Op1] [get_bd_pins util_vector_logic_3/Op1]
-  connect_bd_net -net clk_wiz_1_clk_out1 [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins cpu_0/clk] [get_bd_pins data_mem/clka] [get_bd_pins inst_mem/clka] [get_bd_pins uart_manage_0/clk] [get_bd_pins util_vector_logic_1/Op1]
-  connect_bd_net -net cpu_0_a_inst [get_bd_pins cpu_0/a_inst] [get_bd_pins inst_mem/addra]
-  connect_bd_net -net cpu_0_a_mem [get_bd_pins cpu_0/a_mem] [get_bd_pins data_mem/addra]
-  connect_bd_net -net cpu_0_led_stat [get_bd_pins cpu_0/led_stat] [get_bd_pins xlconcat_0/In0]
-  connect_bd_net -net cpu_0_mem_read_flag [get_bd_pins cpu_0/mem_read_flag] [get_bd_pins data_mem/ena]
-  connect_bd_net -net cpu_0_mem_write_flag [get_bd_pins cpu_0/mem_write_flag] [get_bd_pins data_mem/wea]
-  connect_bd_net -net cpu_0_prold_set_address [get_bd_pins cpu_0/prold_set_address] [get_bd_pins inst_mem/dina]
-  connect_bd_net -net cpu_0_prold_write_flag [get_bd_pins cpu_0/prold_write_flag] [get_bd_pins inst_mem/wea]
-  connect_bd_net -net cpu_0_sd_mem [get_bd_pins cpu_0/sd_mem] [get_bd_pins data_mem/dina]
+  connect_bd_net -net c_shift_ram_0_Q [get_bd_pins c_shift_ram_0/Q] [get_bd_pins util_vector_logic_0/Op1] [get_bd_pins util_vector_logic_2/Op1]
+  connect_bd_net -net clk_wiz_0_locked [get_bd_pins clk_wiz_0/locked] [get_bd_pins simple_reset_gen_0/sys_rstn] [get_bd_pins util_vector_logic_1/Op2]
+  connect_bd_net -net clk_wiz_1_clk_out1 [get_bd_pins c_shift_ram_0/CLK] [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins context_manage_0/clk] [get_bd_pins cpu_0/clk] [get_bd_pins data_mem/clka] [get_bd_pins exec_0/clk] [get_bd_pins fetch_0/clk] [get_bd_pins inst_mem/clka] [get_bd_pins inst_window_0/clk] [get_bd_pins reg_manage_0/clk] [get_bd_pins uart_manage_0/clk] [get_bd_pins util_vector_logic_1/Op1]
+  connect_bd_net -net context_manage_0_branch_hazard [get_bd_pins context_manage_0/branch_hazard] [get_bd_pins inst_window_0/branch_hazard] [get_bd_pins reg_manage_0/branch_hazard]
+  connect_bd_net -net context_manage_0_fetch_hint [get_bd_pins context_manage_0/fetch_hint] [get_bd_pins fetch_0/lr_d]
+  connect_bd_net -net context_manage_0_fetch_order [get_bd_pins context_manage_0/fetch_order] [get_bd_pins fetch_0/order]
+  connect_bd_net -net context_manage_0_fetch_pc [get_bd_pins context_manage_0/fetch_pc] [get_bd_pins fetch_0/pc]
+  connect_bd_net -net context_manage_0_hazard_context_info [get_bd_pins context_manage_0/hazard_context_info] [get_bd_pins inst_window_0/hazard_context_info] [get_bd_pins reg_manage_0/hazard_context_info]
+  connect_bd_net -net context_manage_0_i_w_dec_exec_info [get_bd_pins context_manage_0/i_w_dec_exec_info] [get_bd_pins inst_window_0/d_dec_exec_info]
+  connect_bd_net -net context_manage_0_i_w_done [get_bd_pins context_manage_0/i_w_done] [get_bd_pins inst_window_0/d_done]
+  connect_bd_net -net cpu_0_a_inst [get_bd_pins fetch_0/a_inst_mem] [get_bd_pins inst_mem/addra]
+  connect_bd_net -net cpu_0_a_mem [get_bd_pins data_mem/addra] [get_bd_pins exec_0/mem_a]
+  connect_bd_net -net cpu_0_context_manage_init [get_bd_pins context_manage_0/init] [get_bd_pins cpu_0/context_manage_init]
+  connect_bd_net -net cpu_0_e_from_uart [get_bd_pins cpu_0/e_from_uart] [get_bd_pins exec_0/from_uart]
+  connect_bd_net -net cpu_0_i_w_accept_abke_out [get_bd_pins context_manage_0/i_w_accept_able] [get_bd_pins cpu_0/i_w_accept_able_out]
+  connect_bd_net -net cpu_0_mem_read_flag [get_bd_pins data_mem/ena] [get_bd_pins exec_0/mem_en]
+  connect_bd_net -net cpu_0_mem_write_flag [get_bd_pins data_mem/wea] [get_bd_pins exec_0/mem_write]
+  connect_bd_net -net cpu_0_prold_info [get_bd_pins cpu_0/prold_info] [get_bd_pins fetch_0/prold_info]
+  connect_bd_net -net cpu_0_prold_set_address [get_bd_pins fetch_0/d_inst_mem_w] [get_bd_pins inst_mem/dina]
+  connect_bd_net -net cpu_0_prold_write_flag [get_bd_pins fetch_0/wen_mem] [get_bd_pins inst_mem/wea]
+  connect_bd_net -net cpu_0_sd_mem [get_bd_pins data_mem/dina] [get_bd_pins exec_0/mem_sd]
   connect_bd_net -net cpu_0_uart_o_data [get_bd_pins cpu_0/uart_o_data] [get_bd_pins uart_manage_0/write_data]
   connect_bd_net -net cpu_0_uart_order [get_bd_pins cpu_0/uart_order] [get_bd_pins uart_manage_0/order]
   connect_bd_net -net cpu_0_uart_size [get_bd_pins cpu_0/uart_size] [get_bd_pins uart_manage_0/size]
-  connect_bd_net -net cpu_0_uart_write_flag [get_bd_pins cpu_0/uart_write_flag] [get_bd_pins uart_manage_0/write_flag]
-  connect_bd_net -net data_mem_douta [get_bd_pins cpu_0/ld_mem] [get_bd_pins data_mem/douta]
-  connect_bd_net -net inst_mem_douta [get_bd_pins cpu_0/d_inst] [get_bd_pins inst_mem/douta]
+  connect_bd_net -net cpu_0_uart_write_flag [get_bd_pins cpu_0/uart_write] [get_bd_pins uart_manage_0/write_flag]
+  connect_bd_net -net data_mem_douta [get_bd_pins data_mem/douta] [get_bd_pins exec_0/mem_ld]
+  connect_bd_net -net exec_0_accepted [get_bd_pins exec_0/accepted] [get_bd_pins inst_window_0/accepted]
+  connect_bd_net -net exec_0_j_b_info [get_bd_pins context_manage_0/j_b_info] [get_bd_pins exec_0/j_b_info]
+  connect_bd_net -net exec_0_to_uart [get_bd_pins cpu_0/e_to_uart] [get_bd_pins exec_0/to_uart]
+  connect_bd_net -net exec_0_write_d_r [get_bd_pins exec_0/write_d_r] [get_bd_pins reg_manage_0/w_write_d_r]
+  connect_bd_net -net fetch_0_done [get_bd_pins context_manage_0/fetch_done] [get_bd_pins fetch_0/done]
+  connect_bd_net -net fetch_0_instr [get_bd_pins context_manage_0/fetch_instr] [get_bd_pins fetch_0/instr]
+  connect_bd_net -net inst_mem_douta [get_bd_pins fetch_0/d_inst_mem_r] [get_bd_pins inst_mem/douta]
+  connect_bd_net -net inst_window_0_accept_able [get_bd_pins cpu_0/i_w_accept_able_in] [get_bd_pins inst_window_0/accept_able]
+  connect_bd_net -net inst_window_0_e_exec_info [get_bd_pins exec_0/exec_info] [get_bd_pins inst_window_0/e_exec_info]
+  connect_bd_net -net inst_window_0_order [get_bd_pins exec_0/order] [get_bd_pins inst_window_0/order]
+  connect_bd_net -net inst_window_0_r_inst_vreg [get_bd_pins inst_window_0/r_inst_vreg] [get_bd_pins reg_manage_0/r_inst_vreg]
+  connect_bd_net -net reg_manage_0_lr_d [get_bd_pins context_manage_0/lr_d] [get_bd_pins reg_manage_0/lr_d]
+  connect_bd_net -net reg_manage_0_r_inst_d_r [get_bd_pins inst_window_0/r_inst_d_r] [get_bd_pins reg_manage_0/r_inst_d_r]
   connect_bd_net -net sim_rst_gen_0_rst [get_bd_pins clk_wiz_0/reset] [get_bd_pins sim_rst_gen_0/rst]
   connect_bd_net -net simple_reset_gen_0_native_rstn [get_bd_pins cpu_0/native_rstn] [get_bd_pins simple_reset_gen_0/native_rstn]
-  connect_bd_net -net simple_reset_gen_0_rstn [get_bd_pins cpu_0/rstn] [get_bd_pins simple_reset_gen_0/rstn] [get_bd_pins uart_manage_0/rstn]
+  connect_bd_net -net simple_reset_gen_0_rstn [get_bd_pins context_manage_0/rstn] [get_bd_pins cpu_0/rstn] [get_bd_pins exec_0/rstn] [get_bd_pins fetch_0/rstn] [get_bd_pins inst_window_0/rstn] [get_bd_pins reg_manage_0/rstn] [get_bd_pins simple_reset_gen_0/rstn] [get_bd_pins uart_manage_0/rstn]
   connect_bd_net -net simple_reset_gen_0_usr_load_out [get_bd_pins cpu_0/usr_load] [get_bd_pins simple_reset_gen_0/usr_load_out]
   connect_bd_net -net simple_reset_gen_0_usr_rst_out [get_bd_pins cpu_0/usr_rst] [get_bd_pins simple_reset_gen_0/usr_rst_out]
   connect_bd_net -net uart_manage_0_accepted [get_bd_pins cpu_0/uart_accepted] [get_bd_pins uart_manage_0/accepted]
   connect_bd_net -net uart_manage_0_done [get_bd_pins cpu_0/uart_done] [get_bd_pins uart_manage_0/done]
-  connect_bd_net -net uart_manage_0_read_data [get_bd_pins cpu_0/uart_i_data] [get_bd_pins uart_manage_0/read_data]
-  connect_bd_net -net uart_manage_0_txd [get_bd_ports USB_UART_RX] [get_bd_pins uart_manage_0/txd] [get_bd_pins xlconcat_0/In1]
+  connect_bd_net -net uart_manage_0_read_data [get_bd_pins cpu_0/uart_r_data] [get_bd_pins uart_manage_0/read_data]
+  connect_bd_net -net uart_manage_0_txd [get_bd_ports USB_UART_RX] [get_bd_pins uart_manage_0/txd]
   connect_bd_net -net util_vector_logic_0_Res [get_bd_pins simple_reset_gen_0/usr_rst_in] [get_bd_pins util_vector_logic_0/Res]
   connect_bd_net -net util_vector_logic_1_Res [get_bd_pins c_counter_binary_0/CLK] [get_bd_pins util_vector_logic_1/Res]
-  connect_bd_net -net util_vector_logic_2_Res [get_bd_pins util_vector_logic_0/Op2] [get_bd_pins util_vector_logic_2/Res]
-  connect_bd_net -net util_vector_logic_3_Res [get_bd_pins util_vector_logic_1/Op2] [get_bd_pins util_vector_logic_3/Res]
-  connect_bd_net -net xlconcat_0_dout [get_bd_ports GPIO_LED] [get_bd_pins xlconcat_0/dout]
-  connect_bd_net -net xlconstant_2_dout [get_bd_pins uart_manage_0/rxd] [get_bd_pins xlconcat_0/In2] [get_bd_pins xlconstant_2/dout]
+  connect_bd_net -net util_vector_logic_2_Res [get_bd_pins c_shift_ram_0/D] [get_bd_pins util_vector_logic_2/Res]
+  connect_bd_net -net xlconstant_2_dout [get_bd_pins uart_manage_0/rxd] [get_bd_pins xlconstant_2/dout]
   connect_bd_net -net xlconstant_3_dout [get_bd_pins simple_reset_gen_0/usr_load_in] [get_bd_pins xlconstant_3/dout]
-  connect_bd_net -net xlslice_0_Dout [get_bd_pins util_vector_logic_0/Op1] [get_bd_pins xlslice_0/Dout]
+  connect_bd_net -net xlslice_0_Dout [get_bd_pins util_vector_logic_2/Op2] [get_bd_pins xlslice_0/Dout]
 
   # Create address segments
 
@@ -1061,15 +1396,14 @@ proc cr_bd_ver1_sim { parentCell } {
   # Restore current instance
   current_bd_instance $oldCurInst
 
+  validate_bd_design
   save_bd_design
-common::send_msg_id "BD_TCL-1000" "WARNING" "This Tcl script was generated from a block design that has not been validated. It is possible that design <$design_name> may result in errors during validation."
-
   close_bd_design $design_name 
 }
-# End of cr_bd_ver1_sim()
-cr_bd_ver1_sim ""
-set_property REGISTERED_WITH_MANAGER "1" [get_files ver1_sim.bd ] 
-set_property SYNTH_CHECKPOINT_MODE "Hierarchical" [get_files ver1_sim.bd ] 
+# End of cr_bd_ver2_sim()
+cr_bd_ver2_sim ""
+set_property REGISTERED_WITH_MANAGER "1" [get_files ver2_sim.bd ] 
+set_property SYNTH_CHECKPOINT_MODE "Hierarchical" [get_files ver2_sim.bd ] 
 
 # Create 'synth_1' run (if not found)
 if {[string equal [get_runs -quiet synth_1] ""]} {

@@ -1,12 +1,12 @@
 //Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
 //--------------------------------------------------------------------------------
-//Command     : generate_target ver1_wrapper.bd
-//Design      : ver1_wrapper
+//Command     : generate_target ver2_wrapper.bd
+//Design      : ver2_wrapper
 //Purpose     : IP block netlist
 //--------------------------------------------------------------------------------
 `timescale 1 ps / 1 ps
 
-module ver1_wrapper
+module ver2_wrapper
    (GPIO_LED,
     GPIO_SW,
     GPIO_SW_S,
@@ -33,7 +33,7 @@ module ver1_wrapper
   wire default_sysclk_300_clk_p;
   wire reset;
 
-  ver1 ver1_i
+  ver2 ver2_i
        (.GPIO_LED(GPIO_LED),
         .GPIO_SW(GPIO_SW),
         .GPIO_SW_S(GPIO_SW_S),
