@@ -13,7 +13,7 @@ module fetch
 --------------------------------
 */
 
-`define FETCH_PREDICT_SIZE 3
+`define FETCH_PREDICT_SIZE 5
 
 module fetch_timing #(
     LEN_MEMISTR_ADDR = `LEN_MEMISTR_ADDR,

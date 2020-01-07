@@ -38,6 +38,8 @@ module decode(
 
     wire alu     = (opecode == `OP_ALU)
                  | (opecode == `OP_ALUI);
+    wire alu_imm = (opecode == `OP_ALUI);
+    wire alu_ext = (opecode == `OP_ALU) & instr[25];
     wire fpu     = (opecode == `OP_FPU);
     wire mem     = (opecode == `OP_MEML)
                  | (opecode == `OP_MEMS)
@@ -52,10 +54,8 @@ module decode(
     wire ibranch = (opecode == `OP_BRANCH);
     wire fbranch = (opecode == `OP_FBRANCH);
 
-    assign branch = ibranch | fbranch;
+    assign branch = order & (ibranch | fbranch);
 
-    wire alu_imm = (opecode == `OP_ALUI);
-    wire alu_ext = (opecode == `OP_ALU) & instr[25];
     wire alu_non_imm = alu & ~alu_imm;
     wire alu_non_ext = alu & ~alu_ext;
 
@@ -68,7 +68,7 @@ module decode(
                       | jump
                       | branch
                       | subst
-                      | (alu_imm & (func3[1:0] == 2'b01));
+                      | (alu_imm & (func3[1:0] != 2'b01));
     wire [`LEN_FUNC7-1:0] func7 =
         no_use_func7 ? 7'b0 : instr[31:25];
 
