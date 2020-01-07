@@ -11,14 +11,17 @@ module alu(
         input  wire [`LEN_FUNC7-1:0] func7,
         input  wire [`LEN_WORD-1:0] rs1,
         input  wire [`LEN_WORD-1:0] rs2,
+        input  wire [`LEN_PREG_ADDR-1:0] pa_rd_in,
 
         output wire [`LEN_WORD-1:0] rd,
+        output wire [`LEN_PREG_ADDR-1:0] pa_rd_out,
 
         input  wire clk,
         input  wire rstn);
 
     assign accepted = order;
     assign done = order;
+    assign pa_rd_out = pa_rd_in;
 
     wire mode_flag = func7[5];
 
@@ -36,12 +39,7 @@ module alu(
         (func3 == `FUNC3_SLTU) ? ((rs1 < rs2) ? 1 : 0 ) :
                                  32'b0;
 
-    wire [32-1:0] rd_buf;
-    wire [32-1:0] next_rd_buf =
-        done ? calc_rd : rd_buf;
-    temp_reg r_rd_buf(done, next_rd_buf, rd_buf, clk, rstn);
-
-    assign rd = next_rd_buf;
+    assign rd = calc_rd;
 
 endmodule
 
