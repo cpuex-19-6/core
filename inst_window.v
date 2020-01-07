@@ -275,8 +275,8 @@ module inst_window(
             assign next3_rs2_ready[i] = rs2_ready[nextinst[i]];
             assign next3_rd_ready[i] = rd_ready[nextinst[i]];
             assign next3_flag[i] =
-                  (branch_hazard & |(hazard_context_info & next3_context[i]))
-                & next2_flag[i];
+                  next2_flag[i]
+                & ~(branch_hazard & |(hazard_context_info & next3_context[i]));
         end
     endgenerate
 

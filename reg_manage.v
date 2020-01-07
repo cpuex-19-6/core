@@ -75,6 +75,7 @@ module reg_manage(
     // context_read
 
     wire [`LEN_E_PARA_ID-1:0] forwarding_id[2**`LEN_PREG_ADDR-1:0];
+    wire [2**`LEN_PREG_ADDR-1:0] forwarding_flag;
     wire [`LEN_WORD-1:0] forwarding_data[`EXECUTE_PARA-1:0];
 
     wire [`LEN_CONTEXT-1:0] context_read[2**`LEN_PREG_ADDR-1:0];
@@ -91,7 +92,7 @@ module reg_manage(
             assign forwarding_update[0][w] = 1'b0;
             for (pa_reg = 1; pa_reg < 2**`LEN_PREG_ADDR; pa_reg = pa_reg+1) begin : write_loop_reg
                 assign forwarding_update[pa_reg][w] =
-                    pa_reg[`LEN_PREG_ADDR-1:0] == w_pa_rd;
+                    w_order & (pa_reg[`LEN_PREG_ADDR-1:0] == w_pa_rd);
             end
         end
         for (pa_reg = 0; pa_reg < 2**`LEN_PREG_ADDR; pa_reg = pa_reg+1) begin : write_end
@@ -104,10 +105,11 @@ module reg_manage(
                 onehot_to_binary #(`LEN_E_PARA_ID) m_o_t_b_forwarding_id2(
                     {fullsize_help, forwarding_update[pa_reg]}, forwarding_id[pa_reg]);
             end
+            assign forwarding_flag[pa_reg] = |(forwarding_update[pa_reg]);
             assign context_read[pa_reg] =
-                (  |(forwarding_update[pa_reg])
+                (  forwarding_flag[pa_reg]
                  | (  branch_hazard
-                    & (|(  context_read[pa_reg]
+                    & (|(  before_context[pa_reg]
                          & hazard_context_info))))
                 ? `CONTEXT_ZERO
                 : before_context[pa_reg];
@@ -156,8 +158,9 @@ module reg_manage(
 
             // rs1
             wire [`LEN_WORD-1:0] r_d_rs1_in =
-                (|(forwarding_id[r_pa_rs1]))
-                    ? forwarding_data[forwarding_id[r_pa_rs1]] : r_d_rs1;
+                forwarding_flag[r_pa_rs1]
+                    ? forwarding_data[forwarding_id[r_pa_rs1]]
+                    : r_d_rs1;
             wire r_rs1_ready =
                   r_rs1_order
                 & (~|(context_write_update[r][r_pa_rs1]))
@@ -165,10 +168,11 @@ module reg_manage(
 
             // rs2
             wire [`LEN_WORD-1:0] r_d_rs2_in =
-                (|(forwarding_id[r_pa_rs2]))
-                    ? forwarding_data[forwarding_id[r_pa_rs2]] : r_d_rs2;
+                forwarding_flag[r_pa_rs2]
+                    ? forwarding_data[forwarding_id[r_pa_rs2]]
+                    : r_d_rs2;
             wire r_rs2_ready =
-                  r_rs1_order
+                  r_rs2_order
                 & (~|(context_write_update[r][r_pa_rs2]))
                 & ~r_branch_hazard;
 
