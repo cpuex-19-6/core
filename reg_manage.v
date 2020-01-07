@@ -32,19 +32,21 @@ Decode phaseに引数と出力先を与えられるか確認
 */
 
 module reg_manage(
-     input  wire [`LEN_INST_VREG-1:0] r_inst_vreg,
-     output wire [`LEN_INST_D_R-1:0]  r_inst_d_r,
+        // INST_W_PARAの分だけ並列化
+        input  wire [`LEN_INST_VREG*`INST_W_PARA-1:0] r_inst_vreg,
+        output wire [`LEN_INST_D_R*`INST_W_PARA-1:0]  r_inst_d_r,
 
-     input  wire [`LEN_WRITE_D_R-1:0] w_write_d_r,
+        // EXECUTE_PARAの分だけ並列化
+        input  wire [`LEN_WRITE_D_R-1:0] w_write_d_r,
 
-     output wire [`LEN_WORD-1:0]      lr_d,
+        output wire [`LEN_WORD-1:0]      lr_d,
 
-     input  wire                    branch_hazard,
-     input  wire [`LEN_CONTEXT-1:0] hazard_context_info,
+        input  wire                    branch_hazard,
+        input  wire [`LEN_CONTEXT-1:0] hazard_context_info,
 
 
-     input  wire clk,
-     input  wire rstn);
+        input  wire clk,
+        input  wire rstn);
     
     // regで使うwireの定義
 
@@ -138,7 +140,8 @@ module reg_manage(
             wire [`LEN_VREG_ADDR-1:0] r_va_rd;
             wire [`LEN_CONTEXT-1:0] r_context;
             unpack_struct_inst_vreg m_r_unp_ivr(
-                r_inst_vreg,
+                r_inst_vreg[`LEN_INST_VREG*(r+1)-1
+                           :`LEN_INST_VREG*r],
                 r_rs1_order, r_va_rs1,
                 r_rs2_order, r_va_rs2,
                 r_rd_order, r_va_rd, r_context);
@@ -184,7 +187,8 @@ module reg_manage(
                 r_rs2_ready, r_d_rs2_in,
                 r_rd_ready, r_pa_rd,
                 r_branch_hazard,
-                r_inst_d_r);
+                r_inst_d_r[`LEN_INST_D_R*(r+1)-1
+                          :`LEN_INST_D_R*r]);
 
             assign context_write_update[r+1][0] =
                 `CONTEXT_ZERO;

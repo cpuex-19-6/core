@@ -50,8 +50,8 @@ module inst_window(
 
         // reg_manage
         // INST_W_PARAの分だけ並列化
-        output wire [`LEN_INST_VREG-1:0] r_inst_vreg,
-        input  wire [`LEN_INST_D_R-1:0]  r_inst_d_r,
+        output wire [`LEN_INST_VREG*`INST_W_PARA-1:0] r_inst_vreg,
+        input  wire [`LEN_INST_D_R*`INST_W_PARA-1:0]  r_inst_d_r,
 
         // exec
         // EXECUTE_PARAの分だけ並列化
@@ -223,7 +223,9 @@ module inst_window(
                 next2_rs1_order[i], next3_va_rs1[i],
                 next2_rs2_order[i], next3_va_rs2[i],
                 next2_rd_order[i], next3_va_rd[i],
-                next3_context[i], r_inst_vreg);
+                next3_context[i],
+                r_inst_vreg[`LEN_INST_VREG*(i+1)-1
+                           :`LEN_INST_VREG*i]);
 
             wire [`LEN_WORD-1:0] rs1_temp;
             wire [`LEN_WORD-1:0] rs2_temp;
@@ -233,7 +235,8 @@ module inst_window(
             wire rd_ready_temp;
             wire branch_hazard_temp;
             unpack_struct_inst_d_r m_up_inst_d_r(
-                r_inst_d_r,
+                r_inst_d_r[`LEN_INST_D_R*(i+1)-1
+                          :`LEN_INST_D_R*i],
                 rs1_ready_temp, rs1_temp,
                 rs2_ready_temp, rs2_temp,
                 rd_ready_temp, rd_temp,
