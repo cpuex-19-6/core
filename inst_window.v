@@ -37,7 +37,7 @@ module inst_window
 module inst_window(
         // to context_manager
         // DECODE_PARAの分だけ並列化
-        output wire                      accept_able,
+        output wire [`DECODE_PARA-1:0]   accept_able,
 
         // from context_manager
         input  wire                      branch_hazard,
@@ -45,8 +45,8 @@ module inst_window(
 
         // from decode
         // DECODE_PARAの分だけ並列化
-        input  wire                      d_done,
-        input  wire [`LEN_D_E_INFO-1:0]  d_dec_exec_info,
+        input  wire [`DECODE_PARA-1:0]               d_done,
+        input  wire [`LEN_D_E_INFO*`DECODE_PARA-1:0] d_dec_exec_info,
 
         // reg_manage
         // INST_W_PARAの分だけ並列化
@@ -177,7 +177,7 @@ module inst_window(
         end
     endgenerate
     assign accept_able =
-        ~|(next2_flag[`SIZE_INST_W-1:`DECODE_BASE]);
+        ~(next2_flag[`SIZE_INST_W-1:`DECODE_BASE]);
 
     // register substitution
     wire [`SIZE_INST_W-1:0]   next3_flag;
@@ -281,69 +281,75 @@ module inst_window(
     endgenerate
 
     // decode unpack
-    wire                      pre_flag = d_done;
-    wire [`LEN_EXEC_TYPE-1:0] pre_exec_type;
-    wire [`LEN_INST_VREG-1:0] pre_inst_vreg;
-    wire [`LEN_WORD-1:0]      pre_d_imm;
-    wire [`LEN_WORD-1:0]      pre_d_imm_temp;
-    wire                      pre_io_type;
-    wire [`LEN_FUNC3-1:0]     pre_func3;
-    wire [`LEN_FUNC7-1:0]     pre_func7;
-    wire [`LEN_CONTEXT-1:0]   pre_b_t_context;
-    wire [`LEN_CONTEXT-1:0]   pre_b_f_context;
+    wire [`DECODE_PARA-1:0]   pre_flag = d_done;
+    wire [`LEN_EXEC_TYPE-1:0] pre_exec_type[`DECODE_PARA-1:0];
+    wire [`LEN_INST_VREG-1:0] pre_inst_vreg[`DECODE_PARA-1:0];
+    wire [`LEN_WORD-1:0]      pre_d_imm[`DECODE_PARA-1:0];
+    wire [`LEN_WORD-1:0]      pre_d_imm_temp[`DECODE_PARA-1:0];
+    wire [`DECODE_PARA-1:0]   pre_io_type[`DECODE_PARA-1:0];
+    wire [`LEN_FUNC3-1:0]     pre_func3[`DECODE_PARA-1:0];
+    wire [`LEN_FUNC7-1:0]     pre_func7[`DECODE_PARA-1:0];
+    wire [`LEN_CONTEXT-1:0]   pre_b_t_context[`DECODE_PARA-1:0];
+    wire [`LEN_CONTEXT-1:0]   pre_b_f_context[`DECODE_PARA-1:0];
 
-    wire [`LEN_WORD-1:0]      pre_d_rs1 =
-        (pre_exec_type[`EXEC_TYPE_ALU_NON_EXT])
-            ? `WORD_ZERO : pre_d_imm;
-    wire [`LEN_WORD-1:0]      pre_d_rs2 =
-        (  pre_exec_type[`EXEC_TYPE_ALU_NON_EXT]
-         | pre_exec_type[`EXEC_TYPE_JUMP])
-            ? pre_d_imm_temp : `WORD_ZERO;
-    wire [`LEN_PREG_ADDR-1:0] pre_pa_rd = `PREG_ZERO;
-    wire                      pre_rs1_order;
-    wire                      pre_rs2_order;
-    wire                      pre_rd_order;
-    wire                      pre_rs1_ready;
-    wire                      pre_rs2_ready;
-    wire                      pre_rd_ready;
-    wire [`LEN_VREG_ADDR-1:0] pre_va_rs1;
-    wire [`LEN_VREG_ADDR-1:0] pre_va_rs2;
-    wire [`LEN_VREG_ADDR-1:0] pre_va_rd;
-    wire [`LEN_CONTEXT-1:0]   pre_context;
+    wire [`LEN_WORD-1:0]      pre_d_rs1[`DECODE_PARA-1:0];
+    wire [`LEN_WORD-1:0]      pre_d_rs2[`DECODE_PARA-1:0];
 
+    wire [`LEN_PREG_ADDR-1:0] pre_pa_rd[`DECODE_PARA-1:0];
+    wire [`DECODE_PARA-1:0]   pre_rs1_order;
+    wire [`DECODE_PARA-1:0]   pre_rs2_order;
+    wire [`DECODE_PARA-1:0]   pre_rd_order;
+    wire [`DECODE_PARA-1:0]   pre_rs1_ready;
+    wire [`DECODE_PARA-1:0]   pre_rs2_ready;
+    wire [`DECODE_PARA-1:0]   pre_rd_ready;
+    wire [`LEN_VREG_ADDR-1:0] pre_va_rs1[`DECODE_PARA-1:0];
+    wire [`LEN_VREG_ADDR-1:0] pre_va_rs2[`DECODE_PARA-1:0];
+    wire [`LEN_VREG_ADDR-1:0] pre_va_rd[`DECODE_PARA-1:0];
+    wire [`LEN_CONTEXT-1:0]   pre_context[`DECODE_PARA-1:0];
+    
     generate
-        wire [`LEN_WORD-1:0] pre_jump_imm;
-        assign pre_d_imm =
-            pre_exec_type[`EXEC_TYPE_JUMP]
-                ? pre_jump_imm
-                : pre_d_imm_temp;
-        if (`LEN_CONTEXT < 12) begin
-            assign pre_jump_imm =
-                {{(`LEN_WORD-2*`LEN_CONTEXT){pre_b_t_context[`LEN_CONTEXT-1]}},
-                 pre_b_t_context,
-                 pre_b_f_context};
-        end
-        else begin
-            assign pre_jump_imm =
-                {{(`LEN_WORD-12){pre_b_f_context[11]}},
-                 pre_b_f_context[12-1:0]};
+        for (i=0; i<`DECODE_PARA; i=i+1) begin
+            assign pre_d_rs1[i] =
+                (pre_exec_type[i][`EXEC_TYPE_ALU_NON_EXT])
+                    ? `WORD_ZERO : pre_d_imm[i];
+            assign pre_d_rs2[i] =
+                (  pre_exec_type[i][`EXEC_TYPE_ALU_NON_EXT]
+                 | pre_exec_type[i][`EXEC_TYPE_JUMP])
+                    ? pre_d_imm_temp[i] : `WORD_ZERO;
+            assign pre_pa_rd[i] = `PREG_ZERO;
+            wire [`LEN_WORD-1:0] pre_jump_imm;
+            assign pre_d_imm[i] =
+                pre_exec_type[i][`EXEC_TYPE_JUMP]
+                    ? pre_jump_imm
+                    : pre_d_imm_temp[i];
+            if (`LEN_CONTEXT < 12) begin
+                assign pre_jump_imm =
+                    {{(`LEN_WORD-2*`LEN_CONTEXT){pre_b_t_context[i][`LEN_CONTEXT-1]}},
+                    pre_b_t_context[i],
+                    pre_b_f_context[i]};
+            end
+            else begin
+                assign pre_jump_imm =
+                    {{(`LEN_WORD-12){pre_b_f_context[i][11]}},
+                    pre_b_f_context[i][12-1:0]};
+            end
+
+            unpack_dec_exec_info m_up_d_e_info(
+                d_dec_exec_info[`LEN_D_E_INFO*(i+1)-1:`LEN_D_E_INFO*i],
+                pre_exec_type[i], pre_inst_vreg[i], pre_d_imm_temp[i], pre_io_type[i],
+                pre_func3[i], pre_func7[i], pre_b_t_context[i], pre_b_f_context[i]);
+
+            unpack_struct_inst_vreg m_up_pre_inst_vreg(
+                pre_inst_vreg[i],
+                pre_rs1_order[i], pre_va_rs1[i],
+                pre_rs2_order[i], pre_va_rs2[i],
+                pre_rd_order[i], pre_va_rd[i],
+                pre_context[i]);
+            assign pre_rs1_ready[i] = pre_flag[i] & ~pre_rs1_order[i];
+            assign pre_rs2_ready[i] = pre_flag[i] & ~pre_rs2_order[i];
+            assign pre_rd_ready[i] = pre_flag[i] & ~pre_rd_order[i];
         end
     endgenerate
-
-    unpack_dec_exec_info m_up_d_e_info(
-        d_dec_exec_info,
-        pre_exec_type, pre_inst_vreg, pre_d_imm_temp, pre_io_type,
-        pre_func3, pre_func7, pre_b_t_context, pre_b_f_context);
-
-    unpack_struct_inst_vreg m_up_pre_inst_vreg(
-        pre_inst_vreg,
-        pre_rs1_order, pre_va_rs1,
-        pre_rs2_order, pre_va_rs2,
-        pre_rd_order, pre_va_rd,
-        pre_context);
-    assign pre_rs1_ready = pre_flag & ~pre_rs1_order;
-    assign pre_rs2_ready = pre_flag & ~pre_rs2_order;
-    assign pre_rd_ready = pre_flag & ~pre_rd_order;
 
     // reg
     generate
@@ -361,7 +367,6 @@ module inst_window(
             temp_reg #(1) r_io_type(
                 1'b1, next3_io_type[i], io_type[i], clk, rstn);
 
-// ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
             //wire [`LEN_FUNC3-1:0]     func3[`SIZE_INST_W-1:0];
             temp_reg #(`LEN_FUNC3) r_func3(
                     1'b1, next3_func3[i], func3[i], clk, rstn);
@@ -406,8 +411,6 @@ module inst_window(
             temp_reg #(`LEN_PREG_ADDR) r_pa_rd(
                     1'b1, next3_pa_rd[i], pa_rd[i], clk, rstn);
 
-// ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
-
             temp_reg #(1) r_rs1_ready(
                 1'b1, next3_rs1_ready[i], rs1_ready[i], clk, rstn);
             temp_reg #(1) r_rs2_ready(
@@ -419,107 +422,105 @@ module inst_window(
         for (i=`DECODE_BASE; i<`SIZE_INST_W; i=i+1) begin
             temp_reg #(1) r_flag_2(
                 1'b1,
-                next3_flag[i] ? next3_flag[i] : d_done,
+                next3_flag[i] ? next3_flag[i] : pre_flag[i-`DECODE_BASE],
                 flag[i], clk, rstn);
 
             //wire [`LEN_EXEC_TYPE-1:0] exec_type[`SIZE_INST_W-1:0];
             temp_reg #(`LEN_EXEC_TYPE) r_exec_type_2(
                 1'b1,
-                next3_flag[i] ? next3_exec_type[i] : pre_exec_type,
+                next3_flag[i] ? next3_exec_type[i] : pre_exec_type[i-`DECODE_BASE],
                 exec_type[i], clk, rstn);
 
             //wire [`LEN_WORD-1:0]      d_imm[`SIZE_INST_W-1:0];
             temp_reg #(`LEN_WORD) r_d_imm_2(
                 1'b1,
-                next3_flag[i] ? next3_d_imm[i] : pre_d_imm,
+                next3_flag[i] ? next3_d_imm[i] : pre_d_imm[i-`DECODE_BASE],
                 d_imm[i], clk, rstn);
 
             temp_reg #(1) r_io_type_2(
                 1'b1,
-                next3_flag[i] ? next3_io_type[i] : pre_io_type,
+                next3_flag[i] ? next3_io_type[i] : pre_io_type[i-`DECODE_BASE],
                 io_type[i], clk, rstn);
 
-// ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
             //wire [`LEN_FUNC3-1:0]     func3[`SIZE_INST_W-1:0];
             temp_reg #(`LEN_FUNC3) r_func3_2(
                 1'b1,
-                next3_flag[i] ? next3_func3[i] : pre_func3,
+                next3_flag[i] ? next3_func3[i] : pre_func3[i-`DECODE_BASE],
                 func3[i], clk, rstn);
 
             //wire [`LEN_FUNC7-1:0]     func7[`SIZE_INST_W-1:0];
             temp_reg #(`LEN_FUNC7) r_func7_2(
                 1'b1,
-                next3_flag[i] ? next3_func7[i] : pre_func7,
+                next3_flag[i] ? next3_func7[i] : pre_func7[i-`DECODE_BASE],
                 func7[i], clk, rstn);
 
             //wire [`LEN_CONTEXT-1:0]   b_t_context[`SIZE_INST_W-1:0];
             temp_reg #(`LEN_CONTEXT) r_b_t_context_2(
                 1'b1,
-                next3_flag[i] ? next3_b_t_context[i] : pre_b_t_context,
+                next3_flag[i] ? next3_b_t_context[i] : pre_b_t_context[i-`DECODE_BASE],
                 b_t_context[i], clk, rstn);
 
             //wire [`LEN_CONTEXT-1:0]   b_f_context[`SIZE_INST_W-1:0];
             temp_reg #(`LEN_CONTEXT) r_b_f_context_2(
                 1'b1,
-                next3_flag[i] ? next3_b_f_context[i] : pre_b_f_context,
+                next3_flag[i] ? next3_b_f_context[i] : pre_b_f_context[i-`DECODE_BASE],
                 b_f_context[i], clk, rstn);
 
             //wire [`LEN_VREG_ADDR-1:0] va_rs1[`SIZE_INST_W-1:0];
             temp_reg #(`LEN_VREG_ADDR) r_va_rs1_2(
                 1'b1,
-                next3_flag[i] ? next3_va_rs1[i] : pre_va_rs1,
+                next3_flag[i] ? next3_va_rs1[i] : pre_va_rs1[i-`DECODE_BASE],
                 va_rs1[i], clk, rstn); 
 
             //wire [`LEN_VREG_ADDR-1:0] va_rs2[`SIZE_INST_W-1:0];
             temp_reg #(`LEN_VREG_ADDR) r_va_rs2_2(
                 1'b1,
-                next3_flag[i] ? next3_va_rs2[i] : pre_va_rs2,
+                next3_flag[i] ? next3_va_rs2[i] : pre_va_rs2[i-`DECODE_BASE],
                 va_rs2[i], clk, rstn); 
 
             //wire [`LEN_VREG_ADDR-1:0] va_rd[`SIZE_INST_W-1:0];
             temp_reg #(`LEN_VREG_ADDR) r_va_rd_2(
                 1'b1,
-                next3_flag[i] ? next3_va_rd[i] : pre_va_rd,
+                next3_flag[i] ? next3_va_rd[i] : pre_va_rd[i-`DECODE_BASE],
                 va_rd[i], clk, rstn); 
 
             //wire [`LEN_CONTEXT-1:0]   context[`SIZE_INST_W-1:0];
             temp_reg #(`LEN_CONTEXT) r_context_2(
                 1'b1,
-                next3_flag[i] ? next3_context[i] : pre_context,
+                next3_flag[i] ? next3_context[i] : pre_context[i-`DECODE_BASE],
                 context[i], clk, rstn); 
 
             //wire [`LEN_WORD-1:0]      d_rs1[`SIZE_INST_W-1:0];
             temp_reg #(`LEN_WORD) r_d_rs1_2(
                 1'b1,
-                next3_flag[i] ? next3_d_rs1[i] : pre_d_rs1,
+                next3_flag[i] ? next3_d_rs1[i] : pre_d_rs1[i-`DECODE_BASE],
                 d_rs1[i], clk, rstn); 
 
             //wire [`LEN_WORD-1:0]      d_rs2[`SIZE_INST_W-1:0];
             temp_reg #(`LEN_WORD) r_d_rs2_2(
                 1'b1,
-                next3_flag[i] ? next3_d_rs2[i] : pre_d_rs2,
+                next3_flag[i] ? next3_d_rs2[i] : pre_d_rs2[i-`DECODE_BASE],
                 d_rs2[i], clk, rstn); 
 
             //wire [`LEN_PREG_ADDR-1:0] pa_rd[`SIZE_INST_W-1:0];
             temp_reg #(`LEN_PREG_ADDR) r_pa_rd_2(
                 1'b1,
-                next3_flag[i] ? next3_pa_rd[i] : pre_pa_rd,
+                next3_flag[i] ? next3_pa_rd[i] : pre_pa_rd[i-`DECODE_BASE],
                 pa_rd[i], clk, rstn); 
-// ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
 
             temp_reg #(1) r_rs1_ready_2(
                 1'b1,
-                next3_flag[i] ? next3_rs1_ready[i] : pre_rs1_ready,
+                next3_flag[i] ? next3_rs1_ready[i] : pre_rs1_ready[i-`DECODE_BASE],
                 rs1_ready[i], clk, rstn);
 
             temp_reg #(1) r_rs2_ready_2(
                 1'b1,
-                next3_flag[i] ? next3_rs2_ready[i] : pre_rs2_ready,
+                next3_flag[i] ? next3_rs2_ready[i] : pre_rs2_ready[i-`DECODE_BASE],
                 rs2_ready[i], clk, rstn);
 
             temp_reg #(1) r_rd_ready_2(
                 1'b1,
-                next3_flag[i] ? next3_rd_ready[i] : pre_rd_ready,
+                next3_flag[i] ? next3_rd_ready[i] : pre_rd_ready[i-`DECODE_BASE],
                 rd_ready[i], clk, rstn);
         end
     endgenerate
