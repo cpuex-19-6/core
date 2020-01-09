@@ -7,3 +7,4 @@
 /publish.sh
 /vivado-project/cpu_main.tcl
 /vivado-project/cpu_main
+/vivado-project/*.xls
