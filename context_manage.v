@@ -209,10 +209,12 @@ module context_manage(
                     ? decode_next_pc_f
                     : cntx_next1_next_pc[cntx];
             assign cntx_next2_non_fetch[cntx] =
-                  (decode_next_pc_ready & cntx_next1_hot[cntx])
-                | (decode_branch & (  (decode_context_b_t[cntx])
-                                    | (decode_context_b_f[cntx])))
-                | cntx_next1_non_fetch[cntx];
+                (fetch_done & cntx_next1_hot[cntx])
+                    ? decode_next_pc_ready :
+                decode_branch
+                    ? (  decode_context_b_t[cntx]
+                       | decode_context_b_f[cntx])
+                    : cntx_next1_non_fetch[cntx];
             wire [`LEN_CONTEXT-1:0] cntx_nx1_info =
                 cntx_next1_info[cntx];
             assign cntx_next2_info[cntx] =
