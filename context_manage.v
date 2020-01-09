@@ -244,10 +244,12 @@ module context_manage(
                         : cntx_next1_next_pc[cntx];
                 // 次にfetchすべきかどうかの更新
                 assign dec_cntx_non_fetch[d+1][cntx] =
-                      (decode_next_pc_ready & dec_cntx_hot[d][cntx])
-                    | (decode_branch & (  (decode_context_b_t[cntx])
-                                        | (decode_context_b_f[cntx])))
-                    | (dec_cntx_non_fetch[d][cntx] & ~fetch_done[d]);
+                    (fetch_done[d] & dec_cntx_hot[d][cntx])
+                        ? decode_next_pc_ready :
+                    decode_branch
+                        ? (  decode_context_b_t[cntx]
+                           | decode_context_b_f[cntx])
+                        : dec_cntx_non_fetch[d][cntx];
                 wire [`LEN_CONTEXT-1:0] my_dec_cntx_info =
                     dec_cntx_info[d][cntx];
                 // ハザード時用コンテキスト情報
