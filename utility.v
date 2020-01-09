@@ -251,7 +251,7 @@ module shift_left_round_n
         rs[LENGTH-1:LENGTH-shiftsize];
 endmodule
 
-module shift_left_diff_in_half
+module bit_in_left_half
     #(LENGTH = `LEN_CONTEXT)(
         input  wire [LENGTH-1:0] base,
         input  wire [LENGTH-1:0] rs,

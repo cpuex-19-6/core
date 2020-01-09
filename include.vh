@@ -45,7 +45,7 @@
 `define LEN_INST_W_ID 1
 // 命令ウィンドウのidのゼロ
 `define INST_W_ID_ZERO 1'b0
-// 命令ウィンドウの直接実行可能なサイズ
+// 直接実行可能な命令ウィンドウのサイズ
 `define LEN_IW_E_ABLE 1
 // 直接実行可能なウィンドウのidのサイズ
 `define LEN_IW_E_ABLE_ID 1
@@ -53,11 +53,28 @@
 `define IW_E_ABLE_ID_ZERO 1'b0
 
 // execute parallel degree
-`define EXECUTE_PARA 1
-// decoder parallel idの長さ
-`define LEN_E_PARA_ID 1
-// decoder parallel id zero
-`define E_PARA_ID_ZERO 1'b0
+`define EXECUTE_PARA 5
+/*
+index   exec_type       OoO able
+0       branch/fbranch  x       (これだけは0番で固定)
+1       mem             x
+2       io              x
+3       jump            o
+4       others          o
+*/
+// OoO化できる最初のindexの値
+`define E_PARA_OOO 3
+// execute parallel idの長さ
+`define LEN_E_PARA_ID 3
+// execute parallel id zero
+`define E_PARA_ID_ZERO 3'b0
+
+// write parallel degree
+`define WRITE_PARA 3
+// execute parallel idの長さ
+`define LEN_W_PARA_ID 2
+// execute parallel id zero
+`define W_PARA_ID_ZERO 2'b0
 
 // UART用リングバッファアドレスのサイズ(外部から更新可)
 `define LEN_RING_BUF_ADDR 12

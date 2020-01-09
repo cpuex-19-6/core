@@ -36,7 +36,7 @@ module reg_manage(
         input  wire [`LEN_INST_VREG*`INST_W_PARA-1:0] r_inst_vreg,
         output wire [`LEN_INST_D_R*`INST_W_PARA-1:0]  r_inst_d_r,
 
-        // EXECUTE_PARAの分だけ並列化
+        // WRITE_PARAの分だけ並列化
         input  wire [`LEN_WRITE_D_R-1:0] w_write_d_r,
 
         output wire [`LEN_WORD-1:0]      lr_d,
@@ -76,14 +76,14 @@ module reg_manage(
     // forwarding_data
     // context_read
 
-    wire [`LEN_E_PARA_ID-1:0] forwarding_id[2**`LEN_PREG_ADDR-1:0];
+    wire [`LEN_W_PARA_ID-1:0] forwarding_id[2**`LEN_PREG_ADDR-1:0];
     wire [2**`LEN_PREG_ADDR-1:0] forwarding_flag;
-    wire [`LEN_WORD-1:0] forwarding_data[`EXECUTE_PARA-1:0];
+    wire [`LEN_WORD-1:0] forwarding_data[`WRITE_PARA-1:0];
 
     wire [`LEN_CONTEXT-1:0] context_read[2**`LEN_PREG_ADDR-1:0];
 
     generate
-        wire [`EXECUTE_PARA-1:0] forwarding_update[2**`LEN_PREG_ADDR-1:0];
+        wire [`WRITE_PARA-1:0] forwarding_update[2**`LEN_PREG_ADDR-1:0];
         for (w = 0; w < 1; w = w+1) begin : write_loop
             // ---- write -------------------------
             unpack_struct_write_d_r m_write_d_r(
@@ -98,13 +98,13 @@ module reg_manage(
             end
         end
         for (pa_reg = 0; pa_reg < 2**`LEN_PREG_ADDR; pa_reg = pa_reg+1) begin : write_end
-            if ((2**`LEN_E_PARA_ID) == `EXECUTE_PARA) begin
-                onehot_to_binary #(`LEN_E_PARA_ID) m_o_t_b_forwarding_id1(
+            if ((2**`LEN_W_PARA_ID) == `WRITE_PARA) begin
+                onehot_to_binary #(`LEN_W_PARA_ID) m_o_t_b_forwarding_id1(
                     forwarding_update[pa_reg], forwarding_id[pa_reg]);
             end
             else begin
-                wire [(2**`LEN_E_PARA_ID)-`EXECUTE_PARA-1:0] fullsize_help = 'b0;
-                onehot_to_binary #(`LEN_E_PARA_ID) m_o_t_b_forwarding_id2(
+                wire [(2**`LEN_W_PARA_ID)-`WRITE_PARA-1:0] fullsize_help = 'b0;
+                onehot_to_binary #(`LEN_W_PARA_ID) m_o_t_b_forwarding_id2(
                     {fullsize_help, forwarding_update[pa_reg]}, forwarding_id[pa_reg]);
             end
             assign forwarding_flag[pa_reg] = |(forwarding_update[pa_reg]);

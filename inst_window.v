@@ -55,10 +55,10 @@ module inst_window(
 
         // exec
         // EXECUTE_PARAの分だけ並列化
-        output wire order,
-        input  wire accepted,
+        output wire [`EXECUTE_PARA-1:0] order,
+        input  wire [`EXECUTE_PARA-1:0] accepted,
 
-        output wire [`LEN_EXEC_INFO-1:0] e_exec_info,
+        output wire [`LEN_EXEC_INFO*`EXECUTE_PARA-1:0] e_exec_info,
 
         input  wire clk,
         input  wire rstn);
@@ -86,50 +86,38 @@ module inst_window(
     wire [`SIZE_INST_W-1:0]   rs2_ready;
     wire [`SIZE_INST_W-1:0]   rd_ready;
 
-    wire [`SIZE_INST_W-1:0]   all_ready;
-    
+    /wire [`LEN_IW_E_ABLE_ID-1:0] order_id[`EXECUTE_PARA-1:0];
+
+    // execにデータを渡す
     generate
-        for (i=0; i<`SIZE_INST_W; i=i+1) begin
-            assign all_ready[i] =
-                  rs1_ready[i] & rs2_ready[i] & rd_ready[i]
-                & flag[i] & |(exec_type[i]);
+        for (i=0; i<`EXECUTE_PARA-1; i=i+1) begin
+            pack_exec_info m_p_exec_info(
+                exec_type[order_id[i]], io_type[order_id[i]],
+                func3[order_id[i]], func7[order_id[i]],
+                pa_rd[order_id[i]], d_rs1[order_id[i]], d_rs2[order_id[i]],
+                context[order_id[i]],
+                b_t_context[order_id[i]], b_f_context[order_id[i]],
+                e_exec_info[`LEN_EXEC_INFO*(i+1)-1
+                           :`LEN_EXEC_INFO*i]);
         end
     endgenerate
 
-    // choose inst to execute
-    // 決めるところは最後に回したい
+    // acceptを適用
     wire [`SIZE_INST_W-1:0] next1_flag;
-    wire [`LEN_IW_E_ABLE_ID-1:0] order_id_decide[`LEN_IW_E_ABLE:0];
-    wire [`LEN_IW_E_ABLE_ID-1:0] order_id;
-    wire [`LEN_IW_E_ABLE:0] order_decide;
     generate
-        assign order_id_decide[0] = `IW_E_ABLE_ID_ZERO;
-        assign order_decide[0] = 1'b0;
-        assign order_id = order_id_decide[`LEN_IW_E_ABLE];
-        assign order = order_decide[`LEN_IW_E_ABLE];
         for (i=0; i<`LEN_IW_E_ABLE; i=i+1) begin
-            // 実行できるものを探して実行
-            // 同時に複数実行するときには優先度に注意
-            assign order_decide[i+1] =
-                all_ready[i] | order_decide[i];
-            assign order_id_decide[i+1] =
-                (all_ready[i] & (~order_decide[i]))
-                    ? i[`LEN_IW_E_ABLE_ID-1:0] : order_id_decide[i];
+            wire [`EXECUTE_PARA-1:0] accepted_flag;
+            for (j=0; j<`EXECUTE_PARA; j=j+1) begin
+                assign accepted_flag[j] =
+                      accepted[j]
+                    & (order_id[j] == i[`LEN_IW_E_ABLE_ID-1:0]);
+            end
             assign next1_flag[i] =
-                (all_ready[i] & (~order_decide[i]))
-                    ? ~accepted : flag[i];
+                ~|accepted_flag & flag[i];
         end
         assign next1_flag[`SIZE_INST_W-1:`LEN_IW_E_ABLE] =
             flag[`SIZE_INST_W-1:`LEN_IW_E_ABLE];
     endgenerate
-
-    pack_exec_info m_p_exec_info(
-        exec_type[order_id], io_type[order_id],
-        func3[order_id], func7[order_id],
-        pa_rd[order_id], d_rs1[order_id], d_rs2[order_id],
-        context[order_id],
-        b_t_context[order_id], b_f_context[order_id],
-        e_exec_info);
 
     // replace insts into inst window
     // 実行開始した(acceptされた)ものやhazardで消されたものを
@@ -280,6 +268,126 @@ module inst_window(
             assign next3_flag[i] =
                   next2_flag[i]
                 & ~(branch_hazard & |(hazard_context_info & next3_context[i]));
+        end
+    endgenerate
+
+    // choose inst to execute
+
+    // 次の命令の決定順
+    // branchとfbranch -> 両方のうち最も前にあるもの(が実行可能なら)
+    // mem io          -> それぞれの最も前にあるもの(が実行可能なら)
+    // それ以外        -> 実行可能で最も前にあるもの
+    // ただし、branchとfbranch、および解析できなかった命令は
+    // 後ろにある命令より先に実行されなければいけない
+    // (すなわち解析できなかった命令だけが残った時は実行を停止する)
+    // また、コンテキストIDが一番前のそれと比べて
+    // 最大値の半分以上ずれているときは、有限なコンテキストIDが被らないように
+    // 命令を実行できないようにする
+
+    // 各番号に何を割り当てるかは include.vh を参照
+
+    wire [`LEN_IW_E_ABLE_ID-1:0] next4_order_id[`EXECUTE_PARA-1:0];
+    wire [`EXECUTE_PARA-1:0]     next4_order;
+
+    generate
+        // コンテキストIDの確認
+        wire [`LEN_IW_E_ABLE-1:0] executable_context;
+        for (i=0; i<`LEN_IW_E_ABLE; i=i+1) begin
+            bit_in_left_half m_bit_in_left_half(
+                next3_context[0], next3_context[i],
+                executable_context[i]);
+        end
+
+        // 各命令が実行可能かどうか
+        wire [`SIZE_INST_W-1:0]   all_ready;
+        for (i=0; i<`SIZE_INST_W; i=i+1) begin
+            assign all_ready[i] =
+                  next3_rs1_ready[i]
+                & next3_rs2_ready[i]
+                & next3_rd_ready[i]
+                & next3_flag[i]
+                & |(next3_exec_type[i])
+                & executable_context[i];
+        end
+
+        // 前に実行可能な/実行不可能だがOoO不可能な命令があるかどうか
+        // 最初の1bitはbranch系のほかに解析できなかった命令もカウントする
+        wire [`EXECUTE_PARA-1:0] exist_executable[`LEN_IW_E_ABLE:0];
+
+        for (i=0; i<`EXECUTE_PARA; i=i+1) begin
+            assign exist_executable[0][i] = 1'b0;
+        end
+        for (i=0; i<`LEN_IW_E_ABLE; i=i+1) begin
+            wire [`EXECUTE_PARA-1:0] e_index_decision;
+
+            // 割り当てを変更するときはここをいじること
+            // 実行可能かどうかなどは気にせずに、
+            // 実行可能かつ命令が存在するなら
+            // どこに割り当てるべきかのみを考えればいい
+            // 1周前までに実行可能なものがあったかどうかは
+            // exist_executable[i][~]で得られる。
+            assign e_index_decision[0] =
+                  next3_exec_type[i][`EXEC_TYPE_BRANCH]
+                | next3_exec_type[i][`EXEC_TYPE_FBRANCH]
+                | ~|(next3_exec_type[i]);
+
+            assign e_index_decision[1] =
+                next3_exec_type[i][`EXEC_TYPE_MEM];
+
+            assign e_index_decision[2] =
+                next3_exec_type[i][`EXEC_TYPE_IO];
+
+            assign e_index_decision[3] =
+                next3_exec_type[i][`EXEC_TYPE_JUMP];
+
+            assign e_index_decision[4] =
+                  ~|(e_index_decision[3:0]);
+
+            // 割り当て編集用はここまで
+
+            for (j=0; j<`E_PARA_OOO; j=j+1) begin
+                assign e_index_decision[i+1][j] =
+                      exist_executable[i][j]
+                    | (next3_flag[i] & e_index_decision[j]);
+            end
+            for (j=`E_PARA_OOO; j<`EXECUTE_PARA; j=j+1) begin
+                assign e_index_decision[i+1][j] =
+                      exist_executable[i][j]
+                    | (all_ready[i] & e_index_decision[j]);
+            end
+        end
+
+        wire [`EXECUTE_PARA-1:0]     order_decide[`LEN_IW_E_ABLE:0];
+        wire [`LEN_IW_E_ABLE_ID-1:0] order_id_decide[`LEN_IW_E_ABLE:0][`EXECUTE_PARA-1:0];
+        for (i=0; i<`EXECUTE_PARA; i=i+1) begin
+            assign order_decide[0][i] = 1'b0;
+            assign next4_order[i] = order_decide[`LEN_IW_E_ABLE][i];
+            assign order_id_decide[0][i] = `IW_E_ABLE_ID_ZERO;
+            assign next4_order_id[i] = order_id_decide[`LEN_IW_E_ABLE][i];
+        end
+
+        for (i=0; i<`LEN_IW_E_ABLE; i=i+1) begin
+            for (j=0; j<`E_PARA_OOO; j=j+1) begin
+                assign order_decide[i+1][j] =
+                      order_decide[i+1][j]
+                    | (  all_ready[i]
+                       & ~exist_executable[i][j]
+                       & ~exist_executable[i][0]);
+                assign order_id_decide[i+1] =
+                    exist_executable[i][j]
+                        ? i[`LEN_IW_E_ABLE_ID-1:0]
+                        : order_id_decide[i];
+            end
+            for (j=`E_PARA_OOO; j<`EXECUTE_PARA; j=j+1) begin
+                assign order_decide[i+1][j] =
+                      order_decide[i+1][j]
+                    | ~(  exist_executable[i][j]
+                        | exist_executable[i][0]);
+                assign order_id_decide[i+1] =
+                    exist_executable[i][j]
+                        ? i[`LEN_IW_E_ABLE_ID-1:0]
+                        : order_id_decide[i];
+            end
         end
     endgenerate
 
@@ -525,6 +633,16 @@ module inst_window(
                 1'b1,
                 next3_flag[i] ? next3_rd_ready[i] : pre_rd_ready[i-`DECODE_BASE],
                 rd_ready[i], clk, rstn);
+        end
+
+        for (i=0;i<`EXECUTE_PARA; i=i+1) begin
+            //wire [`EXECUTE_PARA-1:0]     next4_order;
+            temp_reg #(1) r_order(
+                1'b1, next4_order[i], order[i], clk, rstn);
+
+            //wire [`LEN_IW_E_ABLE_ID-1:0] next4_order_id[`EXECUTE_PARA-1:0];
+            temp_reg #(`LEN_IW_E_ABLE_ID) r_order_id(
+                1'b1, next4_order_id[i], order_id[i], clk, rstn);
         end
     endgenerate
 
