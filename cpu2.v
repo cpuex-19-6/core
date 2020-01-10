@@ -34,6 +34,8 @@ module cpu(
         input  wire usr_load,
         output wire [6-1:0] led_stat,
 
+        input  wire exec_busy,
+
         output wire [`LEN_PROLD_INFO-1:0] prold_info,
 
         input  wire [`LEN_TO_UART-1:0] e_to_uart,
@@ -92,13 +94,11 @@ module cpu(
         cpu_run ? uart_order_temp
                 : (r_prold_mode | r_io_init);
     assign uart_size =
-        cpu_run   ? uart_order_temp :
-        r_io_init ? 2'b10 : 2'b00;
+        cpu_run   ? uart_order_temp : 2'b00;
     assign uart_o_data =
         r_io_init ? 32'haa : uart_o_data_temp;
     assign uart_write =
-        cpu_run   ? uart_write_temp :
-        r_io_init ? 1'b1 : 1'b0;
+        cpu_run   ? uart_write_temp : r_io_init;
 
     wire                 uart_accepted_temp;
     wire                 uart_done_temp;
@@ -211,7 +211,7 @@ module cpu(
     end
 
     // LED output
-    assign led_stat = {rstn, |state[7:6], |state[4:2], cpu_run, state[0]};
+    assign led_stat = {rstn, |state[7:6], |state[4:2], cpu_run, exec_busy};
     //                       pro-ld       init         run      end
 endmodule
 
