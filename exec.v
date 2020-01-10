@@ -34,6 +34,8 @@ module exec(
         output wire [`LEN_TO_UART-1:0] to_uart,
         input  wire [`LEN_FR_UART-1:0] from_uart,
 
+        output wire busy_out,
+
         input  wire clk,
         input  wire rstn);
 
@@ -71,6 +73,8 @@ module exec(
     wire next_busy = (~done) & (busy | accepted);
     temp_reg #(1) r_busy(1'b1, next_busy, busy, clk, rstn);
     wire order_able = ~busy & order;
+
+    assign busy_out = busy;
 
     // alu
     wire alu_order =
