@@ -32,7 +32,7 @@ module cpu(
         input  wire native_rstn,
         input  wire usr_rst,
         input  wire usr_load,
-        output wire [6-1:0] led_stat,
+        output wire [5-1:0] led_stat,
 
         input  wire exec_busy,
 
