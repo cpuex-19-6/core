@@ -202,11 +202,11 @@ index   exec_type       OoO able
 `define EXEC_TYPE_SUBST       1
 `define EXEC_TYPE_IO          0
 // dec_exec_info
-`define LEN_D_E_INFO ((`LEN_INST_VREG)+(`LEN_EXEC_TYPE)+(`LEN_WORD)+(`LEN_FUNC3)+(`LEN_FUNC7)+(`LEN_CONTEXT)*2+1)
+`define LEN_D_E_INFO ((`LEN_INST_VREG)+(`LEN_EXEC_TYPE)+(`LEN_WORD)*2+(`LEN_FUNC3)+(`LEN_FUNC7)+1)
 // exec_info
 `define LEN_EXEC_INFO ((`LEN_EXEC_TYPE)+(`LEN_FUNC3)+(`LEN_FUNC7)+(`LEN_PREG_ADDR)+(`LEN_WORD)*2+(`LEN_CONTEXT)*3+1)
 // j_b_info
-`define LEN_J_B_INFO ((`LEN_CONTEXT)*4+(`LEN_WORD)+2)
+`define LEN_J_B_INFO ((`LEN_CONTEXT)+(`LEN_WORD)+3)
 // to_uart
 `define LEN_TO_UART ((`LEN_WORD)+4)
 // from_uart

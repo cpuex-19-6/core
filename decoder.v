@@ -9,10 +9,9 @@ module decode
 ・命令を解析して種類を特定し、
 　即値や仮想レジスタアドレスを決定
 ・決まっていれば、次のPCを
-　コンテキストとともに
 　context_managerに渡す
-・ブランチ命令の場合、新しい
-　コンテキストを分岐ごとに割り当てる
+・ブランチ命令の場合、
+　ハザード時に読むべきPCも与える
 --------------------------------
 */
 
@@ -22,8 +21,6 @@ module decode(
         input  wire [`LEN_INST-1:0]      instr,
         input  wire [`LEN_WORD-1:0]      pc,
         input  wire [`LEN_CONTEXT-1:0]   context_in,
-        input  wire [`LEN_CONTEXT-1:0]   context_b_t,
-        input  wire [`LEN_CONTEXT-1:0]   context_b_f,
 
         // to context_manager
         output wire                      next_pc_ready,
@@ -156,6 +153,8 @@ module decode(
         (opecode == `OP_LUI   ) ? d_imm32 :
         (opecode == `OP_AUIPC ) ? d_imm32 + pc :
                                   32'b0;
+    
+    wire [`LEN_WORD-1:0] d_imm2 = d_imm12i;
 
     wire [`LEN_EXEC_TYPE-1:0] exec_type;
     pack_exec_type m_pet(
@@ -173,31 +172,9 @@ module decode(
 
     wire io_type = (io | mem) & (opecode[5]);
 
-    wire [`LEN_CONTEXT-1:0] temp_context_b_t;
-    wire [`LEN_CONTEXT-1:0] temp_context_b_f;
-    generate
-        if (`LEN_CONTEXT <= 16) begin
-            assign temp_context_b_t =
-                jump
-                    ? d_imm12i[`LEN_CONTEXT*2-1:`LEN_CONTEXT]
-                    : context_b_t;
-            assign temp_context_b_f =
-                jump
-                    ? d_imm12i[`LEN_CONTEXT-1:0]
-                    : context_b_f;
-        end
-        else begin
-            assign temp_context_b_t = context_b_t;
-            assign temp_context_b_f = 
-                jump
-                    ? {{(`LEN_CONTEXT-12){1'b0}},imm12i}
-                    : context_b_f;
-        end
-    endgenerate
-
     pack_dec_exec_info m_p_d_e_info(
-        exec_type, inst_vreg, d_imm, io_type,
-        func3, func7, temp_context_b_t, temp_context_b_f,
+        exec_type, inst_vreg, d_imm, d_imm2,
+        io_type, func3, func7,
         dec_exec_info);
 
     assign next_pc_ready =
