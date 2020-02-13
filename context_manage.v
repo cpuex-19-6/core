@@ -201,7 +201,7 @@ module context_manage(
                 & i_w_accept_able[d]
                 & dec_prev_fetch_success[d];
             wire [`LEN_WORD-1:0] dec_fetch_pc =
-                cntx_next1_next_pc[d][dec_cntx_hot_id];
+                dec_cntx_next_pc[d][dec_cntx_hot_id];
             assign fetch_pc[(d+1)*`LEN_WORD-1:d*`LEN_WORD] = dec_fetch_pc;
             assign dec_prev_fetch_success[d+1] =
                   dec_prev_fetch_success[d]
