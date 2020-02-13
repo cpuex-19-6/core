@@ -39,8 +39,8 @@ module alu_exec_type(
         output wire alu_std,
         output wire alu_imm,
         output wire alu_ext);
-    wire alu_non_imm = exec_type[7];
-    wire alu_non_ext = exec_type[6];
+    wire alu_non_imm = exec_type[`EXEC_TYPE_ALU_NON_IMM];
+    wire alu_non_ext = exec_type[`EXEC_TYPE_ALU_NON_EXT];
     assign alu = alu_non_ext | alu_non_imm;
     assign alu_std = alu_non_ext & alu_non_imm;
     assign alu_imm = alu_non_ext & ~alu_non_imm;
