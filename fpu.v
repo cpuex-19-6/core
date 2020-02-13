@@ -12,8 +12,10 @@ module fpu_short
      input  wire [`LEN_FUNC7-1:0] func7,
      input  wire [`LEN_WORD-1:0]  rs1,
      input  wire [`LEN_WORD-1:0]  rs2,
+     input  wire [`LEN_PREG_ADDR-1:0] pa_rd_in,
 
      output wire [`LEN_WORD-1:0]  rd,
+     output wire [`LEN_PREG_ADDR-1:0] pa_rd_out,
      
      input  wire                  clk,
      input  wire                  rstn);
@@ -157,6 +159,7 @@ module fpu_short
     temp_reg r_rd_buf(1'b1, next_rd_buf, rd_buf, clk, rstn);
 
     assign rd = next_rd_buf;
+    assign pa_rd_out = pa_rd_in;
 
 endmodule
 
@@ -172,8 +175,10 @@ module fpu_medium
      input  wire [`LEN_FUNC7-1:0] func7,
      input  wire [`LEN_WORD-1:0]  rs1,
      input  wire [`LEN_WORD-1:0]  rs2,
+     input  wire [`LEN_PREG_ADDR-1:0] pa_rd_in,
 
      output wire [`LEN_WORD-1:0]  rd,
+     output wire [`LEN_PREG_ADDR-1:0] pa_rd_out,
      
      input  wire                  clk,
      input  wire                  rstn);
@@ -332,6 +337,9 @@ module fpu_long
     temp_reg r_rd_buf(1'b1, next_rd_buf, rd_buf, clk, rstn);
 
     assign rd = next_rd_buf;
+
+    temp_reg #(`LEN_PREG_ADDR) r_pa_rd(
+        accepted, pa_rd_in, pa_rd_out, clk, rstn);
 
 endmodule
 
