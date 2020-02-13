@@ -1,7 +1,7 @@
 # jump to main entry point
 0	addi	x2, x2, -8
 4	jal	x0, 2428
-# fib.164:
+# fib.166:
 8	addi	x5, x0, 2		! 58
 12	blt 	x4, x5, 972		! 58
 16	addi	x5, x4, -1		! 58
@@ -34,9 +34,9 @@
 124	lw	x5, x2, -20		! 58
 128	add	x4, x5, x4		! 58
 132	jal	x0, 8		! 58
-# bge_else.1167:
+# bge_else.1171:
 136	addi	x4, x7, 0		! 58
-# bge_cont.1168:
+# bge_cont.1172:
 140	lw	x5, x2, -12		! 58
 144	addi	x5, x5, -2		! 58
 148	addi	x6, x0, 2		! 58
@@ -60,15 +60,15 @@
 220	lw	x5, x2, -32		! 58
 224	add	x4, x5, x4		! 58
 228	jal	x0, 8		! 58
-# bge_else.1169:
+# bge_else.1173:
 232	addi	x4, x5, 0		! 58
-# bge_cont.1170:
+# bge_cont.1174:
 236	lw	x5, x2, -24		! 58
 240	add	x4, x5, x4		! 58
 244	jal	x0, 8		! 58
-# bge_else.1165:
+# bge_else.1169:
 248	addi	x4, x6, 0		! 58
-# bge_cont.1166:
+# bge_cont.1170:
 252	lw	x5, x2, -8		! 58
 256	addi	x5, x5, -2		! 58
 260	addi	x6, x0, 2		! 58
@@ -96,9 +96,9 @@
 348	lw	x5, x2, -48		! 58
 352	add	x4, x5, x4		! 58
 356	jal	x0, 8		! 58
-# bge_else.1173:
+# bge_else.1177:
 360	addi	x4, x6, 0		! 58
-# bge_cont.1174:
+# bge_cont.1178:
 364	lw	x5, x2, -40		! 58
 368	addi	x5, x5, -2		! 58
 372	addi	x6, x0, 2		! 58
@@ -122,21 +122,21 @@
 444	lw	x5, x2, -60		! 58
 448	add	x4, x5, x4		! 58
 452	jal	x0, 8		! 58
-# bge_else.1175:
+# bge_else.1179:
 456	addi	x4, x5, 0		! 58
-# bge_cont.1176:
+# bge_cont.1180:
 460	lw	x5, x2, -52		! 58
 464	add	x4, x5, x4		! 58
 468	jal	x0, 8		! 58
-# bge_else.1171:
+# bge_else.1175:
 472	addi	x4, x5, 0		! 58
-# bge_cont.1172:
+# bge_cont.1176:
 476	lw	x5, x2, -36		! 58
 480	add	x4, x5, x4		! 58
 484	jal	x0, 8		! 58
-# bge_else.1163:
+# bge_else.1167:
 488	addi	x4, x5, 0		! 58
-# bge_cont.1164:
+# bge_cont.1168:
 492	lw	x5, x2, -4		! 58
 496	addi	x5, x5, -2		! 58
 500	addi	x6, x0, 2		! 58
@@ -168,9 +168,9 @@
 604	lw	x5, x2, -80		! 58
 608	add	x4, x5, x4		! 58
 612	jal	x0, 8		! 58
-# bge_else.1181:
+# bge_else.1185:
 616	addi	x4, x7, 0		! 58
-# bge_cont.1182:
+# bge_cont.1186:
 620	lw	x5, x2, -72		! 58
 624	addi	x5, x5, -2		! 58
 628	addi	x6, x0, 2		! 58
@@ -194,15 +194,15 @@
 700	lw	x5, x2, -92		! 58
 704	add	x4, x5, x4		! 58
 708	jal	x0, 8		! 58
-# bge_else.1183:
+# bge_else.1187:
 712	addi	x4, x5, 0		! 58
-# bge_cont.1184:
+# bge_cont.1188:
 716	lw	x5, x2, -84		! 58
 720	add	x4, x5, x4		! 58
 724	jal	x0, 8		! 58
-# bge_else.1179:
+# bge_else.1183:
 728	addi	x4, x6, 0		! 58
-# bge_cont.1180:
+# bge_cont.1184:
 732	lw	x5, x2, -68		! 58
 736	addi	x5, x5, -2		! 58
 740	addi	x6, x0, 2		! 58
@@ -230,9 +230,9 @@
 828	lw	x5, x2, -108		! 58
 832	add	x4, x5, x4		! 58
 836	jal	x0, 8		! 58
-# bge_else.1187:
+# bge_else.1191:
 840	addi	x4, x6, 0		! 58
-# bge_cont.1188:
+# bge_cont.1192:
 844	lw	x5, x2, -100		! 58
 848	addi	x5, x5, -2		! 58
 852	addi	x6, x0, 2		! 58
@@ -256,27 +256,27 @@
 924	lw	x5, x2, -120		! 58
 928	add	x4, x5, x4		! 58
 932	jal	x0, 8		! 58
-# bge_else.1189:
+# bge_else.1193:
 936	addi	x4, x5, 0		! 58
-# bge_cont.1190:
+# bge_cont.1194:
 940	lw	x5, x2, -112		! 58
 944	add	x4, x5, x4		! 58
 948	jal	x0, 8		! 58
-# bge_else.1185:
+# bge_else.1189:
 952	addi	x4, x5, 0		! 58
-# bge_cont.1186:
+# bge_cont.1190:
 956	lw	x5, x2, -96		! 58
 960	add	x4, x5, x4		! 58
 964	jal	x0, 8		! 58
-# bge_else.1177:
+# bge_else.1181:
 968	addi	x4, x5, 0		! 58
-# bge_cont.1178:
+# bge_cont.1182:
 972	lw	x5, x2, -64		! 58
 976	add	x4, x5, x4		! 58
 980	jalr	x0, x1, 0		! 58
-# bge_else.1162:
+# bge_else.1166:
 984	jalr	x0, x1, 0		! 58
-# print_int.168:
+# print_int.172:
 988	blt 	x4, x0, 756		! 0
 992	addi	x5, x0, 10		! 0
 996	blt 	x4, x5, 736		! 0
@@ -313,12 +313,12 @@
 1120	addi	x4, x4, 48		! 0
 1124	outb	x4		! 0
 1128	jal	x0, 12		! 0
-# bge_else.1203:
+# bge_else.1207:
 1132	addi	x7, x7, 48		! 0
 1136	outb	x7		! 0
-# bge_cont.1204:
+# bge_cont.1208:
 1140	jal	x0, 40		! 0
-# bge_else.1201:
+# bge_else.1205:
 1144	addi	x8, x0, 45		! 0
 1148	outb	x8		! 0
 1152	sub	x7, x0, x7		! 0
@@ -328,19 +328,19 @@
 1168	jal	x1, -180		! 0
 1172	addi	x2, x2, 24		! 0
 1176	lw	x1, x2, -20		! 0
-# bge_cont.1202:
+# bge_cont.1206:
 1180	addi	x4, x0, 10		! 0
 1184	lw	x5, x2, -12		! 0
 1188	remu	x4, x5, x4		! 0
 1192	addi	x4, x4, 48		! 0
 1196	outb	x4		! 0
 1200	jal	x0, 12		! 0
-# bge_else.1199:
+# bge_else.1203:
 1204	addi	x6, x6, 48		! 0
 1208	outb	x6		! 0
-# bge_cont.1200:
+# bge_cont.1204:
 1212	jal	x0, 136		! 0
-# bge_else.1197:
+# bge_else.1201:
 1216	addi	x7, x0, 45		! 0
 1220	outb	x7		! 0
 1224	sub	x6, x0, x6		! 0
@@ -362,12 +362,12 @@
 1288	addi	x4, x4, 48		! 0
 1292	outb	x4		! 0
 1296	jal	x0, 12		! 0
-# bge_else.1207:
+# bge_else.1211:
 1300	addi	x6, x6, 48		! 0
 1304	outb	x6		! 0
-# bge_cont.1208:
+# bge_cont.1212:
 1308	jal	x0, 40		! 0
-# bge_else.1205:
+# bge_else.1209:
 1312	addi	x7, x0, 45		! 0
 1316	outb	x7		! 0
 1320	sub	x6, x0, x6		! 0
@@ -377,20 +377,20 @@
 1336	jal	x1, -348		! 0
 1340	addi	x2, x2, 28		! 0
 1344	lw	x1, x2, -24		! 0
-# bge_cont.1206:
-# bge_cont.1198:
+# bge_cont.1210:
+# bge_cont.1202:
 1348	addi	x4, x0, 10		! 0
 1352	lw	x5, x2, -8		! 0
 1356	remu	x4, x5, x4		! 0
 1360	addi	x4, x4, 48		! 0
 1364	outb	x4		! 0
 1368	jal	x0, 12		! 0
-# bge_else.1195:
+# bge_else.1199:
 1372	addi	x5, x5, 48		! 0
 1376	outb	x5		! 0
-# bge_cont.1196:
+# bge_cont.1200:
 1380	jal	x0, 328		! 0
-# bge_else.1193:
+# bge_else.1197:
 1384	addi	x6, x0, 45		! 0
 1388	outb	x6		! 0
 1392	sub	x5, x0, x5		! 0
@@ -418,12 +418,12 @@
 1480	addi	x4, x4, 48		! 0
 1484	outb	x4		! 0
 1488	jal	x0, 12		! 0
-# bge_else.1215:
+# bge_else.1219:
 1492	addi	x6, x6, 48		! 0
 1496	outb	x6		! 0
-# bge_cont.1216:
+# bge_cont.1220:
 1500	jal	x0, 40		! 0
-# bge_else.1213:
+# bge_else.1217:
 1504	addi	x7, x0, 45		! 0
 1508	outb	x7		! 0
 1512	sub	x6, x0, x6		! 0
@@ -433,19 +433,19 @@
 1528	jal	x1, -540		! 0
 1532	addi	x2, x2, 36		! 0
 1536	lw	x1, x2, -32		! 0
-# bge_cont.1214:
+# bge_cont.1218:
 1540	addi	x4, x0, 10		! 0
 1544	lw	x5, x2, -24		! 0
 1548	remu	x4, x5, x4		! 0
 1552	addi	x4, x4, 48		! 0
 1556	outb	x4		! 0
 1560	jal	x0, 12		! 0
-# bge_else.1211:
+# bge_else.1215:
 1564	addi	x5, x5, 48		! 0
 1568	outb	x5		! 0
-# bge_cont.1212:
+# bge_cont.1216:
 1572	jal	x0, 136		! 0
-# bge_else.1209:
+# bge_else.1213:
 1576	addi	x6, x0, 45		! 0
 1580	outb	x6		! 0
 1584	sub	x5, x0, x5		! 0
@@ -467,12 +467,12 @@
 1648	addi	x4, x4, 48		! 0
 1652	outb	x4		! 0
 1656	jal	x0, 12		! 0
-# bge_else.1219:
+# bge_else.1223:
 1660	addi	x5, x5, 48		! 0
 1664	outb	x5		! 0
-# bge_cont.1220:
+# bge_cont.1224:
 1668	jal	x0, 40		! 0
-# bge_else.1217:
+# bge_else.1221:
 1672	addi	x6, x0, 45		! 0
 1676	outb	x6		! 0
 1680	sub	x5, x0, x5		! 0
@@ -482,20 +482,20 @@
 1696	jal	x1, -708		! 0
 1700	addi	x2, x2, 40		! 0
 1704	lw	x1, x2, -36		! 0
-# bge_cont.1218:
-# bge_cont.1210:
-# bge_cont.1194:
+# bge_cont.1222:
+# bge_cont.1214:
+# bge_cont.1198:
 1708	addi	x4, x0, 10		! 0
 1712	lw	x5, x2, -4		! 0
 1716	remu	x4, x5, x4		! 0
 1720	addi	x4, x4, 48		! 0
 1724	outb	x4		! 0
 1728	jalr	x0, x1, 0		! 0
-# bge_else.1192:
+# bge_else.1196:
 1732	addi	x4, x4, 48		! 0
 1736	outb	x4		! 0
 1740	jalr	x0, x1, 0		! 0
-# bge_else.1191:
+# bge_else.1195:
 1744	addi	x5, x0, 45		! 0
 1748	outb	x5		! 0
 1752	sub	x4, x0, x4		! 0
@@ -529,12 +529,12 @@
 1864	addi	x4, x4, 48		! 0
 1868	outb	x4		! 0
 1872	jal	x0, 12		! 0
-# bge_else.1231:
+# bge_else.1235:
 1876	addi	x6, x6, 48		! 0
 1880	outb	x6		! 0
-# bge_cont.1232:
+# bge_cont.1236:
 1884	jal	x0, 40		! 0
-# bge_else.1229:
+# bge_else.1233:
 1888	addi	x7, x0, 45		! 0
 1892	outb	x7		! 0
 1896	sub	x6, x0, x6		! 0
@@ -544,19 +544,19 @@
 1912	jal	x1, -924		! 0
 1916	addi	x2, x2, 52		! 0
 1920	lw	x1, x2, -48		! 0
-# bge_cont.1230:
+# bge_cont.1234:
 1924	addi	x4, x0, 10		! 0
 1928	lw	x5, x2, -40		! 0
 1932	remu	x4, x5, x4		! 0
 1936	addi	x4, x4, 48		! 0
 1940	outb	x4		! 0
 1944	jal	x0, 12		! 0
-# bge_else.1227:
+# bge_else.1231:
 1948	addi	x5, x5, 48		! 0
 1952	outb	x5		! 0
-# bge_cont.1228:
+# bge_cont.1232:
 1956	jal	x0, 136		! 0
-# bge_else.1225:
+# bge_else.1229:
 1960	addi	x6, x0, 45		! 0
 1964	outb	x6		! 0
 1968	sub	x5, x0, x5		! 0
@@ -578,12 +578,12 @@
 2032	addi	x4, x4, 48		! 0
 2036	outb	x4		! 0
 2040	jal	x0, 12		! 0
-# bge_else.1235:
+# bge_else.1239:
 2044	addi	x5, x5, 48		! 0
 2048	outb	x5		! 0
-# bge_cont.1236:
+# bge_cont.1240:
 2052	jal	x0, 40		! 0
-# bge_else.1233:
+# bge_else.1237:
 2056	addi	x6, x0, 45		! 0
 2060	outb	x6		! 0
 2064	sub	x5, x0, x5		! 0
@@ -593,19 +593,19 @@
 2080	jal	x1, -1092		! 0
 2084	addi	x2, x2, 56		! 0
 2088	lw	x1, x2, -52		! 0
-# bge_cont.1234:
-# bge_cont.1226:
+# bge_cont.1238:
+# bge_cont.1230:
 2092	addi	x4, x0, 10		! 0
 2096	lw	x5, x2, -36		! 0
 2100	remu	x4, x5, x4		! 0
 2104	addi	x4, x4, 48		! 0
 2108	outb	x4		! 0
 2112	jalr	x0, x1, 0		! 0
-# bge_else.1224:
+# bge_else.1228:
 2116	addi	x4, x4, 48		! 0
 2120	outb	x4		! 0
 2124	jalr	x0, x1, 0		! 0
-# bge_else.1223:
+# bge_else.1227:
 2128	addi	x5, x0, 45		! 0
 2132	outb	x5		! 0
 2136	sub	x4, x0, x4		! 0
@@ -633,12 +633,12 @@
 2224	addi	x4, x4, 48		! 0
 2228	outb	x4		! 0
 2232	jal	x0, 12		! 0
-# bge_else.1243:
+# bge_else.1247:
 2236	addi	x5, x5, 48		! 0
 2240	outb	x5		! 0
-# bge_cont.1244:
+# bge_cont.1248:
 2244	jal	x0, 40		! 0
-# bge_else.1241:
+# bge_else.1245:
 2248	addi	x6, x0, 45		! 0
 2252	outb	x6		! 0
 2256	sub	x5, x0, x5		! 0
@@ -648,18 +648,18 @@
 2272	jal	x1, -1284		! 0
 2276	addi	x2, x2, 64		! 0
 2280	lw	x1, x2, -60		! 0
-# bge_cont.1242:
+# bge_cont.1246:
 2284	addi	x4, x0, 10		! 0
 2288	lw	x5, x2, -52		! 0
 2292	remu	x4, x5, x4		! 0
 2296	addi	x4, x4, 48		! 0
 2300	outb	x4		! 0
 2304	jalr	x0, x1, 0		! 0
-# bge_else.1240:
+# bge_else.1244:
 2308	addi	x4, x4, 48		! 0
 2312	outb	x4		! 0
 2316	jalr	x0, x1, 0		! 0
-# bge_else.1239:
+# bge_else.1243:
 2320	addi	x5, x0, 45		! 0
 2324	outb	x5		! 0
 2328	sub	x4, x0, x4		! 0
@@ -681,20 +681,20 @@
 2392	addi	x4, x4, 48		! 0
 2396	outb	x4		! 0
 2400	jalr	x0, x1, 0		! 0
-# bge_else.1248:
+# bge_else.1252:
 2404	addi	x4, x4, 48		! 0
 2408	outb	x4		! 0
 2412	jalr	x0, x1, 0		! 0
-# bge_else.1247:
+# bge_else.1251:
 2416	addi	x5, x0, 45		! 0
 2420	outb	x5		! 0
 2424	sub	x4, x0, x4		! 0
 2428	jal	x0, -1440		! 0
 # main program starts
-2432	addi	x4, x0, 65		! 59
-2436	outb	x4		! 59
-2440	addi	x4, x0, 66		! 59
-2444	outb	x4		! 59
+2432	addi	x4, x0, 65		! 60
+2436	outb	x4		! 60
+2440	addi	x4, x0, 66		! 61
+2444	outb	x4		! 61
 2448	addi	x4, x0, 12		! 58
 2452	sw	x2, x1, 0		! 58
 2456	addi	x2, x2, -8		! 58
@@ -787,12 +787,12 @@
 2804	addi	x4, x4, 48		! 0
 2808	outb	x4		! 0
 2812	jal	x0, 12		! 0
-# bge_else.1261:
+# bge_else.1265:
 2816	addi	x6, x6, 48		! 0
 2820	outb	x6		! 0
-# bge_cont.1262:
+# bge_cont.1266:
 2824	jal	x0, 40		! 0
-# bge_else.1259:
+# bge_else.1263:
 2828	addi	x7, x0, 45		! 0
 2832	outb	x7		! 0
 2836	sub	x6, x0, x6		! 0
@@ -802,19 +802,19 @@
 2852	jal	x1, -1864		! 0
 2856	addi	x2, x2, 48		! 0
 2860	lw	x1, x2, -44		! 0
-# bge_cont.1260:
+# bge_cont.1264:
 2864	addi	x4, x0, 10		! 0
 2868	lw	x5, x2, -36		! 0
 2872	remu	x4, x5, x4		! 0
 2876	addi	x4, x4, 48		! 0
 2880	outb	x4		! 0
 2884	jal	x0, 12		! 0
-# bge_else.1257:
+# bge_else.1261:
 2888	addi	x5, x5, 48		! 0
 2892	outb	x5		! 0
-# bge_cont.1258:
+# bge_cont.1262:
 2896	jal	x0, 136		! 0
-# bge_else.1255:
+# bge_else.1259:
 2900	addi	x6, x0, 45		! 0
 2904	outb	x6		! 0
 2908	sub	x5, x0, x5		! 0
@@ -836,12 +836,12 @@
 2972	addi	x4, x4, 48		! 0
 2976	outb	x4		! 0
 2980	jal	x0, 12		! 0
-# bge_else.1265:
+# bge_else.1269:
 2984	addi	x5, x5, 48		! 0
 2988	outb	x5		! 0
-# bge_cont.1266:
+# bge_cont.1270:
 2992	jal	x0, 40		! 0
-# bge_else.1263:
+# bge_else.1267:
 2996	addi	x6, x0, 45		! 0
 3000	outb	x6		! 0
 3004	sub	x5, x0, x5		! 0
@@ -851,20 +851,20 @@
 3020	jal	x1, -2032		! 0
 3024	addi	x2, x2, 52		! 0
 3028	lw	x1, x2, -48		! 0
-# bge_cont.1264:
-# bge_cont.1256:
+# bge_cont.1268:
+# bge_cont.1260:
 3032	addi	x4, x0, 10		! 0
 3036	lw	x5, x2, -32		! 0
 3040	remu	x4, x5, x4		! 0
 3044	addi	x4, x4, 48		! 0
 3048	outb	x4		! 0
 3052	jal	x0, 12		! 0
-# bge_else.1253:
+# bge_else.1257:
 3056	addi	x4, x4, 48		! 0
 3060	outb	x4		! 0
-# bge_cont.1254:
+# bge_cont.1258:
 3064	jal	x0, 324		! 0
-# bge_else.1251:
+# bge_else.1255:
 3068	addi	x5, x0, 45		! 0
 3072	outb	x5		! 0
 3076	sub	x4, x0, x4		! 0
@@ -892,12 +892,12 @@
 3164	addi	x4, x4, 48		! 0
 3168	outb	x4		! 0
 3172	jal	x0, 12		! 0
-# bge_else.1273:
+# bge_else.1277:
 3176	addi	x5, x5, 48		! 0
 3180	outb	x5		! 0
-# bge_cont.1274:
+# bge_cont.1278:
 3184	jal	x0, 40		! 0
-# bge_else.1271:
+# bge_else.1275:
 3188	addi	x6, x0, 45		! 0
 3192	outb	x6		! 0
 3196	sub	x5, x0, x5		! 0
@@ -907,19 +907,19 @@
 3212	jal	x1, -2224		! 0
 3216	addi	x2, x2, 60		! 0
 3220	lw	x1, x2, -56		! 0
-# bge_cont.1272:
+# bge_cont.1276:
 3224	addi	x4, x0, 10		! 0
 3228	lw	x5, x2, -48		! 0
 3232	remu	x4, x5, x4		! 0
 3236	addi	x4, x4, 48		! 0
 3240	outb	x4		! 0
 3244	jal	x0, 12		! 0
-# bge_else.1269:
+# bge_else.1273:
 3248	addi	x4, x4, 48		! 0
 3252	outb	x4		! 0
-# bge_cont.1270:
+# bge_cont.1274:
 3256	jal	x0, 132		! 0
-# bge_else.1267:
+# bge_else.1271:
 3260	addi	x5, x0, 45		! 0
 3264	outb	x5		! 0
 3268	sub	x4, x0, x4		! 0
@@ -941,12 +941,12 @@
 3332	addi	x4, x4, 48		! 0
 3336	outb	x4		! 0
 3340	jal	x0, 12		! 0
-# bge_else.1277:
+# bge_else.1281:
 3344	addi	x4, x4, 48		! 0
 3348	outb	x4		! 0
-# bge_cont.1278:
+# bge_cont.1282:
 3352	jal	x0, 36		! 0
-# bge_else.1275:
+# bge_else.1279:
 3356	addi	x5, x0, 45		! 0
 3360	outb	x5		! 0
 3364	sub	x4, x0, x4		! 0
@@ -955,7 +955,9 @@
 3376	jal	x1, -2388		! 0
 3380	addi	x2, x2, 64		! 0
 3384	lw	x1, x2, -60		! 0
-# bge_cont.1276:
-# bge_cont.1268:
-# bge_cont.1252:
+# bge_cont.1280:
+# bge_cont.1272:
+# bge_cont.1256:
+3388	addi	x4, x0, 67		! 63
+3392	outb	x4		! 63
 # main program ends
