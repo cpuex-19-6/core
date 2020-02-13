@@ -94,7 +94,7 @@ module cpu(
         cpu_run ? uart_order_temp
                 : (r_prold_mode | r_io_init);
     assign uart_size =
-        cpu_run   ? uart_order_temp : 2'b00;
+        cpu_run   ? uart_size_temp : 2'b00;
     assign uart_o_data =
         r_io_init ? 32'haa : uart_o_data_temp;
     assign uart_write =
