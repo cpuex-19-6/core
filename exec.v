@@ -47,9 +47,11 @@ module exec(
         input  wire order,
         output wire accepted,
 
+        // EXECUTE_PARAの分だけ並列化
         input  wire [`LEN_EXEC_INFO-1:0] exec_info,
 
         // to register_manage
+        // WRITE_PARAの分だけ並列化
         output wire [`LEN_WRITE_D_R-1:0] write_d_r,
 
         // to context_manage
@@ -79,25 +81,22 @@ module exec(
     wire [`LEN_WORD-1:0]      d_rs1;
     wire [`LEN_WORD-1:0]      d_rs2;
     wire [`LEN_CONTEXT-1:0]   contex;
-    wire [`LEN_CONTEXT-1:0]   b_t_context;
-    wire [`LEN_CONTEXT-1:0]   b_f_context;
 
+    // EXECUTE_PARAの分だけ並列化
+    // ただしそれぞれ違う実行
     unpack_exec_info m_u_exec_info(
         exec_info,
         exec_type, io_type, func3, func7, pa_rd_in,
-        d_rs1, d_rs2, contex, b_t_context, b_f_context);
-    
-    wire [`LEN_CONTEXT-1:0] jump_context;
-    wire                    jump_next_pc_ready;
+        d_rs1, d_rs2, contex);
+
+    wire                    exec_jump;
     wire [`LEN_WORD-1:0]    jump_next_pc;
+    wire                    exec_branch;
     wire [`LEN_CONTEXT-1:0] branch_context;
     wire                    branch_hazard;
-    wire [`LEN_CONTEXT-1:0] branch_hazard_context;
-    wire [`LEN_CONTEXT-1:0] branch_safe_context;
     pack_j_b_info m_p_j_b_info(
-        jump_context, jump_next_pc_ready, jump_next_pc,
-        branch_context, branch_hazard,
-        branch_hazard_context, branch_safe_context,
+        exec_jump, jump_next_pc,
+        exec_branch, branch_context, branch_hazard,
         j_b_info);
 
     wire done;
@@ -171,9 +170,8 @@ module exec(
     wire jump_accepted = jump_order;
     wire jump_done = jump_order;
     wire [32-1:0] jump_rd = d_rs2;
-    assign jump_context = contex;
     assign jump_next_pc = d_rs1;
-    assign jump_next_pc_ready = jump_order;
+    assign exec_jump = jump_order;
 
     // branch
     wire ibranch_order = order_able & exec_type[`EXEC_TYPE_BRANCH];
@@ -198,15 +196,11 @@ module exec(
         fbranch_result);
 
     // branches
-    assign branch_hazard = ibranch_order | fbranch_order;
+    assign exec_branch = ibranch_order | fbranch_order;
     assign branch_context = contex;
-    wire branch_result =
+    assign branch_hazard =
           (ibranch_order & ibranch_result)
         | (fbranch_order & fbranch_result);
-    assign branch_hazard_context =
-        branch_result ? b_f_context : b_t_context;
-    assign branch_safe_context =
-        branch_result ? b_t_context : b_f_context;
 
     // subst
     wire subst_order = order_able & exec_type[`EXEC_TYPE_SUBST];
