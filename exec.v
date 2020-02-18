@@ -44,10 +44,10 @@ endmodule
 
 module exec(
         // inst_window
+        // EXECUTE_PARAの分だけ並列化
         input  wire order,
         output wire accepted,
 
-        // EXECUTE_PARAの分だけ並列化
         input  wire [`LEN_EXEC_INFO-1:0] exec_info,
 
         // to register_manage
