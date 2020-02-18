@@ -55,6 +55,7 @@
 // execute parallel degree
 `define EXECUTE_PARA 5
 /*
+writeするものは後ろに寄せること
 index   exec_type       OoO able
 0       branch/fbranch  x       (これだけは0番で固定)
 1       mem             x

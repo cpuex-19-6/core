@@ -39,16 +39,16 @@ module branch_wrap(
                        : ibranch_result;
     assign accepted = order;
     assign done = order;
-    
+
 endmodule
 
 module exec(
         // inst_window
         // EXECUTE_PARAの分だけ並列化
-        input  wire order,
-        output wire accepted,
+        input  wire [`EXECUTE_PARA-1:0] order,
+        output wire [`EXECUTE_PARA-1:0] accepted,
 
-        input  wire [`LEN_EXEC_INFO-1:0] exec_info,
+        input  wire [`LEN_EXEC_INFO*`EXECUTE_PARA-1:0] exec_info,
 
         // to register_manage
         // WRITE_PARAの分だけ並列化
@@ -73,21 +73,27 @@ module exec(
         input  wire clk,
         input  wire rstn);
 
-    wire [`LEN_EXEC_TYPE-1:0] exec_type;
-    wire                      io_type;
-    wire [`LEN_FUNC3-1:0]     func3;
-    wire [`LEN_FUNC7-1:0]     func7;
-    wire [`LEN_PREG_ADDR-1:0] pa_rd_in;
-    wire [`LEN_WORD-1:0]      d_rs1;
-    wire [`LEN_WORD-1:0]      d_rs2;
-    wire [`LEN_CONTEXT-1:0]   contex;
-
     // EXECUTE_PARAの分だけ並列化
     // ただしそれぞれ違う実行
-    unpack_exec_info m_u_exec_info(
-        exec_info,
-        exec_type, io_type, func3, func7, pa_rd_in,
-        d_rs1, d_rs2, contex);
+    wire [`LEN_EXEC_TYPE-1:0] exec_type[`EXECUTE_PARA-1:0];
+    wire [`EXECUTE_PARA-1:0]  io_type;
+    wire [`LEN_FUNC3-1:0]     func3[`EXECUTE_PARA-1:0];
+    wire [`LEN_FUNC7-1:0]     func7[`EXECUTE_PARA-1:0];
+    wire [`LEN_PREG_ADDR-1:0] pa_rd_in[`EXECUTE_PARA-1:0];
+    wire [`LEN_WORD-1:0]      d_rs1[`EXECUTE_PARA-1:0];
+    wire [`LEN_WORD-1:0]      d_rs2[`EXECUTE_PARA-1:0];
+    wire [`LEN_CONTEXT-1:0]   contex[`EXECUTE_PARA-1:0];
+
+    genvar i;
+
+    generate
+        for (i=0; i<`EXECUTE_PARA; i=i+1) begin
+            unpack_exec_info m_u_exec_info(
+                exec_info[i],
+                exec_type[i], io_type[i], func3[i], func7[i], pa_rd_in[i],
+                d_rs1[i], d_rs2[i], contex[i]);
+        end
+    endgenerate
 
     wire                    exec_jump;
     wire [`LEN_WORD-1:0]    jump_next_pc;
@@ -99,13 +105,13 @@ module exec(
         exec_branch, branch_context, branch_hazard,
         j_b_info);
 
-    wire done;
-    wire busy;
-    wire next_busy = (~done) & (busy | accepted);
-    temp_reg #(1) r_busy(1'b1, next_busy, busy, clk, rstn);
-    wire order_able = ~busy & order;
+    wire [`EXECUTE_PARA-1:0] done;
+    wire [`EXECUTE_PARA-1:0] busy;
+    wire [`EXECUTE_PARA-1:0] next_busy = (~done) & (busy | accepted);
+    temp_reg #(`EXECUTE_PARA) r_busy(1'b1, next_busy, busy, clk, rstn);
+    wire [`EXECUTE_PARA-1:0] order_able = ~busy & order;
 
-    assign busy_out = busy;
+    assign busy_out = |busy;
 
     // alu
     wire alu_order =
