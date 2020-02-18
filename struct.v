@@ -147,12 +147,10 @@ module pack_exec_info(
         input  wire [`LEN_WORD-1:0]      d_rs1,
         input  wire [`LEN_WORD-1:0]      d_rs2,
         input  wire [`LEN_CONTEXT-1:0]   contex,
-        input  wire [`LEN_CONTEXT-1:0]   b_t_context,
-        input  wire [`LEN_CONTEXT-1:0]   b_f_context,
         output wire [`LEN_EXEC_INFO-1:0] exec_info);
     assign exec_info =
-        {exec_type, io_type, func3, func7, pa_rd_in,
-         d_rs1, d_rs2, contex, b_t_context, b_f_context};
+        {exec_type, io_type, func3, func7,
+         pa_rd_in, d_rs1, d_rs2, contex};
 endmodule
 module unpack_exec_info(
         input  wire [`LEN_EXEC_INFO-1:0] exec_info,
@@ -163,11 +161,9 @@ module unpack_exec_info(
         output wire [`LEN_PREG_ADDR-1:0] pa_rd_in,
         output wire [`LEN_WORD-1:0]      d_rs1,
         output wire [`LEN_WORD-1:0]      d_rs2,
-        output wire [`LEN_CONTEXT-1:0]   contex,
-        output wire [`LEN_CONTEXT-1:0]   b_t_context,
-        output wire [`LEN_CONTEXT-1:0]   b_f_context);
-    assign {exec_type, io_type, func3, func7, pa_rd_in,
-            d_rs1, d_rs2, contex, b_t_context, b_f_context}
+        output wire [`LEN_CONTEXT-1:0]   contex);
+    assign {exec_type, io_type, func3, func7,
+            pa_rd_in, d_rs1, d_rs2, contex}
         = exec_info;
 endmodule
 

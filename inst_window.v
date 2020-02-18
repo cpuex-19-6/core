@@ -72,8 +72,6 @@ module inst_window(
     wire [`SIZE_INST_W-1:0]   io_type;
     wire [`LEN_FUNC3-1:0]     func3[`SIZE_INST_W-1:0];
     wire [`LEN_FUNC7-1:0]     func7[`SIZE_INST_W-1:0];
-    wire [`LEN_CONTEXT-1:0]   b_t_context[`SIZE_INST_W-1:0];
-    wire [`LEN_CONTEXT-1:0]   b_f_context[`SIZE_INST_W-1:0];
     wire [`LEN_VREG_ADDR-1:0] va_rs1[`SIZE_INST_W-1:0];
     wire [`LEN_VREG_ADDR-1:0] va_rs2[`SIZE_INST_W-1:0];
     wire [`LEN_VREG_ADDR-1:0] va_rd[`SIZE_INST_W-1:0];
@@ -86,7 +84,7 @@ module inst_window(
     wire [`SIZE_INST_W-1:0]   rs2_ready;
     wire [`SIZE_INST_W-1:0]   rd_ready;
 
-    /wire [`LEN_IW_E_ABLE_ID-1:0] order_id[`EXECUTE_PARA-1:0];
+    wire [`LEN_IW_E_ABLE_ID-1:0] order_id[`EXECUTE_PARA-1:0];
 
     // execにデータを渡す
     generate
@@ -96,7 +94,6 @@ module inst_window(
                 func3[order_id[i]], func7[order_id[i]],
                 pa_rd[order_id[i]], d_rs1[order_id[i]], d_rs2[order_id[i]],
                 context[order_id[i]],
-                b_t_context[order_id[i]], b_f_context[order_id[i]],
                 e_exec_info[`LEN_EXEC_INFO*(i+1)-1
                            :`LEN_EXEC_INFO*i]);
         end
@@ -174,8 +171,6 @@ module inst_window(
     wire [`SIZE_INST_W-1:0]   next3_io_type;
     wire [`LEN_FUNC3-1:0]     next3_func3[`SIZE_INST_W-1:0];
     wire [`LEN_FUNC7-1:0]     next3_func7[`SIZE_INST_W-1:0];
-    wire [`LEN_CONTEXT-1:0]   next3_b_t_context[`SIZE_INST_W-1:0];
-    wire [`LEN_CONTEXT-1:0]   next3_b_f_context[`SIZE_INST_W-1:0];
     wire [`LEN_VREG_ADDR-1:0] next3_va_rs1[`SIZE_INST_W-1:0];
     wire [`LEN_VREG_ADDR-1:0] next3_va_rs2[`SIZE_INST_W-1:0];
     wire [`LEN_VREG_ADDR-1:0] next3_va_rd[`SIZE_INST_W-1:0];
@@ -196,8 +191,6 @@ module inst_window(
             assign next3_io_type[i] = io_type[nextinst[i]];
             assign next3_func3[i] = func3[nextinst[i]];
             assign next3_func7[i] = func7[nextinst[i]];
-            assign next3_b_t_context[i] = b_t_context[nextinst[i]];
-            assign next3_b_f_context[i] = b_f_context[nextinst[i]];
             assign next3_va_rs1[i] = va_rs1[nextinst[i]];
             assign next3_va_rs2[i] = va_rs2[nextinst[i]];
             assign next3_va_rd[i] = va_rd[nextinst[i]];
@@ -396,12 +389,11 @@ module inst_window(
     wire [`LEN_EXEC_TYPE-1:0] pre_exec_type[`DECODE_PARA-1:0];
     wire [`LEN_INST_VREG-1:0] pre_inst_vreg[`DECODE_PARA-1:0];
     wire [`LEN_WORD-1:0]      pre_d_imm[`DECODE_PARA-1:0];
+    wire [`LEN_WORD-1:0]      pre_d_imm2[`DECODE_PARA-1:0];
     wire [`LEN_WORD-1:0]      pre_d_imm_temp[`DECODE_PARA-1:0];
     wire [`DECODE_PARA-1:0]   pre_io_type[`DECODE_PARA-1:0];
     wire [`LEN_FUNC3-1:0]     pre_func3[`DECODE_PARA-1:0];
     wire [`LEN_FUNC7-1:0]     pre_func7[`DECODE_PARA-1:0];
-    wire [`LEN_CONTEXT-1:0]   pre_b_t_context[`DECODE_PARA-1:0];
-    wire [`LEN_CONTEXT-1:0]   pre_b_f_context[`DECODE_PARA-1:0];
 
     wire [`LEN_WORD-1:0]      pre_d_rs1[`DECODE_PARA-1:0];
     wire [`LEN_WORD-1:0]      pre_d_rs2[`DECODE_PARA-1:0];
@@ -428,27 +420,16 @@ module inst_window(
                  | pre_exec_type[i][`EXEC_TYPE_JUMP])
                     ? pre_d_imm_temp[i] : `WORD_ZERO;
             assign pre_pa_rd[i] = `PREG_ZERO;
-            wire [`LEN_WORD-1:0] pre_jump_imm;
+            wire [`LEN_WORD-1:0] pre_jump_imm = pre_d_imm2;
             assign pre_d_imm[i] =
                 pre_exec_type[i][`EXEC_TYPE_JUMP]
                     ? pre_jump_imm
                     : pre_d_imm_temp[i];
-            if (`LEN_CONTEXT < 12) begin
-                assign pre_jump_imm =
-                    {{(`LEN_WORD-2*`LEN_CONTEXT){pre_b_t_context[i][`LEN_CONTEXT-1]}},
-                    pre_b_t_context[i],
-                    pre_b_f_context[i]};
-            end
-            else begin
-                assign pre_jump_imm =
-                    {{(`LEN_WORD-12){pre_b_f_context[i][11]}},
-                    pre_b_f_context[i][12-1:0]};
-            end
 
             unpack_dec_exec_info m_up_d_e_info(
                 d_dec_exec_info[`LEN_D_E_INFO*(i+1)-1:`LEN_D_E_INFO*i],
                 pre_exec_type[i], pre_inst_vreg[i], pre_d_imm_temp[i], pre_io_type[i],
-                pre_func3[i], pre_func7[i], pre_b_t_context[i], pre_b_f_context[i]);
+                pre_func3[i], pre_func7[i]);
 
             unpack_struct_inst_vreg m_up_pre_inst_vreg(
                 pre_inst_vreg[i],
@@ -485,14 +466,6 @@ module inst_window(
             //wire [`LEN_FUNC7-1:0]     func7[`SIZE_INST_W-1:0];
             temp_reg #(`LEN_FUNC7) r_func7(
                     1'b1, next3_func7[i], func7[i], clk, rstn);
-
-            //wire [`LEN_CONTEXT-1:0]   b_t_context[`SIZE_INST_W-1:0];
-            temp_reg #(`LEN_CONTEXT) r_b_t_context(
-                    1'b1, next3_b_t_context[i], b_t_context[i], clk, rstn);
-
-            //wire [`LEN_CONTEXT-1:0]   b_f_context[`SIZE_INST_W-1:0];
-            temp_reg #(`LEN_CONTEXT) r_b_f_context(
-                    1'b1, next3_b_f_context[i], b_f_context[i], clk, rstn);
 
             //wire [`LEN_VREG_ADDR-1:0] va_rs1[`SIZE_INST_W-1:0];
             temp_reg #(`LEN_VREG_ADDR) r_va_rs1(
@@ -564,18 +537,6 @@ module inst_window(
                 1'b1,
                 next3_flag[i] ? next3_func7[i] : pre_func7[i-`DECODE_BASE],
                 func7[i], clk, rstn);
-
-            //wire [`LEN_CONTEXT-1:0]   b_t_context[`SIZE_INST_W-1:0];
-            temp_reg #(`LEN_CONTEXT) r_b_t_context_2(
-                1'b1,
-                next3_flag[i] ? next3_b_t_context[i] : pre_b_t_context[i-`DECODE_BASE],
-                b_t_context[i], clk, rstn);
-
-            //wire [`LEN_CONTEXT-1:0]   b_f_context[`SIZE_INST_W-1:0];
-            temp_reg #(`LEN_CONTEXT) r_b_f_context_2(
-                1'b1,
-                next3_flag[i] ? next3_b_f_context[i] : pre_b_f_context[i-`DECODE_BASE],
-                b_f_context[i], clk, rstn);
 
             //wire [`LEN_VREG_ADDR-1:0] va_rs1[`SIZE_INST_W-1:0];
             temp_reg #(`LEN_VREG_ADDR) r_va_rs1_2(
