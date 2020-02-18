@@ -174,9 +174,9 @@ module divu_remu
         end
     endgenerate
     wire [32-1:0] div_ret = temp_div_last[2**base-1];
-    wire [64-1:0] rem_ret = temp_rem_last[2**base-1];
+    wire [32-1:0] rem_ret = temp_rem_last[2**base-1][64-1:32];
 
-    assign rd = (rem_flags[calc_stages]) ? (rem_ret[64-1:32]) : (div_ret);
+    assign rd = (rem_flags[calc_stages]) ? (rem_ret) : (div_ret);
 
 endmodule
 
