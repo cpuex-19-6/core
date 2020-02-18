@@ -44,8 +44,6 @@ module divu_remu
     localparam calc_stages = 32 / base - 1;
     localparam stage_period = 3;
     localparam stage_mod = 0;
-    localparam stage_size =
-        (calc_stages + (stage_period-1) - stage_mod) / stage_period + 1;
 
     // 各ステージで必要になる値
 
@@ -60,12 +58,12 @@ module divu_remu
     wire [64-1:0] rems_out[calc_stages-1:0];
 
     // stage_n
-    wire [stage_size:0] stage;
-    assign stage[0] = stage_start;
-    assign stage_last = stage[stage_size];
+    wire [calc_stages:0] busy_flags;
+    assign busy_flags[0] = stage_start;
+    assign stage_last = busy_flags[calc_stages];
 
     // rem_flag_n
-    wire [stage_size:0] rem_flags;
+    wire [calc_stages:0] rem_flags;
     assign rem_flags[0] = rem_flag;
 
     // 各divs等同士の連結
@@ -80,6 +78,8 @@ module divu_remu
             if (l % stage_period == stage_mod) begin
                 temp_reg #(32) r_divs(1'b1,divs_out[l],divs_in[l],clk,rstn);
                 temp_reg #(64) r_rems(1'b1,rems_out[l],rems_in[l],clk,rstn);
+                temp_reg #(1)  r_remflags(1'b1,rem_flags[l],rem_flags[l+1],clk,rstn);
+                temp_reg #(1)  r_busy_flags(1'b1,busy_flags[l],busy_flags[l+1],clk,rstn);
                 for (i = 0; i < 2**base-1; i = i+1) begin
                     temp_reg #(32+base) r_smml(1'b1,small_mul[l][i],small_mul[l+1][i],clk,rstn);
                 end
@@ -87,14 +87,12 @@ module divu_remu
             else begin
                 assign divs_in[l] = divs_out[l];
                 assign rems_in[l] = rems_out[l];
+                assign rem_flags[l+1] = rem_flags[l];
+                assign busy_flags[l+1] = busy_flags[l];
                 for (i = 0; i < 2**base-1; i = i+1) begin
                     assign small_mul[l+1][i] = small_mul[l][i];
                 end
             end
-        end
-        for (l = 0; l < stage_size; l = l+1) begin
-            temp_reg #(1) r_stage(1'b1,stage[l],stage[l+1],clk,rstn);
-            temp_reg #(1) r_rem_flag(1'b1,rem_flags[l],rem_flags[l+1],clk,rstn);
         end
     endgenerate
 
@@ -178,7 +176,7 @@ module divu_remu
     wire [32-1:0] div_ret = temp_div_last[2**base-1];
     wire [64-1:0] rem_ret = temp_rem_last[2**base-1];
 
-    assign rd = (rem_flags[stage_size]) ? (rem_ret[64-1:32]) : (div_ret);
+    assign rd = (rem_flags[calc_stages]) ? (rem_ret[64-1:32]) : (div_ret);
 
 endmodule
 
