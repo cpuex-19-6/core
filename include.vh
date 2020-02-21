@@ -63,6 +63,12 @@ index   exec_type       OoO able
 3       jump            o
 4       others          o
 */
+// index for execute parallel
+`define EX_BRC 0
+`define EX_MEM 1
+`define EX_IO  2
+`define EX_JMP 3
+`define EX_OTH 4
 // OoO化できる最初のindexの値
 `define E_PARA_OOO 3
 // execute parallel idの長さ
@@ -71,7 +77,12 @@ index   exec_type       OoO able
 `define E_PARA_ID_ZERO 3'b0
 
 // write parallel degree
-`define WRITE_PARA 3
+`define WRITE_PARA 4
+// index for execute parallel
+`define WR_MEM 0
+`define WR_IO  1
+`define WR_JMP 2
+`define WR_OTH 3
 // execute parallel idの長さ
 `define LEN_W_PARA_ID 2
 // execute parallel id zero

@@ -18,7 +18,7 @@ module branch_wrap(
         input  wire [`LEN_FUNC3-1:0] func3,
         input  wire [`LEN_WORD-1:0] rs1,
         input  wire [`LEN_WORD-1:0] rs2,
-        input  wire float,
+        input  wire [`LEN_EXEC_TYPE-1:0] exec_type,
         output wire jump);
     
     // branch
@@ -35,7 +35,7 @@ module branch_wrap(
         func3, d_rs1, d_rs2,
         fbranch_result);
     
-    assign jump = float? fbranch_result
+    assign jump = exec_type[`EXEC_TYPE_FBRANCH]? fbranch_result
                        : ibranch_result;
     assign accepted = order;
     assign done = order;
@@ -52,7 +52,7 @@ module exec(
 
         // to register_manage
         // WRITE_PARAの分だけ並列化
-        output wire [`LEN_WRITE_D_R-1:0] write_d_r,
+        output wire [`LEN_WRITE_D_R*`WRITE_PARA-1:0] write_d_r,
 
         // to context_manage
         output wire [`LEN_J_B_INFO-1:0] j_b_info,
@@ -89,7 +89,7 @@ module exec(
     generate
         for (i=0; i<`EXECUTE_PARA; i=i+1) begin
             unpack_exec_info m_u_exec_info(
-                exec_info[i],
+                exec_info[(i+1)*`LEN_EXEC_INFO-1:i*`LEN_EXEC_INFO],
                 exec_type[i], io_type[i], func3[i], func7[i], pa_rd_in[i],
                 d_rs1[i], d_rs2[i], contex[i]);
         end
@@ -105,13 +105,80 @@ module exec(
         exec_branch, branch_context, branch_hazard,
         j_b_info);
 
-    wire [`EXECUTE_PARA-1:0] done;
-    wire [`EXECUTE_PARA-1:0] busy;
-    wire [`EXECUTE_PARA-1:0] next_busy = (~done) & (busy | accepted);
-    temp_reg #(`EXECUTE_PARA) r_busy(1'b1, next_busy, busy, clk, rstn);
-    wire [`EXECUTE_PARA-1:0] order_able = ~busy & order;
+    assign busy_out = |order;
 
-    assign busy_out = |busy;
+    // WRITE_PARAの分だけ並列化
+    // ただしそれぞれ違う実行
+    wire [`WRITE_PARA-1:0] done;
+    wire [`LEN_PREG_ADDR-1:0] pa_rd_out[`WRITE_PARA-1:0];
+    wire [`LEN_WORD-1:0] rd[`WRITE_PARA-1:0];
+
+    generate
+        for (i=0; i<`EXECUTE_PARA; i=i+1) begin
+            pack_struct_write_d_r p_write_d_r(
+                done[i], pa_rd_out[i], rd[i],
+                write_d_r[(i+1)*`LEN_WRITE_D_R-1:i*`LEN_WRITE_D_R]);
+        end
+    endgenerate
+
+    // branch/fbranch (not write)
+    wire branch_result;
+    wire branch_done;
+
+    branch_wrap m_branch_w(
+        order[`EX_BRC], accepted[`EX_BRC], done[`EX_BRC],
+        func3[`EX_BRC], rs1[`EX_BRC], rs2[`EX_BRC],
+        exec_type[`EX_BRC], branch_result);
+
+    assign exec_branch=order[`EX_BRC];
+    assign branch_context=contex[``EX_BRC];
+    assign branch_hazard=exec_branch&branch_result;
+
+    // mem
+    memory m_mem(
+        order[`EX_MEM], accepted[`EX_MEM], done[`WR_MEM],
+        io_type[`EX_MEM], d_rs1[`EX_MEM], d_rs2[`EX_MEM],
+        pa_rd_in[`EX_MEM],
+        rd[`WR_MEM], pa_rd_out[`EX_MEM],
+        mem_a, mem_sd, mem_ld, mem_write, mem_en,
+        clk, rstn);
+
+    // jump
+    assign accepted[`EX_JMP] = order[`EX_JMP];
+    assign exec_jump = order[`EX_JMP];
+    assign jump_next_pc = d_rs1[`EX_JMP];
+    assign done[`WR_JMP] = exec_jump;
+    assign rd[`WR_JMP] = d_rs2[`EX_JMP];
+
+    // io
+    wire                 uart_order;
+    wire [2-1:0]         uart_size;
+    wire [`LEN_WORD-1:0] uart_o_data;
+    wire                 uart_write_flag;
+    wire [`LEN_WORD-1:0] uart_i_data;
+    wire                 uart_accepted;
+    wire                 uart_done;
+    io_core io_c(
+        order[`EX_IO], accepted[`EX_IO], done[`WR_IO],
+        io_type[`EX_IO], func3[`EX_IO], d_rs1[`EX_IO],
+        pa_rd_in[`EX_IO],
+        rd[`EX_IO], pa_rd_out[`WR_IO],
+        uart_write_flag, uart_size, uart_o_data, uart_i_data,
+        uart_order, uart_accepted, uart_done,
+        clk, rstn);
+
+    pack_to_uart m_p_to_uart(
+        uart_order, uart_size, uart_o_data, uart_write_flag,
+        to_uart);
+
+    unpack_from_uart m_u_from_uart(
+        from_uart,
+        uart_accepted, uart_done, uart_i_data);
+
+    // the others
+    wire busy;
+    wire next_busy;
+    wire order_able = ~busy & order[`EX_OTH];
 
     // alu
     wire alu_order =
@@ -122,7 +189,8 @@ module exec(
 
     alu m_alu(
         alu_order, alu_accepted, alu_done,
-        func3, func7, d_rs1, d_rs2,
+        func3[`EX_OTH], func7[`EX_OTH],
+        d_rs1[`EX_OTH], d_rs2[`EX_OTH],
         alu_rd,
         clk, rstn);
 
@@ -158,123 +226,30 @@ module exec(
         fpu_rd,
         clk, rstn);
 
-    // mem
-    wire mem_order = order_able & exec_type[`EXEC_TYPE_MEM];
-    wire mem_accepted;
-    wire mem_done;
-    wire [32-1:0] mem_rd;
-
-    memory m_mem(
-        mem_order, mem_accepted, mem_done,
-        io_type, d_rs1, d_rs2,
-        mem_rd,
-        mem_a, mem_sd, mem_ld, mem_write, mem_en,
-        clk, rstn);
-
-    // jump
-    wire jump_order = order_able & exec_type[`EXEC_TYPE_JUMP];
-    wire jump_accepted = jump_order;
-    wire jump_done = jump_order;
-    wire [32-1:0] jump_rd = d_rs2;
-    assign jump_next_pc = d_rs1;
-    assign exec_jump = jump_order;
-
-    // branch
-    wire ibranch_order = order_able & exec_type[`EXEC_TYPE_BRANCH];
-    wire ibranch_accepted = ibranch_order;
-    wire ibranch_done = ibranch_order;
-    wire [32-1:0] ibranch_rd = 32'b0;
-    wire ibranch_result;
-
-    branch m_br(
-        func3, d_rs1, d_rs2,
-        ibranch_result);
-
-    // fbranch
-    wire fbranch_order = order_able & exec_type[`EXEC_TYPE_FBRANCH];
-    wire fbranch_accepted = fbranch_order;
-    wire fbranch_done = fbranch_order;
-    wire [32-1:0] fbranch_rd = 32'b0;
-    wire fbranch_result;
-
-    fbranch m_fbr(
-        func3, d_rs1, d_rs2,
-        fbranch_result);
-
-    // branches
-    assign exec_branch = ibranch_order | fbranch_order;
-    assign branch_context = contex;
-    assign branch_hazard =
-          (ibranch_order & ibranch_result)
-        | (fbranch_order & fbranch_result);
-
     // subst
     wire subst_order = order_able & exec_type[`EXEC_TYPE_SUBST];
     wire subst_accepted = subst_order;
     wire subst_done = subst_order;
     wire [32-1:0] subst_rd = d_rs1;
 
-    // io
-    wire io_order = order_able & exec_type[`EXEC_TYPE_IO];
-    wire io_accepted;
-    wire io_done;
-    wire [32-1:0] io_rd;
-
-    wire                 uart_order;
-    wire [2-1:0]         uart_size;
-    wire [`LEN_WORD-1:0] uart_o_data;
-    wire                 uart_write_flag;
-    wire [`LEN_WORD-1:0] uart_i_data;
-    wire                 uart_accepted;
-    wire                 uart_done;
-    io_core io_c(
-        io_order, io_accepted, io_done,
-        io_type, func3, d_rs1, io_rd,
-        uart_write_flag, uart_size, uart_o_data, uart_i_data,
-        uart_order, uart_accepted, uart_done,
-        clk, rstn);
-
-    pack_to_uart m_p_to_uart(
-        uart_order, uart_size, uart_o_data, uart_write_flag,
-        to_uart);
-
-    unpack_from_uart m_u_from_uart(
-        from_uart,
-        uart_accepted, uart_done, uart_i_data);
-
     assign accepted =
         alu_accepted     |
         alu_ext_accepted |
         fpu_accepted     |
-        mem_accepted     |
-        jump_accepted    |
-        ibranch_accepted |
-        fbranch_accepted |
-        subst_accepted   |
-        io_accepted;
+        subst_accepted;
 
     assign done =
         alu_done     |
         alu_ext_done |
         fpu_done     |
-        mem_done     |
-        jump_done    |
-        ibranch_done |
-        fbranch_done |
-        subst_done   |
-        io_done;
+        subst_done;
 
     wire [32-1:0] rd_buf;
     wire [32-1:0] next_rd_buf =
         alu_done     ? alu_rd     :
         alu_ext_done ? alu_ext_rd :
         fpu_done     ? fpu_rd     :
-        mem_done     ? mem_rd     :
-        jump_done    ? jump_rd    :
-        ibranch_done ? ibranch_rd :
-        fbranch_done ? fbranch_rd :
         subst_done   ? subst_rd   :
-        io_done      ? io_rd      :
         rd_buf;
     temp_reg r_rd_buf(1'b1, next_rd_buf, rd_buf, clk, rstn);
 
