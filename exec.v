@@ -214,16 +214,40 @@ module exec(
         alu_ext_rd,
         clk, rstn);
 
-    // fpu
-    wire fpu_order = order_able & exec_type[`EXEC_TYPE_FPU];
-    wire fpu_accepted;
-    wire fpu_done;
-    wire [32-1:0] fpu_rd;
+    // fpu1
+    wire fpu1_order = order_able & exec_type[`EXEC_TYPE_FPU1];
+    wire fpu1_accepted;
+    wire fpu1_done;
+    wire [32-1:0] fpu1_rd;
 
     fpu m_fpu(
-        fpu_order, fpu_accepted, fpu_done,
+        fpu1_order, fpu1_accepted, fpu1_done,
         func3, func7, d_rs1, d_rs2,
-        fpu_rd,
+        fpu1_rd,
+        clk, rstn);
+
+    // fpu2
+    wire fpu2_order = order_able & exec_type[`EXEC_TYPE_FPU2];
+    wire fpu2_accepted;
+    wire fpu2_done;
+    wire [32-1:0] fpu2_rd;
+
+    fpu m_fpu(
+        fpu2_order, fpu2_accepted, fpu2_done,
+        func3, func7, d_rs1, d_rs2,
+        fpu2_rd,
+        clk, rstn);
+
+    // fpu3
+    wire fpu3_order = order_able & exec_type[`EXEC_TYPE_FPU3];
+    wire fpu3_accepted;
+    wire fpu3_done;
+    wire [32-1:0] fpu3_rd;
+
+    fpu m_fpu(
+        fpu3_order, fpu3_accepted, fpu3_done,
+        func3, func7, d_rs1, d_rs2,
+        fpu3_rd,
         clk, rstn);
 
     // subst
@@ -235,20 +259,26 @@ module exec(
     assign accepted =
         alu_accepted     |
         alu_ext_accepted |
-        fpu_accepted     |
+        fpu1_accepted    |
+        fpu2_accepted    |
+        fpu3_accepted    |
         subst_accepted;
 
     assign done =
         alu_done     |
         alu_ext_done |
-        fpu_done     |
+        fpu1_done    |
+        fpu2_done    |
+        fpu3_done    |
         subst_done;
 
     wire [32-1:0] rd_buf;
     wire [32-1:0] next_rd_buf =
         alu_done     ? alu_rd     :
         alu_ext_done ? alu_ext_rd :
-        fpu_done     ? fpu_rd     :
+        fpu1_done    ? fpu1_rd    :
+        fpu2_done    ? fpu2_rd    :
+        fpu3_done    ? fpu3_rd    :
         subst_done   ? subst_rd   :
         rd_buf;
     temp_reg r_rd_buf(1'b1, next_rd_buf, rd_buf, clk, rstn);

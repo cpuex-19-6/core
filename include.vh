@@ -203,10 +203,12 @@ index   exec_type       OoO able
 // write_d_r
 `define LEN_WRITE_D_R ((`LEN_PREG_ADDR)+(`LEN_WORD)+1)
 // exec_type
-`define LEN_EXEC_TYPE 9
-`define EXEC_TYPE_ALU_NON_IMM 8
-`define EXEC_TYPE_ALU_NON_EXT 7
-`define EXEC_TYPE_FPU         6
+`define LEN_EXEC_TYPE11
+`define EXEC_TYPE_ALU_NON_IMM 10
+`define EXEC_TYPE_ALU_NON_EXT 9
+`define EXEC_TYPE_FPU1        8
+`define EXEC_TYPE_FPU2        7
+`define EXEC_TYPE_FPU3        6
 `define EXEC_TYPE_MEM         5
 `define EXEC_TYPE_JUMP        4
 `define EXEC_TYPE_BRANCH      3
