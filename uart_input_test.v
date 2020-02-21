@@ -2,53 +2,48 @@
 
 `default_nettype none
 
-module uart_input_generate
-    #(BAUD = `DEFAULT_BAUD,
-      SEND_DATA = 32'ha14e28c5)
-    (output wire rx,
-     input  wire clk,
-     input  wire rstn);
+module uart_input_generate #(
+    CLK_FREQ = `CLK_PER_SEC,
+    BAUD = `DEFAULT_BAUD)(
+        output wire rx,
+        input  wire clk,
+        input  wire rstn);
 
-    wire [32-1:0] send_data;
-
-    temp_reg #(32, SEND_DATA) tr_st(
-        1'b0, SEND_DATA, send_data, clk, rstn);
-    
-    wire [10-1:0] counter;
-
-    temp_reg #(10) tr_c100(
-        1'b1,
-        (counter<10'd100) ? counter+10'd1 : 10'd100,
-        counter,
-        clk, rstn);
-
-    wire [8-1:0] all_data[4-1:0];
-
-    assign all_data[0] = send_data[31:24];
-    assign all_data[1] = send_data[23:16];
-    assign all_data[2] = send_data[15:8];
-    assign all_data[3] = send_data[7:0];
-    
+    reg [32-1:0] send_data;
+    reg [2-1:0] idx;
+    reg started;
+    reg order;
     wire sendable;
-    wire r_sendable;
 
-    temp_reg #(1) tr_sendable(
-        1'b1, sendable, r_sendable, clk, rstn);
+    wire [8-1:0] byte_data[4-1:0];
+    assign byte_data[0]=send_data[7:0];
+    assign byte_data[1]=send_data[15:8];
+    assign byte_data[2]=send_data[23:16];
+    assign byte_data[3]=send_data[31:24];
 
-    wire [2-1:0] addr;
-    wire [2-1:0] addr_next;
+    always @(posedge clk) begin
+        if (~rstn) begin
+            order <= 1'b0;
+            started <= 1'b0;
+            send_data <= 32'b0;
+            idx <=2'b0;
+        end else if (sendable) begin
+            if (starded) begin
+                if (&idx) begin
+                    send_data <= send_data + 32'b1;
+                end
+                idx <= idx + 2'b1;
+            end else begin
+                started <= 1'b1;
+            end
+            order <= 1'b1;
+        end else begin
+            order <= 1'b0;
+        end
 
-    temp_reg #(2, 2'd3) tr(
-        1'b1, addr_next, addr, clk, rstn);
-    
-    assign addr_next = sendable + addr;
-
-    wire [8-1:0] data_byte;
-    assign data_byte = all_data[addr_next];
-
-    uart_tx #(BAUD) tx(
-        (counter < 10'd100) | r_sendable, data_byte, sendable,
-        rx, clk, rstn);
+    uart_tx #(CLK_FREQ = `CLK_PER_SEC,BAUD = `DEFAULT_BAUD)
+    m_uart_tx(
+        order, byte_data[idx], sendable, rx, clk, rstn);
 
 endmodule
 
