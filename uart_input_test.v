@@ -3,8 +3,7 @@
 `default_nettype none
 
 module uart_input_generate #(
-    CLK_FREQ = `CLK_PER_SEC,
-    BAUD = `DEFAULT_BAUD)(
+    CLK_FREQ = `CLK_PER_SEC, BAUD = `DEFAULT_BAUD)(
         output wire rx,
         input  wire clk,
         input  wire rstn);
@@ -28,7 +27,7 @@ module uart_input_generate #(
             send_data <= 32'b0;
             idx <=2'b0;
         end else if (sendable) begin
-            if (starded) begin
+            if (started) begin
                 if (&idx) begin
                     send_data <= send_data + 32'b1;
                 end
@@ -40,8 +39,9 @@ module uart_input_generate #(
         end else begin
             order <= 1'b0;
         end
+    end
 
-    uart_tx #(CLK_FREQ = `CLK_PER_SEC,BAUD = `DEFAULT_BAUD)
+    uart_tx #(CLK_FREQ, BAUD)
     m_uart_tx(
         order, byte_data[idx], sendable, rx, clk, rstn);
 
