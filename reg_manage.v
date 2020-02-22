@@ -37,7 +37,7 @@ module reg_manage(
         output wire [`LEN_INST_D_R*`INST_W_PARA-1:0]  r_inst_d_r,
 
         // WRITE_PARAの分だけ並列化
-        input  wire [`LEN_WRITE_D_R-1:0] w_write_d_r,
+        input  wire [`LEN_WRITE_D_R*`WRITE_PARA-1:0] w_write_d_r,
 
         output wire [`LEN_WORD-1:0]      lr_d,
 
@@ -47,57 +47,87 @@ module reg_manage(
 
         input  wire clk,
         input  wire rstn);
-    
+
+    localparam preg_num = (2 ** `LEN_PREG_ADDR);
+
     // regで使うwireの定義
 
-    wire [`LEN_PREG_ADDR-1:0] r_pa_rs1;
-    wire [`LEN_PREG_ADDR-1:0] r_pa_rs2;
+    wire [`LEN_PREG_ADDR-1:0] r_pa_rs1[`INST_W_PARA-1:0];
+    wire [`LEN_PREG_ADDR-1:0] r_pa_rs2[`INST_W_PARA-1:0];
     wire [`LEN_PREG_ADDR-1:0] lr_pa;
-    wire [`LEN_PREG_ADDR-1:0] w_pa_rd;
-    wire [`LEN_WORD-1:0] r_d_rs1;
-    wire [`LEN_WORD-1:0] r_d_rs2;
-    wire [`LEN_WORD-1:0] w_d_rd;
-    wire w_order;
+    wire [`LEN_WORD-1:0] r_d_rs1[`INST_W_PARA-1:0];
+    wire [`LEN_WORD-1:0] r_d_rs2[`INST_W_PARA-1:0];
+
+    wire [`LEN_PREG_ADDR*`INST_W_PARA-1:0] r_pa_rs1_line;
+    wire [`LEN_PREG_ADDR*`INST_W_PARA-1:0] r_pa_rs2_line;
+    wire [`LEN_WORD*`INST_W_PARA-1:0] r_d_rs1_line;
+    wire [`LEN_WORD*`INST_W_PARA-1:0] r_d_rs2_line;
+
+    wire [`LEN_PREG_ADDR-1:0] w_pa_rd[`WRITE_PARA-1:0];
+    wire [`LEN_WORD-1:0] w_d_rd[`WRITE_PARA-1:0];
+    wire [`WRITE_PARA-1:0] w_order;
+    wire [`LEN_PREG_ADDR*`WRITE_PARA-1:0] w_pa_rd_line;
+    wire [`LEN_WORD*`WRITE_PARA-1:0] w_d_rd_line;
 
     regs m_regs(
-        r_pa_rs1, r_pa_rs2, lr_pa,
-        r_d_rs1, r_d_rs2, lr_d,
-        w_order, w_pa_rd, w_d_rd,
+        {r_pa_rs1_line, r_pa_rs2_line, lr_pa},
+        {r_d_rs1_line, r_d_rs2_line, lr_d},
+        w_order, w_pa_rd_line, w_d_rd_line,
         clk, rstn);
 
     genvar pa_reg;
     genvar w;
     genvar r;
 
-    wire [`LEN_CONTEXT-1:0] before_context[2**`LEN_PREG_ADDR-1:0];
+    generate
+        for (r=0; r<`INST_W_PARA; r=r+1) begin
+            assign r_pa_rs1_line[`LEN_PREG_ADDR*(r+1)-1:`LEN_PREG_ADDR*r] =
+                r_pa_rs1[r];
+            assign r_pa_rs2_line[`LEN_PREG_ADDR*(r+1)-1:`LEN_PREG_ADDR*r] =
+                r_pa_rs2[r];
+            assign r_d_rs1_line[r] =
+                r_d_rs1_line_line[`LEN_WORD*(r+1)-1:`LEN_WORD*r];
+            assign r_d_rs2_line[r] =
+                r_d_rs2_line_line[`LEN_WORD*(r+1)-1:`LEN_WORD*r];
+        end
+        for (w=0; w<`WRITE_PARA; w=w+1) begin
+            assign w_pa_rd_line[`LEN_PREG_ADDR*(w+1)-1:`LEN_PREG_ADDR*w] =
+                w_pa_rd[w];
+            assign w_d_rd_line[`LEN_WORD*(w+1)-1:`LEN_WORD*w] =
+                w_d_rd[w];
+        end
+    endgenerate
+
+    wire [`LEN_CONTEXT-1:0] before_context[preg_num-1:0];
 
     // ---- writer loop -------------------------
     // forwarding_id
     // forwarding_data
     // context_read
 
-    wire [`LEN_W_PARA_ID-1:0] forwarding_id[2**`LEN_PREG_ADDR-1:0];
+    wire [`LEN_W_PARA_ID-1:0] forwarding_id[preg_num-1:0];
     wire [2**`LEN_PREG_ADDR-1:0] forwarding_flag;
     wire [`LEN_WORD-1:0] forwarding_data[`WRITE_PARA-1:0];
 
-    wire [`LEN_CONTEXT-1:0] context_read[2**`LEN_PREG_ADDR-1:0];
+    wire [`LEN_CONTEXT-1:0] context_read[preg_num-1:0];
 
     generate
-        wire [`WRITE_PARA-1:0] forwarding_update[2**`LEN_PREG_ADDR-1:0];
-        for (w = 0; w < 1; w = w+1) begin : write_loop
+        wire [`WRITE_PARA-1:0] forwarding_update[preg_num-1:0];
+        for (w = 0; w < `WRITE_PARA; w = w+1) begin : write_loop
             // ---- write -------------------------
             unpack_struct_write_d_r m_write_d_r(
-                w_write_d_r, w_order, w_pa_rd, w_d_rd);
+                w_write_d_r[`LEN_WRITE_D_R*(w+1)-1:`LEN_WRITE_D_R*w],
+                w_order[w], w_pa_rd[w], w_d_rd[w]);
 
-            assign forwarding_data[w] = w_d_rd;
+            assign forwarding_data[w] = w_d_rd[w];
 
             assign forwarding_update[0][w] = 1'b0;
-            for (pa_reg = 1; pa_reg < 2**`LEN_PREG_ADDR; pa_reg = pa_reg+1) begin : write_loop_reg
+            for (pa_reg = 1; pa_reg < preg_num; pa_reg = pa_reg+1) begin : write_loop_reg
                 assign forwarding_update[pa_reg][w] =
-                    w_order & (pa_reg[`LEN_PREG_ADDR-1:0] == w_pa_rd);
+                    w_order[w] & (pa_reg[`LEN_PREG_ADDR-1:0] == w_pa_rd[w]);
             end
         end
-        for (pa_reg = 0; pa_reg < 2**`LEN_PREG_ADDR; pa_reg = pa_reg+1) begin : write_end
+        for (pa_reg = 0; pa_reg < preg_num; pa_reg = pa_reg+1) begin : write_end
             if ((2**`LEN_W_PARA_ID) == `WRITE_PARA) begin
                 onehot_to_binary #(`LEN_W_PARA_ID) m_o_t_b_forwarding_id1(
                     forwarding_update[pa_reg], forwarding_id[pa_reg]);
@@ -126,7 +156,7 @@ module reg_manage(
     // wire [`LEN_PREG_ADDR-1:0] v_reg_dict[2**`LEN_VREG_ADDR-1:0];
 
     generate
-        for (pa_reg = 0; pa_reg < 2**`LEN_PREG_ADDR; pa_reg = pa_reg+1) begin : read_init
+        for (pa_reg = 0; pa_reg < preg_num; pa_reg = pa_reg+1) begin : read_init
             assign context_write_update[0][pa_reg] =
                 context_read[pa_reg];
             assign context_write[pa_reg] =
@@ -150,8 +180,8 @@ module reg_manage(
 
             // 仮想レジスタ→物理レジスタ変換
             wire [`LEN_PREG_ADDR-1:0] r_pa_rd;
-            assign r_pa_rs1 = r_va_rs1;
-            assign r_pa_rs2 = r_va_rs2;
+            assign r_pa_rs1[r] = r_va_rs1;
+            assign r_pa_rs2[r] = r_va_rs2;
             assign r_pa_rd = r_va_rd;
 
             // branch_hazard
@@ -161,22 +191,22 @@ module reg_manage(
 
             // rs1
             wire [`LEN_WORD-1:0] r_d_rs1_in =
-                forwarding_flag[r_pa_rs1]
-                    ? forwarding_data[forwarding_id[r_pa_rs1]]
-                    : r_d_rs1;
+                forwarding_flag[r_pa_rs1[r]]
+                    ? forwarding_data[forwarding_id[r_pa_rs1[r]]]
+                    : r_d_rs1[r];
             wire r_rs1_ready =
                   r_rs1_order
-                & (~|(context_write_update[r][r_pa_rs1]))
+                & (~|(context_write_update[r][r_pa_rs1[r]]))
                 & ~r_branch_hazard;
 
             // rs2
             wire [`LEN_WORD-1:0] r_d_rs2_in =
-                forwarding_flag[r_pa_rs2]
-                    ? forwarding_data[forwarding_id[r_pa_rs2]]
-                    : r_d_rs2;
+                forwarding_flag[r_pa_rs2[r]]
+                    ? forwarding_data[forwarding_id[r_pa_rs2[r]]]
+                    : r_d_rs2[r];
             wire r_rs2_ready =
                   r_rs2_order
-                & (~|(context_write_update[r][r_pa_rs2]))
+                & (~|(context_write_update[r][r_pa_rs2[r]]))
                 & ~r_branch_hazard;
 
             // rd
