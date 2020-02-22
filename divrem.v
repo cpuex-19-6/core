@@ -45,99 +45,95 @@ module divu_remu(
 
     localparam base = 4; // 2**n
 `define base_zero 4'b0
-    localparam calc_stages = 32 / base - 1;
+    localparam calc_stages = 32 / base;
     localparam stage_period = 3;
     localparam stage_mod = 0;
-    localparam stage_size =
-        (calc_stages + (stage_period-1) - stage_mod) / stage_period + 1;
+    // stage 0で初期化
+    // stage 1からstage calc_stagesで計算
+    // stage (calc_stages+1)で出力
+    // 0~calc_stagesのnに対して、nをperiodで割った余りがmodのとき、
+    // stage nとstage (n+1)の間にレジスタ
+
+    genvar i;
+    genvar l;
 
     // 各ステージで必要になる値
 
     // (base)bit文の場合分けリスト
-    wire [32+base-1:0] small_mul[(calc_stages+1)-1:0][(2**base-1)-1:0];
-
-    // i番目では、
-    // 前の入力 ~_in[i-1] -> 出力 ~_out[i]
-    wire [32-1:0] divs_in[calc_stages-1:0];
-    wire [32-1:0] divs_out[calc_stages-1:0];
-    wire [64-1:0] rems_in[calc_stages-1:0];
-    wire [64-1:0] rems_out[calc_stages-1:0];
-
-    // stage_n
-    wire [stage_size:0] stage;
-    assign stage[0] = stage_start;
-    assign stage_last = stage[stage_size];
-
-    // pa_rd_n
-    wire [`LEN_PREG_ADDR-1:0] pa_rd[stage_size:0];
-    assign pa_rd[0] = pa_rd_start;
-    assign pa_rd_last = pa_rd[stage_size];
-
-    // rem_flag_n
-    wire [stage_size:0] rem_flags;
-    assign rem_flags[0] = rem_flag;
-
-    // 各divs等同士の連結
-    // stage_mod番目からstage_period番ごとにstageを入れる
-    genvar i;
-    genvar l;
+    // stage iでは[i]
+    wire [32+base-1:0] small_mul[calc_stages:0][(2**base-1)-1:0];
     generate
         for (i = 1; i < 2**base; i = i+1) begin
             assign small_mul[0][i-1] = {`base_zero,rs2} * i[base-1:0];
         end
-        for (l = 0; l < calc_stages; l = l+1) begin
+    endgenerate
+
+    // stage iでは、
+    // 前の入力 ~_in[i-1] -> 出力 ~_out[i]
+    wire [32-1:0] divs_in[calc_stages:0];
+    wire [32-1:0] divs_out[calc_stages:0];
+    wire [64-1:0] rems_in[calc_stages:0];
+    wire [64-1:0] rems_out[calc_stages:0];
+    assign divs_out[0] = 32'b0;
+    assign rems_out[0] = {32'b0,rs1};
+    wire [32-1:0] div_ret = divs_in[calc_stages];
+    wire [32-1:0] rem_ret = rems_in[calc_stages][64-1:32];
+
+    // stage_n
+    // stage iでは[i]
+    wire [calc_stages+1:0] stages;
+    assign stages[0] = stage_start;
+    assign stage_last = stages[calc_stages+1];
+
+    // pa_rd_n
+    wire [`LEN_PREG_ADDR-1:0] pa_rd[calc_stages+1:0];
+    assign pa_rd[0] = pa_rd_start;
+    assign pa_rd_last = pa_rd[calc_stages+1];
+
+    // rem_flag_n
+    // stage iでは[i]
+    wire [calc_stages+1:0] rem_flags;
+    assign rem_flags[0] = rem_flag;
+
+    assign rd = (rem_flags[calc_stages+1]) ? rem_ret : div_ret;
+
+    // 各divs等同士の連結
+    // stage_mod番目からstage_period番ごとにstageを入れる
+    generate
+        for (l = 0; l < calc_stages+2; l = l+1) begin
             if (l % stage_period == stage_mod) begin
-                temp_reg #(32) r_divs(1'b1,divs_out[l],divs_in[l],clk,rstn);
-                temp_reg #(64) r_rems(1'b1,rems_out[l],rems_in[l],clk,rstn);
+                temp_reg #(32)             r_divs(1'b1,divs_out[l],divs_in[l],clk,rstn);
+                temp_reg #(64)             r_rems(1'b1,rems_out[l],rems_in[l],clk,rstn);
+                temp_reg #(1)              r_remflags(1'b1,rem_flags[l],rem_flags[l+1],clk,rstn);
+                temp_reg #(1)              r_stages(1'b1,stages[l],stages[l+1],clk,rstn);
+                temp_reg #(`LEN_PREG_ADDR) r_pa_rd(1'b1,pa_rd[l],pa_rd[l+1],clk,rstn);
+            end
+            else begin
+                assign divs_in[l] = divs_out[l];
+                assign rems_in[l] = rems_out[l];
+                assign rem_flags[l+1] = rem_flags[l];
+                assign stages[l+1] = stages[l];
+                assign pa_rd[l+1] = pa_rd[l];
+            end
+        end
+        for (l = 0; l < calc_stages+1; l = l+1) begin
+            if (l % stage_period == stage_mod) begin
                 for (i = 0; i < 2**base-1; i = i+1) begin
                     temp_reg #(32+base) r_smml(1'b1,small_mul[l][i],small_mul[l+1][i],clk,rstn);
                 end
             end
             else begin
-                assign divs_in[l] = divs_out[l];
-                assign rems_in[l] = rems_out[l];
                 for (i = 0; i < 2**base-1; i = i+1) begin
                     assign small_mul[l+1][i] = small_mul[l][i];
                 end
             end
         end
-        for (l = 0; l < stage_size; l = l+1) begin
-            temp_reg #(1) r_stage(1'b1,stage[l],stage[l+1],clk,rstn);
-            temp_reg #(`LEN_PREG_ADDR) r_pa_rd(1'b1,pa_rd[l],pa_rd[l+1],clk,rstn);
-            temp_reg #(1) r_rem_flag(1'b1,rem_flags[l],rem_flags[l+1],clk,rstn);
-        end
     endgenerate
 
-    // stage_0
-
-    wire [32-1:0] div_init = 32'b0;
-    wire [64-1:0] rem_init = {32'b0,rs1};
-    wire [32-1:0] temp_div_init[2**base-1:0];
-    wire [64-1:0] temp_rem_init[2**base-1:0];
-    assign temp_div_init[0] = {div_init[32-base-1:0],`base_zero};
-    assign temp_rem_init[0] = {rem_init[64-base-1:0],`base_zero};
-    generate
-        for (i = 1; i < 2**base; i = i+1) begin
-            assign temp_div_init[i] =
-                (rem_init[64-1:32-base] >= small_mul[0][i-1])
-                    ? {div_init[32-base-1:0],i[base-1:0]}
-                    : temp_div_init[i-1];
-
-            wire [32+base-1:0] tt_rem_init =
-                rem_init[64-1:32-base] - small_mul[0][i-1];
-            assign temp_rem_init[i] =
-                (rem_init[64-1:32-base] >= small_mul[0][i-1])
-                    ? {tt_rem_init[32-1:0], rem_init[32-base-1:0], `base_zero}
-                    : temp_rem_init[i-1];
-        end
-    endgenerate
-    assign divs_out[0] = temp_div_init[2**base-1];
-    assign rems_out[0] = temp_rem_init[2**base-1];
-
-    // stage 1 ~ stage last-1
+    // stage 1 ~ stage calc_stages
 
     generate
-        for (l = 1; l < calc_stages; l = l+1) begin
+        for (l = 1; l < calc_stages+1; l = l+1) begin
             wire [32-1:0] div = divs_in[l-1];
             wire [64-1:0] rem = rems_in[l-1];
             wire [32-1:0] temp_div[2**base-1:0];
@@ -161,34 +157,6 @@ module divu_remu(
             assign rems_out[l] = temp_rem[2**base-1];
         end
     endgenerate
-
-    // last stage
-
-    wire [32-1:0] div_last = divs_in[calc_stages-1];
-    wire [64-1:0] rem_last = rems_in[calc_stages-1];
-    wire [32-1:0] temp_div_last[2**base-1:0];
-    wire [64-1:0] temp_rem_last[2**base-1:0];
-    assign temp_div_last[0] = {div_last[32-base-1:0],`base_zero};
-    assign temp_rem_last[0] = {rem_last[64-base-1:0],`base_zero};
-    generate
-        for (i = 1; i < 2**base; i = i+1) begin
-            assign temp_div_last[i] =
-                (rem_last[64-1:32-base] >= small_mul[calc_stages-1][i-1])
-                    ? {div_last[32-base-1:0],i[base-1:0]}
-                    : temp_div_last[i-1];
-
-            wire [32+base-1:0] tt_rem_last =
-                rem_last[64-1:32-base] - small_mul[calc_stages-1][i-1];
-            assign temp_rem_last[i] =
-                (rem_last[64-1:32-base] >= small_mul[calc_stages-1][i-1])
-                    ? {tt_rem_last[32-1:0], rem_last[32-base-1:0], `base_zero}
-                    : temp_rem_last[i-1];
-        end
-    endgenerate
-    wire [32-1:0] div_ret = temp_div_last[2**base-1];
-    wire [64-1:0] rem_ret = temp_rem_last[2**base-1];
-
-    assign rd = (rem_flags[stage_size]) ? (rem_ret[64-1:32]) : (div_ret);
 
 endmodule
 
