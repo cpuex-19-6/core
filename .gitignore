@@ -1,7 +1,7 @@
 /bin_code/*
 !/bin_code/*.ml
 !/bin_code/*.s
-!/bin_code/*.coe
+!/bin_code/*.coe*
 !/bin_code/*.bit
 
 /publish.sh
