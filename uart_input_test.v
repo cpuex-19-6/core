@@ -15,9 +15,9 @@ module uart_input_generate #(
     wire sendable;
 
     wire [8-1:0] byte_data[4-1:0];
-    assign byte_data[0]=send_data[7:0];
-    assign byte_data[1]=send_data[15:8];
-    assign byte_data[2]=send_data[23:16];
+    assign byte_data[3]=send_data[7:0];
+    assign byte_data[2]=send_data[15:8];
+    assign byte_data[1]=send_data[23:16];
     assign byte_data[3]=send_data[31:24];
 
     always @(posedge clk) begin

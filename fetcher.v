@@ -299,8 +299,8 @@ module fetch #(
            | (lr_non_fetching & non_failure_stop));
     assign next_access_addr =
         prold_mode
-            ? prold_pc[LEN_MEMISTR_ADDR+FETCH_PARA+2-1
-                      :FETCH_PARA+2] :
+            ? prold_pc[LEN_MEMISTR_ADDR+LOG_FETCH_PARA+2-1
+                      :LOG_FETCH_PARA+2] :
         |(predict_non_fetching) ? one_predict_addr
                                 : lr_addr;
 
@@ -314,17 +314,17 @@ module fetch #(
     wire [FETCH_PARA-1:0] next_wen_mem;
     wire [`LEN_INST-1:0] before_prold_data;
     generate
-        for (i=0; i<FETCH_PARA; i=i+1) begin
-            if (LOG_FETCH_PARA > 0) begin
+        if (LOG_FETCH_PARA > 0) begin
+            for (i=0; i<FETCH_PARA; i=i+1) begin
                 assign next_wen_mem[FETCH_PARA-i-1] =
                       prold_mode
                     & prold_order
-                    & (prold_pc[LOG_FETCH_PARA+2-1:2] == i);
+                    & (prold_pc[LOG_FETCH_PARA+2-1:2] == i[LOG_FETCH_PARA-1:0]);
             end
-            else begin
-                assign next_wen_mem[FETCH_PARA-i-1] =
-                    prold_mode & prold_order;
-            end
+        end
+        else begin
+            assign next_wen_mem =
+                prold_mode & prold_order;
         end
     endgenerate
 
