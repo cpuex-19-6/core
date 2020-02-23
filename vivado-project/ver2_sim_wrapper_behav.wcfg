@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="ver2_sim_wrapper_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="ver2_sim_wrapper" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="12338500000000fs"></ZoomStartTime>
+      <ZoomEndTime time="15533500000001fs"></ZoomEndTime>
+      <Cursor1Time time="15001000000000fs"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="191"></NameColumnWidth>
+      <ValueColumnWidth column_width="72"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="26" />
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/cpu_0/inst/clock_counter" type="array">
+      <obj_property name="ElementShortName">clock_counter[31:0]</obj_property>
+      <obj_property name="ObjectShortName">clock_counter[31:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/uart_manage_0/inst/r_r_input/i_addr" type="array">
+      <obj_property name="ElementShortName">i_addr[11:0]</obj_property>
+      <obj_property name="ObjectShortName">i_addr[11:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/uart_manage_0/inst/r_r_input/o_addr" type="array">
+      <obj_property name="ElementShortName">o_addr[11:0]</obj_property>
+      <obj_property name="ObjectShortName">o_addr[11:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/uart_manage_0/rxd" type="logic">
+      <obj_property name="ElementShortName">rxd</obj_property>
+      <obj_property name="ObjectShortName">rxd</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/uart_manage_0/inst/r_t_output/i_addr" type="array">
+      <obj_property name="ElementShortName">i_addr[11:0]</obj_property>
+      <obj_property name="ObjectShortName">i_addr[11:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/uart_manage_0/inst/r_t_output/o_addr" type="array">
+      <obj_property name="ElementShortName">o_addr[11:0]</obj_property>
+      <obj_property name="ObjectShortName">o_addr[11:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/USB_UART_RX" type="logic">
+      <obj_property name="ElementShortName">USB_UART_RX</obj_property>
+      <obj_property name="ObjectShortName">USB_UART_RX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/exec_0/inst/order" type="logic">
+      <obj_property name="ElementShortName">order</obj_property>
+      <obj_property name="ObjectShortName">order</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/exec_0/inst/accepted" type="logic">
+      <obj_property name="ElementShortName">accepted</obj_property>
+      <obj_property name="ObjectShortName">accepted</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/exec_0/inst/done" type="logic">
+      <obj_property name="ElementShortName">done</obj_property>
+      <obj_property name="ObjectShortName">done</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/exec_0/inst/func3" type="array">
+      <obj_property name="ElementShortName">func3[2:0]</obj_property>
+      <obj_property name="ObjectShortName">func3[2:0]</obj_property>
+      <obj_property name="Radix">BINARYRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/exec_0/inst/d_rs1" type="array">
+      <obj_property name="ElementShortName">d_rs1[31:0]</obj_property>
+      <obj_property name="ObjectShortName">d_rs1[31:0]</obj_property>
+      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+      <obj_property name="radix_realType">FLOATINGPOINTRADIX</obj_property>
+      <obj_property name="radix_fractionWidth">24</obj_property>
+      <obj_property name="radix_otherWidth">8</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/exec_0/inst/d_rs2" type="array">
+      <obj_property name="ElementShortName">d_rs2[31:0]</obj_property>
+      <obj_property name="ObjectShortName">d_rs2[31:0]</obj_property>
+      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+      <obj_property name="radix_realType">FLOATINGPOINTRADIX</obj_property>
+      <obj_property name="radix_fractionWidth">24</obj_property>
+      <obj_property name="radix_otherWidth">8</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/exec_0/inst/next_rd_buf" type="array">
+      <obj_property name="ElementShortName">next_rd_buf[31:0]</obj_property>
+      <obj_property name="ObjectShortName">next_rd_buf[31:0]</obj_property>
+      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+      <obj_property name="radix_realType">FLOATINGPOINTRADIX</obj_property>
+      <obj_property name="radix_fractionWidth">24</obj_property>
+      <obj_property name="radix_otherWidth">8</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/reg_manage_0/inst/m_regs/registers[1]" type="array">
+      <obj_property name="ElementShortName">[1][31:0]</obj_property>
+      <obj_property name="ObjectShortName">[1][31:0]</obj_property>
+      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/reg_manage_0/inst/m_regs/registers[2]" type="array">
+      <obj_property name="ElementShortName">[2][31:0]</obj_property>
+      <obj_property name="ObjectShortName">[2][31:0]</obj_property>
+      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/reg_manage_0/inst/m_regs/registers[4]" type="array">
+      <obj_property name="ElementShortName">[4][31:0]</obj_property>
+      <obj_property name="ObjectShortName">[4][31:0]</obj_property>
+      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/reg_manage_0/inst/m_regs/registers[5]" type="array">
+      <obj_property name="ElementShortName">[5][31:0]</obj_property>
+      <obj_property name="ObjectShortName">[5][31:0]</obj_property>
+      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/exec_0/inst/m_alu_ext/m_divu_remu/rem_flag" type="logic">
+      <obj_property name="ElementShortName">rem_flag</obj_property>
+      <obj_property name="ObjectShortName">rem_flag</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/exec_0/inst/m_alu_ext/m_divu_remu/rd" type="array">
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="ElementShortName">rd[31:0]</obj_property>
+      <obj_property name="ObjectShortName">rd[31:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      <obj_property name="label">rd[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/exec_0/inst/m_alu_ext/m_divu_remu/div_ret" type="array">
+      <obj_property name="ElementShortName">div_ret[31:0]</obj_property>
+      <obj_property name="ObjectShortName">div_ret[31:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/exec_0/inst/m_alu_ext/m_divu_remu/rem_ret" type="array">
+      <obj_property name="ElementShortName">rem_ret[31:0]</obj_property>
+      <obj_property name="ObjectShortName">rem_ret[31:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/exec_0/inst/m_alu_ext/m_divu_remu/small_mul[0]" type="array">
+      <obj_property name="ElementShortName">[0][14:0][35:0]</obj_property>
+      <obj_property name="ObjectShortName">[0][14:0][35:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/exec_0/inst/m_alu_ext/m_divu_remu/small_mul[1]" type="array">
+      <obj_property name="ElementShortName">[1][14:0][35:0]</obj_property>
+      <obj_property name="ObjectShortName">[1][14:0][35:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/exec_0/inst/m_alu_ext/m_divu_remu/small_mul[4]" type="array">
+      <obj_property name="ElementShortName">[4][14:0][35:0]</obj_property>
+      <obj_property name="ObjectShortName">[4][14:0][35:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/ver2_sim_wrapper/ver2_sim_i/exec_0/inst/m_alu_ext/m_divu_remu/small_mul[7]" type="array">
+      <obj_property name="ElementShortName">[7][14:0][35:0]</obj_property>
+      <obj_property name="ObjectShortName">[7][14:0][35:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+</wave_config>
