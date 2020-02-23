@@ -26,8 +26,8 @@
 #    "../vivado-project/ver2_wrapper.v"
 #    "../vivado-project/ver2_sim_wrapper.v"
 #    "../vivado-project/ver2_sim2_prold_wrapper.v"
-#    "../vivado-project/cpu_main/ver2_sim_wrapper_behav.wcfg"
-#    "../vivado-project/cpu_main/ver2_sim2_prold_wrapper_behav.wcfg"
+#    "../vivado-project/ver2_sim_wrapper_behav.wcfg"
+#    "../vivado-project/ver2_sim2_prold_wrapper_behav.wcfg"
 #
 # 3. The following remote source files that were added to the original project:-
 #
@@ -308,8 +308,8 @@ if {[string equal [get_filesets -quiet sim_1] ""]} {
 set obj [get_filesets sim_1]
 # Import local files from the original project
 set files [list \
- [file normalize "${origin_dir}/cpu_main/ver2_sim_wrapper_behav.wcfg" ]\
- [file normalize "${origin_dir}/cpu_main/ver2_sim2_prold_wrapper_behav.wcfg" ]\
+ [file normalize "${origin_dir}/ver2_sim_wrapper_behav.wcfg" ]\
+ [file normalize "${origin_dir}/ver2_sim2_prold_wrapper_behav.wcfg" ]\
 ]
 set imported_files [import_files -fileset sim_1 $files]
 
