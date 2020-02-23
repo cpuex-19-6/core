@@ -16,6 +16,7 @@ cat cpu_main.tcl \
     | sed -e '/^levelinfo/d' \
     > create_project.tcl
 
+cp cpu_main/*.wcfg ./
 cp cpu_main/cpu_main.srcs/sources_1/bd/*/hdl/*_wrapper.v ./
 for file_name in `ls *_wrapper.v`
 do

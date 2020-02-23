@@ -91,7 +91,7 @@ module divu_remu
     // 各divs等同士の連結
     // stage_mod番目からstage_period番ごとにstageを入れる
     generate
-        for (l = 0; l < calc_stages+2; l = l+1) begin
+        for (l = 0; l < calc_stages+1; l = l+1) begin
             if (l % stage_period == stage_mod) begin
                 temp_reg #(32) r_divs(1'b1,divs_out[l],divs_in[l],clk,rstn);
                 temp_reg #(64) r_rems(1'b1,rems_out[l],rems_in[l],clk,rstn);
@@ -105,7 +105,7 @@ module divu_remu
                 assign stages[l+1] = stages[l];
             end
         end
-        for (l = 0; l < calc_stages+1; l = l+1) begin
+        for (l = 0; l < calc_stages; l = l+1) begin
             if (l % stage_period == stage_mod) begin
                 for (i = 0; i < 2**base-1; i = i+1) begin
                     temp_reg #(32+base) r_smml(1'b1,small_mul[l][i],small_mul[l+1][i],clk,rstn);
