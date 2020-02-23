@@ -86,9 +86,9 @@ module reg_manage(
             assign r_pa_rs2_line[`LEN_PREG_ADDR*(r+1)-1:`LEN_PREG_ADDR*r] =
                 r_pa_rs2[r];
             assign r_d_rs1_line[r] =
-                r_d_rs1_line_line[`LEN_WORD*(r+1)-1:`LEN_WORD*r];
+                r_d_rs1[`LEN_WORD*(r+1)-1:`LEN_WORD*r];
             assign r_d_rs2_line[r] =
-                r_d_rs2_line_line[`LEN_WORD*(r+1)-1:`LEN_WORD*r];
+                r_d_rs2[`LEN_WORD*(r+1)-1:`LEN_WORD*r];
         end
         for (w=0; w<`WRITE_PARA; w=w+1) begin
             assign w_pa_rd_line[`LEN_PREG_ADDR*(w+1)-1:`LEN_PREG_ADDR*w] =
