@@ -114,7 +114,7 @@ module exec(
     wire [`LEN_WORD-1:0] rd[`WRITE_PARA-1:0];
 
     generate
-        for (i=0; i<`EXECUTE_PARA; i=i+1) begin
+        for (i=0; i<`WRITE_PARA; i=i+1) begin
             pack_struct_write_d_r p_write_d_r(
                 done[i], pa_rd_out[i], rd[i],
                 write_d_r[(i+1)*`LEN_WRITE_D_R-1:i*`LEN_WRITE_D_R]);
@@ -131,7 +131,7 @@ module exec(
         exec_type[`EX_BRC], branch_result);
 
     assign exec_branch=order[`EX_BRC];
-    assign branch_context=contex[``EX_BRC];
+    assign branch_context=contex[`EX_BRC];
     assign branch_hazard=exec_branch&branch_result;
 
     // mem

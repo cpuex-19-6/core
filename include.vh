@@ -78,14 +78,14 @@ index   exec_type       OoO able
 
 // write parallel degree
 `define WRITE_PARA 4
-// index for execute parallel
+// index for write parallel
 `define WR_MEM 0
 `define WR_IO  1
 `define WR_JMP 2
 `define WR_OTH 3
-// execute parallel idの長さ
+// write parallel idの長さ
 `define LEN_W_PARA_ID 2
-// execute parallel id zero
+// write parallel id zero
 `define W_PARA_ID_ZERO 2'b0
 
 // UART用リングバッファアドレスのサイズ(外部から更新可)
