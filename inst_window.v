@@ -420,7 +420,7 @@ module inst_window(
                  | pre_exec_type[i][`EXEC_TYPE_JUMP])
                     ? pre_d_imm_temp[i] : `WORD_ZERO;
             assign pre_pa_rd[i] = `PREG_ZERO;
-            wire [`LEN_WORD-1:0] pre_jump_imm = pre_d_imm2;
+            wire [`LEN_WORD-1:0] pre_jump_imm = pre_d_imm2[i];
             assign pre_d_imm[i] =
                 pre_exec_type[i][`EXEC_TYPE_JUMP]
                     ? pre_jump_imm
@@ -428,7 +428,7 @@ module inst_window(
 
             unpack_dec_exec_info m_up_d_e_info(
                 d_dec_exec_info[`LEN_D_E_INFO*(i+1)-1:`LEN_D_E_INFO*i],
-                pre_exec_type[i], pre_inst_vreg[i], pre_d_imm_temp[i], pre_d_imm2[i]],
+                pre_exec_type[i], pre_inst_vreg[i], pre_d_imm_temp[i], pre_d_imm2[i],
                 pre_io_type[i], pre_func3[i], pre_func7[i]);
 
             unpack_struct_inst_vreg m_up_pre_inst_vreg(

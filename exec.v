@@ -126,11 +126,10 @@ module exec(
     wire branch_done;
 
     branch_wrap m_branch_w(
-        order[`EX_BRC], accepted[`EX_BRC], done[`EX_BRC],
-        func3[`EX_BRC], rs1[`EX_BRC], rs2[`EX_BRC],
+        order[`EX_BRC], accepted[`EX_BRC], exec_branch,
+        func3[`EX_BRC], d_rs1[`EX_BRC], d_rs1[`EX_BRC],
         exec_type[`EX_BRC], branch_result);
 
-    assign exec_branch=order[`EX_BRC];
     assign branch_context=contex[`EX_BRC];
     assign branch_hazard=exec_branch&branch_result;
 
@@ -139,7 +138,7 @@ module exec(
         order[`EX_MEM], accepted[`EX_MEM], done[`WR_MEM],
         io_type[`EX_MEM], d_rs1[`EX_MEM], d_rs2[`EX_MEM],
         pa_rd_in[`EX_MEM],
-        rd[`WR_MEM], pa_rd_out[`EX_MEM],
+        rd[`WR_MEM], pa_rd_out[`WR_MEM],
         mem_a, mem_sd, mem_ld, mem_write, mem_en,
         clk, rstn);
 
@@ -162,7 +161,7 @@ module exec(
         order[`EX_IO], accepted[`EX_IO], done[`WR_IO],
         io_type[`EX_IO], func3[`EX_IO], d_rs1[`EX_IO],
         pa_rd_in[`EX_IO],
-        rd[`EX_IO], pa_rd_out[`WR_IO],
+        rd[`WR_IO], pa_rd_out[`WR_IO],
         uart_write_flag, uart_size, uart_o_data, uart_i_data,
         uart_order, uart_accepted, uart_done,
         clk, rstn);

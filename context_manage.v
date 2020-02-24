@@ -85,7 +85,7 @@ module context_manage(
 
     wire [`LEN_CONTEXT-1:0] next1_hot_cntx;
     wire [`LEN_WORD-1:0]    next1_hot_pc;
-    wire [`LEN_CONTEXT-1:0] next1_hot_non_fetched;
+    wire                    next1_hot_non_fetched;
     wire [`LEN_WORD-1:0]    next1_cntx_hazard_pc[`LEN_CONTEXT-1:0];
     wire [`LEN_CONTEXT-1:0] next1_cntx_info[`LEN_CONTEXT-1:0];
 
@@ -242,8 +242,8 @@ module context_manage(
     // regs
     temp_reg #(`LEN_CONTEXT) m_r_hot_cntx(
         1'b1, next2_hot_cntx, hot_cntx, clk, rstn);
-    temp_reg #(`LEN_CONTEXT) m_r_next_publish(
-        1'b1, next2_next_publish, next_publish, clk, rstn);
+    temp_reg #(`LEN_WORD) m_r_hot_pc(
+        1'b1, next2_hot_pc, hot_pc, clk, rstn);
     temp_reg #(1) m_r_hot_non_fetched(
         1'b1, next2_hot_non_fetched, hot_non_fetched, clk, rstn);
 

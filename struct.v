@@ -198,7 +198,7 @@ module pack_j_b_info(
         input  wire                     branch_hazard,
         output wire [`LEN_J_B_INFO-1:0] j_b_info);
     assign j_b_info =
-        {jump_next_pc_ready, jump_next_pc,
+        {jump, jump_next_pc,
          branch, branch_context, branch_hazard};
 endmodule
 module unpack_j_b_info(
