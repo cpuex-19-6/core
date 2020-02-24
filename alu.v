@@ -110,7 +110,7 @@ module alu_ext(
     wire [`LEN_PREG_ADDR-1:0] next_pa_buf =
         divu_remu_done ? divu_remu_pa :
         error_done     ? error_pa     : pa_buf;
-    temp_reg #(`LEN_PREG_ADDR) r_rd_buf(done, next_pa_buf, pa_buf, clk, rstn);
+    temp_reg #(`LEN_PREG_ADDR) r_pa_buf(done, next_pa_buf, pa_buf, clk, rstn);
 
     assign rd = next_rd_buf;
     assign pa_rd_out = next_pa_buf;

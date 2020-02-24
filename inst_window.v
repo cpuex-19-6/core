@@ -292,8 +292,8 @@ module inst_window(
         end
 
         // 各命令が実行可能かどうか
-        wire [`SIZE_INST_W-1:0]   all_ready;
-        for (i=0; i<`SIZE_INST_W; i=i+1) begin
+        wire [`LEN_IW_E_ABLE-1:0]   all_ready;
+        for (i=0; i<`LEN_IW_E_ABLE; i=i+1) begin
             assign all_ready[i] =
                   next3_rs1_ready[i]
                 & next3_rs2_ready[i]
@@ -339,12 +339,12 @@ module inst_window(
             // 割り当て編集用はここまで
 
             for (j=0; j<`E_PARA_OOO; j=j+1) begin
-                assign e_index_decision[i+1][j] =
+                assign exist_executable[i+1][j] =
                       exist_executable[i][j]
                     | (next3_flag[i] & e_index_decision[j]);
             end
             for (j=`E_PARA_OOO; j<`EXECUTE_PARA; j=j+1) begin
-                assign e_index_decision[i+1][j] =
+                assign exist_executable[i+1][j] =
                       exist_executable[i][j]
                     | (all_ready[i] & e_index_decision[j]);
             end
@@ -366,20 +366,20 @@ module inst_window(
                     | (  all_ready[i]
                        & ~exist_executable[i][j]
                        & ~exist_executable[i][0]);
-                assign order_id_decide[i+1] =
+                assign order_id_decide[i+1][j] =
                     exist_executable[i][j]
                         ? i[`LEN_IW_E_ABLE_ID-1:0]
-                        : order_id_decide[i];
+                        : order_id_decide[i][j];
             end
             for (j=`E_PARA_OOO; j<`EXECUTE_PARA; j=j+1) begin
                 assign order_decide[i+1][j] =
                       order_decide[i+1][j]
                     | ~(  exist_executable[i][j]
                         | exist_executable[i][0]);
-                assign order_id_decide[i+1] =
+                assign order_id_decide[i+1][j] =
                     exist_executable[i][j]
                         ? i[`LEN_IW_E_ABLE_ID-1:0]
-                        : order_id_decide[i];
+                        : order_id_decide[i][j];
             end
         end
     endgenerate

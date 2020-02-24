@@ -156,7 +156,7 @@ module decode(
     
     wire [`LEN_WORD-1:0] d_imm2 = d_imm12i;
 
-    wire fpu2 = fpu & (~(|{func7[6:4],func7[1:0]})) & (|(~func7[2:3]));
+    wire fpu2 = fpu & (~(|{func7[6:4],func7[1:0]})) & (|(~func7[3:2]));
     wire fpu3 = fpu & func7[2] & func7[3];
     wire fpu1 = fpu & (~fpu2) & (~fpu3);
 

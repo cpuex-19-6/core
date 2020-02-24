@@ -41,6 +41,7 @@
 `define LEN_INST_WAIT 0
 // 命令ウィンドウのサイズ
 `define SIZE_INST_W ((`DECODE_PARA)+(`INST_W_PARA)+(`LEN_INST_WAIT))
+// 1 + 0 + 1 = 2
 // 命令ウィンドウのidのサイズ
 `define LEN_INST_W_ID 1
 // 命令ウィンドウのidのゼロ
@@ -56,6 +57,7 @@
 `define EXECUTE_PARA 5
 /*
 writeするものは後ろに寄せること
+OoOできないものは前に寄せること
 index   exec_type       OoO able
 0       branch/fbranch  x       (これだけは0番で固定)
 1       mem             x

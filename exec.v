@@ -16,8 +16,8 @@ module branch_wrap(
         output wire done,
 
         input  wire [`LEN_FUNC3-1:0] func3,
-        input  wire [`LEN_WORD-1:0] rs1,
-        input  wire [`LEN_WORD-1:0] rs2,
+        input  wire [`LEN_WORD-1:0] d_rs1,
+        input  wire [`LEN_WORD-1:0] d_rs2,
         input  wire [`LEN_EXEC_TYPE-1:0] exec_type,
         output wire jump);
     
@@ -181,7 +181,7 @@ module exec(
 
     // alu
     wire alu_order =
-        order_able & exec_type[`EXEC_TYPE_ALU_NON_EXT];
+        order_able & exec_type[`EX_OTH][`EXEC_TYPE_ALU_NON_EXT];
     wire alu_accepted;
     wire alu_done;
     wire [32-1:0] alu_rd;
@@ -217,13 +217,13 @@ module exec(
         clk, rstn);
 
     // fpu1
-    wire fpu1_order = order_able & exec_type[`EXEC_TYPE_FPU1];
+    wire fpu1_order = order_able & exec_type[`EX_OTH][`EXEC_TYPE_FPU1];
     wire fpu1_accepted;
     wire fpu1_done;
     wire [32-1:0] fpu1_rd;
     wire [`LEN_PREG_ADDR-1:0] fpu1_pa_rd_out;
 
-    fpu m_fpu(
+    fpu_short m_fpu1(
         fpu1_order, fpu1_accepted, fpu1_done,
         func3[`EX_OTH], func7[`EX_OTH],
         d_rs1[`EX_OTH], d_rs2[`EX_OTH], pa_rd_in[`EX_OTH],
@@ -231,13 +231,13 @@ module exec(
         clk, rstn);
 
     // fpu2
-    wire fpu2_order = order_able & exec_type[`EXEC_TYPE_FPU2];
+    wire fpu2_order = order_able & exec_type[`EX_OTH][`EXEC_TYPE_FPU2];
     wire fpu2_accepted;
     wire fpu2_done;
     wire [32-1:0] fpu2_rd;
     wire [`LEN_PREG_ADDR-1:0] fpu2_pa_rd_out;
 
-    fpu m_fpu(
+    fpu_medium m_fpu2(
         fpu2_order, fpu2_accepted, fpu2_done,
         func3[`EX_OTH], func7[`EX_OTH],
         d_rs1[`EX_OTH], d_rs2[`EX_OTH], pa_rd_in[`EX_OTH],
@@ -245,13 +245,13 @@ module exec(
         clk, rstn);
 
     // fpu3
-    wire fpu3_order = order_able & exec_type[`EXEC_TYPE_FPU3];
+    wire fpu3_order = order_able & exec_type[`EX_OTH][`EXEC_TYPE_FPU3];
     wire fpu3_accepted;
     wire fpu3_done;
     wire [32-1:0] fpu3_rd;
     wire [`LEN_PREG_ADDR-1:0] fpu3_pa_rd_out;
 
-    fpu m_fpu(
+    fpu_long m_fpu3(
         fpu3_order, fpu3_accepted, fpu3_done,
         func3[`EX_OTH], func7[`EX_OTH],
         d_rs1[`EX_OTH], d_rs2[`EX_OTH], pa_rd_in[`EX_OTH],
@@ -259,7 +259,7 @@ module exec(
         clk, rstn);
 
     // subst
-    wire subst_order = order_able & exec_type[`EXEC_TYPE_SUBST];
+    wire subst_order = order_able & exec_type[`EX_OTH][`EXEC_TYPE_SUBST];
     wire subst_accepted = subst_order;
     wire subst_done = subst_order;
     wire [32-1:0] subst_rd = d_rs1[`EX_OTH];

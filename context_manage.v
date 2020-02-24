@@ -219,7 +219,7 @@ module context_manage(
             // hazard PC / context info update
             for (cntx=0; cntx<`LEN_CONTEXT; cntx=cntx+1) begin
                 assign dec_cntx_hazard_pc[d+1][cntx] =
-                    (dec_hot_cntx[cntx] & decode_branch)
+                    (dec_hot_cntx[d][cntx] & decode_branch)
                         ? decode_next_pc_f
                         : dec_cntx_hazard_pc[d][cntx];
                 assign dec_cntx_info[d+1][cntx] =

@@ -86,7 +86,7 @@ module regs
                              : data[j-1];
             end
             assign update_flag[i] = |flags;
-            assign update_data[i] = data[j-1];
+            assign update_data[i] = data[W_DEPTH-1];
         end
     endgenerate
 

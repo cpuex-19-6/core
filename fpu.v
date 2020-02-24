@@ -236,7 +236,7 @@ module fpu_medium
 
     // 誰かがacceptしてるならそれを伝える(acceptedを上げる)
     assign accepted =
-        (addsub_accepted | fmul_accepted); // "|"でつなげる
+        (faddsub_accepted | fmul_accepted); // "|"でつなげる
 
     // 子モジュールのうち誰かがdoneを上げていたそのクロックのうちに
     // 終了するので、doneを上げておく
@@ -267,8 +267,10 @@ module fpu_long
      input  wire [`LEN_FUNC7-1:0] func7,
      input  wire [`LEN_WORD-1:0]  rs1,
      input  wire [`LEN_WORD-1:0]  rs2,
+     input  wire [`LEN_PREG_ADDR-1:0] pa_rd_in,
 
      output wire [`LEN_WORD-1:0]  rd,
+     output wire [`LEN_PREG_ADDR-1:0] pa_rd_out,
      
      input  wire                  clk,
      input  wire                  rstn);
