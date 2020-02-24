@@ -309,18 +309,21 @@ module fsqrt
   reg u6_order;
   reg [31:0] rd4r_5;
   reg [31:0] rs1_5;
+  reg [31:0] rd3_5;
 
   always @(posedge clk) begin
     if (~rstn) begin
       u6_order <= 1'b0;
       rd4r_5   <= 32'b0;
       rs1_5    <= 32'b0;
+      rd3_5    <= 32'b0;
       stage_5  <= 1'b0;
     end else begin
       u6_order <= (u6_order & ~u6_accepted) | (u5_done & ~stage_5);
       if (u6_done | ~stage_5) begin
         rd4r_5   <= rd4r;
         rs1_5    <= rs1_4;
+        rd3_5    <= rd3_4;
         stage_5  <= u5_done;
       end
     end
@@ -331,7 +334,7 @@ module fsqrt
 
   // rd3 / 2 + (A / 2) / rd3
   wire [31:0] rd4l;
-  assign rd4l = {1'b0,rd3[30:23] - 8'b1,rd3[22:0]};
+  assign rd4l = {1'b0,rd3_5[30:23] - 8'b1,rd3_5[22:0]};
 
   wire [31:0] rd4;
 
