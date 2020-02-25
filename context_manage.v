@@ -74,6 +74,8 @@ module context_manage(
         // cpu
         input  wire init,
 
+        output wire [8-1:0] led_out,
+
         input  wire clk,
         input  wire rstn);
 
@@ -83,6 +85,10 @@ module context_manage(
     wire [`LEN_WORD-1:0]    cntx_next_pc[`LEN_CONTEXT-1:0];
     wire [`LEN_CONTEXT-1:0] cntx_non_fetch;
 
+    wire [`LEN_CONTEXT_ID-1:0] cntx_hot_id;
+    onehot_to_binary #(`LEN_CONTEXT_ID) m_o_to_b_cntx_hot_id(
+            cntx_hot, cntx_hot_id);
+    assign led_out=cntx_next_pc[cntx_hot_id][4+8-1:4];
 
     genvar cntx;
 
