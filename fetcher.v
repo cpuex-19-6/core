@@ -69,10 +69,10 @@ module fetch #(
     FETCH_PARA = 2**LOG_FETCH_PARA)(
         // context_manager
         // DECODE_PARAの分だけ並列化
-        input  wire [`DECODE_PARA-1:0]           order,
-        output wire [`DECODE_PARA-1:0]           done,
-        input  wire [`LEN_WORD*`DECODE_PARA-1:0] pc,
-        output wire [`LEN_WORD*`DECODE_PARA-1:0] instr,
+        input  wire                 order,
+        output wire                 done,
+        input  wire [`LEN_WORD-1:0] pc,
+        output wire [`LEN_WORD-1:0] instr,
         // 並列化しない
         input  wire [`LEN_WORD-1:0] lr_d,
 
@@ -152,57 +152,41 @@ module fetch #(
 
     // decode1 part
 
-    // 下位bitを無視
-    wire [LEN_MEMISTR_ADDR*`DECODE_PARA-1:0] addr;
-    wire [LEN_MEMISTR_ADDR-1:0] addr_table[`DECODE_PARA-1:0];
-    generate
-        for (i=0; i<`DECODE_PARA; i=i+1) begin
-            assign addr[LEN_MEMISTR_ADDR*(i+1)-1:LEN_MEMISTR_ADDR*i] =
-                pc[`LEN_WORD*i+LEN_MEMISTR_ADDR+LOG_FETCH_PARA+2-1
-                  :`LEN_WORD*i+LOG_FETCH_PARA+2];
-            assign addr_table[i] =
-                addr[LEN_MEMISTR_ADDR*(i+1)-1:LEN_MEMISTR_ADDR*i];
-        end
-    endgenerate
+    // 下位bitと上位bitを無視
+    wire [LEN_MEMISTR_ADDR-1:0] addr =
+        pc[LEN_MEMISTR_ADDR+LOG_FETCH_PARA+2-1:LOG_FETCH_PARA+2];
 
     // cache
-    wire [CACHE_LINE_SIZE*`DECODE_PARA-1:0] inst_lines;
+    wire [CACHE_LINE_SIZE-1:0] inst_line;
     wire [CACHE_LINE_SIZE*`FETCH_PREDICT_SIZE-1:0] predict_instr;
     wire [CACHE_LINE_SIZE-1:0] lr_instr;
     fullassociative #(
             `DEPTH_FETCH_CACHE,
             LEN_MEMISTR_ADDR,
             CACHE_LINE_SIZE,
-            `DECODE_PARA + `FETCH_PREDICT_SIZE + 1) m_cache(
+            1 + `FETCH_PREDICT_SIZE + 1) m_cache(
         cache_order, cache_key, cache_data,
         {{(`FETCH_PREDICT_SIZE){1'b1}},  1'b1,       order},       
         {predict_addr_1d,                lr_addr,    addr},
         {predict_found_c,                lr_found_c, done},
-        {predict_instr,                  lr_instr,   inst_lines},
+        {predict_instr,                  lr_instr,   inst_line},
         clk, rstn);
 
     // キャッシュラインから命令を取得
     generate
-        for (i=0; i<`DECODE_PARA; i=i+1) begin
-            wire [CACHE_LINE_SIZE-1:0] i_line =
-                inst_lines[CACHE_LINE_SIZE*(i+1)-1
-                          :CACHE_LINE_SIZE*i];
-            wire [`LEN_INST-1:0] i_table[FETCH_PARA-1:0];
+        if (LOG_FETCH_PARA > 0) begin
+            wire [`LEN_INST-1:0] inst_table[FETCH_PARA-1:0];
             for (j=0; j<FETCH_PARA; j=j+1) begin
-                assign i_table[FETCH_PARA-j-1] =
-                    i_line[`LEN_INST*(j+1)-1:`LEN_INST*j];
+                assign inst_table[FETCH_PARA-j-1] =
+                    inst_line[`LEN_INST*(j+1)-1:`LEN_INST*j];
             end
-            if (LOG_FETCH_PARA > 0) begin
-                wire [LOG_FETCH_PARA-1:0] addr_under =
-                    pc[`LEN_WORD*i+LOG_FETCH_PARA+2-1
-                      :`LEN_WORD*i+2];
-                assign instr[`LEN_INST*(i+1)-1:`LEN_INST*i] =
-                    i_table[addr_under];
-            end
-            else begin
-                assign instr[`LEN_INST*(i+1)-1:`LEN_INST*i] =
-                    i_table[0];
-            end
+            wire [LOG_FETCH_PARA-1:0] addr_under =
+                pc[LOG_FETCH_PARA+2-1:2];
+            assign instr[`LEN_INST-1:0] =
+                i_table[addr_under];
+        end
+        else begin
+            assign instr[`LEN_INST-1:0] = inst_line;
         end
     endgenerate
 
@@ -215,40 +199,14 @@ module fetch #(
     wire find_failure = |(order & ~done);
     wire [LEN_MEMISTR_ADDR-1:0] next_last_found;
 
-    generate
-        // non_failure_stop
-        if (`DECODE_PARA <= 1) begin
-            assign non_failure_stop = ~order[0];
-        end else begin
-            assign non_failure_stop =
-                  ~order[0]
-                | (|(  ~order[`DECODE_PARA-1:1]
-                     & done[`DECODE_PARA-2:0]));
-        end
+    // non_failure_stop
+    assign non_failure_stop = ~order;
 
-        // failure_addr
-        wire [LEN_MEMISTR_ADDR-1:0] failure_addr_find[`DECODE_PARA-1:0];
-        assign failure_addr_find[`DECODE_PARA-1] =
-            addr_table[`DECODE_PARA-1];
-        assign failure_addr = failure_addr_find[0];
-        for (i=0; i<`DECODE_PARA-1; i=i+1) begin
-            assign failure_addr_find[i] =
-                (order[i] & (~done[i]))
-                    ? addr_table[i]
-                    : failure_addr_find[i+1];
-        end
+    // failure_addr
+    assign failure_addr = addr;
 
-        // next_last_found
-        wire [LEN_MEMISTR_ADDR-1:0] last_found_find[`DECODE_PARA:0];
-        assign last_found_find[0] = last_found;
-        assign next_last_found = last_found_find[`DECODE_PARA];
-        for (i=0; i<`DECODE_PARA; i=i+1) begin
-            assign last_found_find[i+1] =
-                (order[i] & done[i])
-                    ? addr_table[i]
-                    : last_found_find[i];
-        end
-    endgenerate
+    // next_last_found
+    assign next_last_found = done ? addr : last_found;
 
     // 予測の基準にすべきアドレス
     wire [LEN_MEMISTR_ADDR-1:0] predict_base =
