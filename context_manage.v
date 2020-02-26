@@ -110,6 +110,10 @@ module context_manage(
     assign branch_hazard = exec_branch_hazard;
     assign hazard_context_info = cntx_info[hazard_context_id];
 
+    wire [`LEN_CONTEXT-1:0] shifted_hot_cntx;
+    shift_left_round #(`LEN_CONTEXT) m_sl1_haz(
+        hot_cntx, shifted_hot_cntx);
+
     assign next1_hot_cntx =
         init          ? `CONTEXT_INIT :
         branch_hazard ? shifted_hot_cntx :
@@ -138,8 +142,8 @@ module context_manage(
     endgenerate
 
     // fetch
-    assign fetch_order = next2_hot_non_fetched;
-    assign fetch_pc = next2_hot_pc;
+    assign fetch_order = next1_hot_non_fetched;
+    assign fetch_pc = next1_hot_pc;
 
     // decode
     wire decode_next_pc_ready;
@@ -162,12 +166,12 @@ module context_manage(
     wire [`LEN_WORD-1:0]    next2_cntx_hazard_pc[`LEN_CONTEXT-1:0];
     wire [`LEN_CONTEXT-1:0] next2_cntx_info[`LEN_CONTEXT-1:0];
 
-    wire [`LEN_CONTEXT-1:0] dec_shifted_hot_pc;
+    wire [`LEN_CONTEXT-1:0] shifted_next1_hot_cntx;
     shift_left_round #(`LEN_CONTEXT) m_sl1_dec(
-        dec_hot_cntx[d], dec_shifted_hot_pc);
+        next1_hot_cntx, shifted_next1_hot_cntx);
 
     assign next2_hot_cntx =
-        decode_branch ? dec_shifted_hot_pc : next1_hot_cntx;
+        decode_branch ? shifted_next1_hot_cntx : next1_hot_cntx;
 
     assign next2_hot_pc =
         fetch_done ? decode_next_pc : next1_hot_pc;
@@ -183,13 +187,13 @@ module context_manage(
                     : next1_cntx_hazard_pc[cntx];
             assign next2_cntx_info[cntx] =
                 (~decode_branch)
-                    ? next2_cntx_info[cntx] :
-                (dec_shifted_hot_pc[cntx])
+                    ? next1_cntx_info[cntx] :
+                (shifted_next1_hot_cntx[cntx])
                     ? `CONTEXT_ZERO :
                 (next1_hot_cntx[cntx])
-                    ? dec_shifted_hot_pc :
+                    ? shifted_next1_hot_cntx :
                 |(next1_cntx_info[cntx] & next1_hot_cntx)
-                    ? next1_cntx_info[cntx] | dec_shifted_hot_pc :
+                    ? next1_cntx_info[cntx] | shifted_next1_hot_cntx :
                       next1_cntx_info[cntx];
         end
     endgenerate

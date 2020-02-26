@@ -235,6 +235,7 @@ module inst_window(
     wire [`LEN_EXEC_TYPE-1:0] pre_exec_type;
     wire [`LEN_INST_VREG-1:0] pre_inst_vreg;
     wire [`LEN_WORD-1:0]      pre_d_imm;
+    wire [`LEN_WORD-1:0]      pre_d_imm2;
     wire [`LEN_WORD-1:0]      pre_d_imm_temp;
     wire                      pre_io_type;
     wire [`LEN_FUNC3-1:0]     pre_func3;

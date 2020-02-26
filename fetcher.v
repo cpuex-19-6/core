@@ -182,11 +182,10 @@ module fetch #(
             end
             wire [LOG_FETCH_PARA-1:0] addr_under =
                 pc[LOG_FETCH_PARA+2-1:2];
-            assign instr[`LEN_INST-1:0] =
-                i_table[addr_under];
+            assign instr = inst_table[addr_under];
         end
         else begin
-            assign instr[`LEN_INST-1:0] = inst_line;
+            assign instr = inst_line;
         end
     endgenerate
 

@@ -179,7 +179,7 @@ module decode(
         dec_exec_info);
 
     assign next_pc_ready =
-        order & (alu | fpu | mem | subst | io);
+        order & (alu | fpu | mem | subst | io | ibranch | fbranch);
     assign next_pc =
         (opecode == `OP_JAL) ? d_imm21 + pc :
         branch               ? d_imm13 + pc :

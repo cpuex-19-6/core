@@ -53,7 +53,7 @@ module exec(
         exec_type, io_type, func3, func7, pa_rd_in,
         d_rs1, d_rs2, contex);
     
-    wire                    exec_jamp;
+    wire                    exec_jump;
     wire [`LEN_WORD-1:0]    jump_next_pc;
     wire                    exec_branch;
     wire [`LEN_CONTEXT-1:0] branch_context;
@@ -135,7 +135,7 @@ module exec(
     wire jump_done = jump_order;
     wire [32-1:0] jump_rd = d_rs2;
 
-    assign exec_jamp = jump_order;
+    assign exec_jump = jump_order;
     assign jump_next_pc = d_rs1;
 
     // branch
