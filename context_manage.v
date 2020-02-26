@@ -9,39 +9,30 @@ module context_manage
 記憶すべきもの
 1.今使われているコンテキスト
 2.各コンテキストに対して
-- そのコンテキストが使われているか
+・最後に発行したコンテキスト(現在更新中のコンテキスト)
 　→たくさん用意してるので、
-　 それが問題になることはないとする
+　 有限性が問題になることはないとする
 　 代わりに、現在の命令ウィンドウの
 　 先頭から半分より先の命令は、
-　 先頭の命令より先の実行を禁止する(※)
+　 先頭の命令より先の実行を禁止する
 　 (先頭の命令が一番最初に来たものなので)
-・最後に発行したコンテキスト
 ・それぞれのコンテキストのコンテキスト情報
 　(ハザード時に捨てるべきコンテキストの一覧)
-・そのコンテキストで次にfetchすべき命令のPCの値
+・そのコンテキストでハザードが起こった時にfetchすべきPCの値
 ・上のPCに対してfetch要求がまだされていないか
-
 するべき仕事
 1.制御ハザードが起きた時、却下された
   コンテキストのコンテキスト情報をもとに
-  いらないコンテキストをすべて消去する ok
-2.fetchの要求を出すコンテキストを決め、
-  fetchにコンテキストとPCを与える
-3.fetchの要求がacceptされたら、
-  fetchフラグを下げる ok
-4.各コンテキストに対して、
+  いらないコンテキストをすべて消去する
+2.更新しているコンテキストのPCで
+  fetchに対応する命令を要求する
+3.更新しているコンテキストで
   次にfetchするべきPCの値が与えられた場合、
-  記憶してfetchフラグを上げる ok
--.fetch
--.decode
-5.ブランチなどで新しく登録される場合、
-  それぞれに次に読むべきPCを与えて、
-  使用フラグとfetchフラグを上げる ok
-6.ブランチ用に、新しいコンテキストを
-  用意しておく
-  用意できない場合はdecodeさせない
-  ->(※)があるので常にdecodeさせる ok
+  記憶してfetchする
+4.ブランチで新しく登録される場合、
+  ハザードが起きたときの次に読むべきPCを取得し、
+  ハザード時に破棄するべきコンテキストの一覧を更新する
+
 --------------------------------
 */
 
@@ -79,99 +70,76 @@ module context_manage(
         input  wire clk,
         input  wire rstn);
 
-    wire [`LEN_CONTEXT-1:0] cntx_hot;
-    wire [`LEN_CONTEXT-1:0] last_publish;
-    wire [`LEN_CONTEXT-1:0] cntx_info[`LEN_CONTEXT-1:0];
-    wire [`LEN_WORD-1:0]    cntx_next_pc[`LEN_CONTEXT-1:0];
-    wire [`LEN_CONTEXT-1:0] cntx_non_fetch;
+    wire [`LEN_CONTEXT-1:0] hot_cntx;
+    wire [`LEN_WORD-1:0]    hot_pc;
+    wire                    hot_non_fetched;
 
-    wire [`LEN_CONTEXT_ID-1:0] cntx_hot_id;
-    onehot_to_binary #(`LEN_CONTEXT_ID) m_o_to_b_cntx_hot_id(
-            cntx_hot, cntx_hot_id);
-    assign led_out=cntx_next_pc[cntx_hot_id][4+8-1:4];
+    wire [`LEN_CONTEXT-1:0] cntx_info[`LEN_CONTEXT-1:0];
+    wire [`LEN_WORD-1:0]    cntx_hazard_pc[`LEN_CONTEXT-1:0];
+
+    assign led_out=hot_pc[4+8-1:4];
 
     genvar cntx;
+    genvar cntx2;
+    genvar d;
 
     // hazard check / exec jump
 
-    wire [`LEN_CONTEXT-1:0] cntx_next1_hot;
-    wire [`LEN_CONTEXT-1:0] cntx_next1_info[`LEN_CONTEXT-1:0];
-    wire [`LEN_CONTEXT-1:0] cntx_next1_non_fetch;
-    wire [`LEN_WORD-1:0]    cntx_next1_next_pc[`LEN_CONTEXT-1:0];
-    wire [`LEN_CONTEXT-1:0] next1_last_publish;
 
-    wire [`LEN_CONTEXT-1:0] exec_jump_context;
-    wire                    exec_next_pc_ready;
-    wire [`LEN_WORD-1:0]    exec_next_pc;
+    wire [`LEN_CONTEXT-1:0] next1_hot_cntx;
+    wire [`LEN_WORD-1:0]    next1_hot_pc;
+    wire                    next1_hot_non_fetched;
+    wire [`LEN_WORD-1:0]    next1_cntx_hazard_pc[`LEN_CONTEXT-1:0];
+    wire [`LEN_CONTEXT-1:0] next1_cntx_info[`LEN_CONTEXT-1:0];
+
+    wire                    exec_jump;
+    wire [`LEN_WORD-1:0]    exec_jump_next_pc;
+    wire                    exec_branch;
     wire [`LEN_CONTEXT-1:0] exec_branch_context;
     wire                    exec_branch_hazard;
-    wire [`LEN_CONTEXT-1:0] exec_hazard_context;
-    wire [`LEN_CONTEXT-1:0] exec_safe_context;
-
+    
     unpack_j_b_info m_u_j_b_info(
         j_b_info,
-        exec_jump_context, exec_next_pc_ready, exec_next_pc,
-        exec_branch_context, exec_branch_hazard,
-        exec_hazard_context, exec_safe_context);
+        exec_jump, exec_jump_next_pc,
+        exec_branch, exec_branch_context, exec_branch_hazard);
 
     wire [`LEN_CONTEXT_ID-1:0] hazard_context_id;
-    onehot_to_binary #(`LEN_CONTEXT_ID) m_o_to_b_haz_cntx(
-            exec_hazard_context, hazard_context_id);
+    onehot_to_binary #(`LEN_CONTEXT_ID) m_o_to_b_exec_b_cntx(
+            exec_branch_context, hazard_context_id);
 
     assign branch_hazard = exec_branch_hazard;
     assign hazard_context_info = cntx_info[hazard_context_id];
 
-    assign cntx_next1_hot =
-        init ? `CONTEXT_INIT :
-        (branch_hazard & (|(hazard_context_info & cntx_hot)))
-                ? exec_safe_context
-                : cntx_hot;
+    assign next1_hot_cntx =
+        init          ? `CONTEXT_INIT :
+        branch_hazard ? shifted_hot_cntx :
+                        hot_cntx;
 
-    assign next1_last_publish =
-        init ? `CONTEXT_INIT : last_publish;
+    assign next1_hot_pc =
+        init          ? `WORD_ZERO :
+        branch_hazard ? cntx_hazard_pc[hazard_context_id] :
+        exec_jump     ? exec_jump_next_pc :
+                        hot_pc;
+
+    assign next1_hot_non_fetched =
+        (init|branch_hazard|exec_jump) ? 1'b1 : hot_non_fetched;
 
     generate
         for (cntx=0; cntx<`LEN_CONTEXT; cntx=cntx+1) begin
-            assign cntx_next1_info[cntx] =
-                (init & (cntx == `CONTEXT_INIT_ID))
-                    ? `CONTEXT_INIT :
-                branch_hazard
-                    ? (  cntx_info[cntx]
-                       & (~hazard_context_info))
-                    : cntx_info[cntx];
-            assign cntx_next1_non_fetch[cntx] =
-                (init & (cntx == `CONTEXT_INIT_ID))
-                    ? 1'b1 :
-                (branch_hazard & (hazard_context_info[cntx]))
-                    ? 1'b0
-                    : (  cntx_non_fetch[cntx]
-                       | (exec_next_pc_ready & exec_jump_context[cntx]));
-            assign cntx_next1_next_pc[cntx] =
-                (init & (cntx == `CONTEXT_INIT_ID))
-                    ? `WORD_ZERO :
-                (exec_next_pc_ready & exec_jump_context[cntx])
-                    ? exec_next_pc : cntx_next_pc[cntx];
+            assign next1_cntx_hazard_pc[cntx] =
+                init ? `WORD_ZERO : cntx_hazard_pc[cntx];
+
+            assign next1_cntx_info[cntx] =
+                init ? `CONTEXT_ZERO :
+                (exec_branch_hazard&hazard_context_info[cntx])
+                    ? `CONTEXT_ZERO :
+                      cntx_info[cntx];
         end
     endgenerate
-    
-    // 以下DECODE_PARAの分だけ並列化
 
     // fetch
-    wire [`LEN_CONTEXT_ID-1:0] cntx_next1_hot_id;
-    onehot_to_binary #(`LEN_CONTEXT_ID) m_o_to_b_cntx_n1_hot(
-            cntx_next1_hot, cntx_next1_hot_id);
-    assign fetch_order =
-        |(cntx_next1_non_fetch & cntx_next1_hot) & i_w_accept_able;
-    assign fetch_pc =
-        cntx_next1_next_pc[cntx_next1_hot_id];
-
-    // new context for decode branch
-    wire [`LEN_CONTEXT-1:0] decode_context_b_t;
-    wire [`LEN_CONTEXT-1:0] decode_context_b_f;
-    shift_left_round #(`LEN_CONTEXT) m_sl1(
-        next1_last_publish, decode_context_b_t);
-    shift_left_round2 #(`LEN_CONTEXT) m_sl2(
-        next1_last_publish, decode_context_b_f);
+    assign fetch_order = next2_hot_non_fetched;
+    assign fetch_pc = next2_hot_pc;
 
     // decode
     wire decode_next_pc_ready;
@@ -180,9 +148,7 @@ module context_manage(
     wire [`LEN_WORD-1:0] decode_next_pc_f;
 
     decode m_dec(
-        fetch_done, fetch_instr, fetch_pc,
-        cntx_next1_hot,
-        decode_context_b_t, decode_context_b_f,
+        fetch_done,fetch_instr, fetch_pc, next1_hot_cntx,
         decode_next_pc_ready, decode_branch,
         decode_next_pc, decode_next_pc_f,
         i_w_dec_exec_info);
@@ -190,68 +156,62 @@ module context_manage(
     assign i_w_done = fetch_done;
 
     // PC update / new branch
-    wire [`LEN_CONTEXT-1:0] next2_last_publish;
-    wire [`LEN_CONTEXT-1:0] cntx_next2_hot;
-    wire [`LEN_WORD-1:0] cntx_next2_next_pc[`LEN_CONTEXT-1:0];
-    wire [`LEN_CONTEXT-1:0] cntx_next2_non_fetch;
-    wire [`LEN_CONTEXT-1:0] cntx_next2_info[`LEN_CONTEXT-1:0];
+    wire [`LEN_CONTEXT-1:0] next2_hot_cntx;
+    wire [`LEN_WORD-1:0]    next2_hot_pc;
+    wire                    next2_hot_non_fetched;
+    wire [`LEN_WORD-1:0]    next2_cntx_hazard_pc[`LEN_CONTEXT-1:0];
+    wire [`LEN_CONTEXT-1:0] next2_cntx_info[`LEN_CONTEXT-1:0];
 
-    wire [`LEN_CONTEXT-1:0] cntx_next1_hot_info =
-        cntx_next1_info[cntx_next1_hot_id];
+    wire [`LEN_CONTEXT-1:0] dec_shifted_hot_pc;
+    shift_left_round #(`LEN_CONTEXT) m_sl1_dec(
+        dec_hot_cntx[d], dec_shifted_hot_pc);
 
+    assign next2_hot_cntx =
+        decode_branch ? dec_shifted_hot_pc : next1_hot_cntx;
+
+    assign next2_hot_pc =
+        fetch_done ? decode_next_pc : next1_hot_pc;
+
+    assign next2_hot_non_fetched =
+        fetch_done ? decode_next_pc_ready : next1_hot_non_fetched;
+    
     generate
         for (cntx=0; cntx<`LEN_CONTEXT; cntx=cntx+1) begin
-            assign cntx_next2_next_pc[cntx] =
-                (decode_next_pc_ready & cntx_next1_hot[cntx])
-                    ? decode_next_pc :
-                (decode_branch & decode_context_b_t[cntx])
-                    ? decode_next_pc :
-                (decode_branch & decode_context_b_f[cntx])
+            assign next2_cntx_hazard_pc[cntx] =
+                (next1_hot_cntx[cntx] & decode_branch)
                     ? decode_next_pc_f
-                    : cntx_next1_next_pc[cntx];
-            assign cntx_next2_non_fetch[cntx] =
-                (fetch_done & cntx_next1_hot[cntx])
-                    ? decode_next_pc_ready
-                    : ((  decode_branch
-                        & (  decode_context_b_t[cntx]
-                           | decode_context_b_f[cntx]))
-                       | cntx_next1_non_fetch[cntx]);
-            wire [`LEN_CONTEXT-1:0] cntx_nx1_info =
-                cntx_next1_info[cntx];
-            assign cntx_next2_info[cntx] =
-                (  decode_branch
-                 & (decode_context_b_t[cntx] | decode_context_b_f[cntx]))
-                    ? (`CONTEXT_INIT << cntx) :
-                (decode_branch & cntx_nx1_info[cntx_next1_hot_id])
-                    ? (  cntx_nx1_info
-                       | decode_context_b_t | decode_context_b_f) :
-                      cntx_nx1_info;
+                    : next1_cntx_hazard_pc[cntx];
+            assign next2_cntx_info[cntx] =
+                (~decode_branch)
+                    ? next2_cntx_info[cntx] :
+                (dec_shifted_hot_pc[cntx])
+                    ? `CONTEXT_ZERO :
+                (next1_hot_cntx[cntx])
+                    ? dec_shifted_hot_pc :
+                |(next1_cntx_info[cntx] & next1_hot_cntx)
+                    ? next1_cntx_info[cntx] | dec_shifted_hot_pc :
+                      next1_cntx_info[cntx];
         end
     endgenerate
-
-    assign next2_last_publish =
-        decode_branch ? decode_context_b_f : next1_last_publish;
-    assign cntx_next2_hot =
-        decode_branch ? decode_context_b_t : cntx_next1_hot;
 
     // 並列化ここまで
 
     assign fetch_hint = lr_d;
 
     // regs
-    temp_reg #(`LEN_CONTEXT) m_r_cntx_hot(
-        1'b1, cntx_next2_hot, cntx_hot, clk, rstn);
-    temp_reg #(`LEN_CONTEXT) m_r_last_publish(
-        1'b1, next2_last_publish, last_publish, clk, rstn);
-    temp_reg #(`LEN_CONTEXT) m_r_cntx_non_fetch(
-        1'b1, cntx_next2_non_fetch, cntx_non_fetch, clk, rstn);
+    temp_reg #(`LEN_CONTEXT) m_r_hot_cntx(
+        1'b1, next2_hot_cntx, hot_cntx, clk, rstn);
+    temp_reg #(`LEN_WORD) m_r_hot_pc(
+        1'b1, next2_hot_pc, hot_pc, clk, rstn);
+    temp_reg #(1) m_r_hot_non_fetched(
+        1'b1, next2_hot_non_fetched, hot_non_fetched, clk, rstn);
 
     generate
         for (cntx=0; cntx<`LEN_CONTEXT; cntx=cntx+1) begin
             temp_reg #(`LEN_CONTEXT) m_r_cntx_info(
-                1'b1, cntx_next2_info[cntx], cntx_info[cntx], clk, rstn);
-            temp_reg #(`LEN_WORD) m_r_cntx_next_pc(
-                1'b1, cntx_next2_next_pc[cntx], cntx_next_pc[cntx], clk, rstn);
+                1'b1, next2_cntx_info[cntx], cntx_info[cntx], clk, rstn);
+            temp_reg #(`LEN_WORD) m_r_cntx_hazard_pc(
+                1'b1, next2_cntx_hazard_pc[cntx], cntx_hazard_pc[cntx], clk, rstn);
         end
     endgenerate
 

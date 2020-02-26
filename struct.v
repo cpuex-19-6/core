@@ -53,28 +53,26 @@ module pack_dec_exec_info(
         input  wire [`LEN_EXEC_TYPE-1:0] exec_type,
         input  wire [`LEN_INST_VREG-1:0] inst_vreg,
         input  wire [`LEN_WORD-1:0]      d_imm,
+        input  wire [`LEN_WORD-1:0]      d_imm2,
         input  wire                      io_type,
         input  wire [`LEN_FUNC3-1:0]     func3,
         input  wire [`LEN_FUNC7-1:0]     func7,
-        input  wire [`LEN_CONTEXT-1:0]   b_t_context,
-        input  wire [`LEN_CONTEXT-1:0]   b_f_context,
         output wire [`LEN_D_E_INFO-1:0]  dec_exec_info);
     assign dec_exec_info =
-        {exec_type, inst_vreg, d_imm, io_type,
-         func3, func7, b_t_context, b_f_context};
+        {exec_type, inst_vreg, d_imm, d_imm2,
+         io_type, func3, func7};
 endmodule
 module unpack_dec_exec_info(
         input  wire [`LEN_D_E_INFO-1:0]  dec_exec_info,
         output wire [`LEN_EXEC_TYPE-1:0] exec_type,
         output wire [`LEN_INST_VREG-1:0] inst_vreg,
         output wire [`LEN_WORD-1:0]      d_imm,
+        output wire [`LEN_WORD-1:0]      d_imm2,
         output wire                      io_type,
         output wire [`LEN_FUNC3-1:0]     func3,
-        output wire [`LEN_FUNC7-1:0]     func7,
-        output wire [`LEN_CONTEXT-1:0]   b_t_context,
-        output wire [`LEN_CONTEXT-1:0]   b_f_context);
-    assign {exec_type, inst_vreg, d_imm, io_type,
-            func3, func7, b_t_context, b_f_context}
+        output wire [`LEN_FUNC7-1:0]     func7);
+    assign {exec_type, inst_vreg, d_imm, d_imm2,
+            io_type, func3, func7}
                 = dec_exec_info;
 endmodule
 
@@ -149,12 +147,10 @@ module pack_exec_info(
         input  wire [`LEN_WORD-1:0]      d_rs1,
         input  wire [`LEN_WORD-1:0]      d_rs2,
         input  wire [`LEN_CONTEXT-1:0]   contex,
-        input  wire [`LEN_CONTEXT-1:0]   b_t_context,
-        input  wire [`LEN_CONTEXT-1:0]   b_f_context,
         output wire [`LEN_EXEC_INFO-1:0] exec_info);
     assign exec_info =
-        {exec_type, io_type, func3, func7, pa_rd_in,
-         d_rs1, d_rs2, contex, b_t_context, b_f_context};
+        {exec_type, io_type, func3, func7,
+         pa_rd_in, d_rs1, d_rs2, contex};
 endmodule
 module unpack_exec_info(
         input  wire [`LEN_EXEC_INFO-1:0] exec_info,
@@ -165,11 +161,9 @@ module unpack_exec_info(
         output wire [`LEN_PREG_ADDR-1:0] pa_rd_in,
         output wire [`LEN_WORD-1:0]      d_rs1,
         output wire [`LEN_WORD-1:0]      d_rs2,
-        output wire [`LEN_CONTEXT-1:0]   contex,
-        output wire [`LEN_CONTEXT-1:0]   b_t_context,
-        output wire [`LEN_CONTEXT-1:0]   b_f_context);
-    assign {exec_type, io_type, func3, func7, pa_rd_in,
-            d_rs1, d_rs2, contex, b_t_context, b_f_context}
+        output wire [`LEN_CONTEXT-1:0]   contex);
+    assign {exec_type, io_type, func3, func7,
+            pa_rd_in, d_rs1, d_rs2, contex}
         = exec_info;
 endmodule
 
@@ -193,31 +187,25 @@ endmodule
 // ---- j_b_info -------------------------------
 // exec -> context_manage
 module pack_j_b_info(
-        input  wire [`LEN_CONTEXT-1:0]  jump_context,
-        input  wire                     jump_next_pc_ready,
+        input  wire                     jump,
         input  wire [`LEN_WORD-1:0]     jump_next_pc,
+        input  wire                     branch,
         input  wire [`LEN_CONTEXT-1:0]  branch_context,
         input  wire                     branch_hazard,
-        input  wire [`LEN_CONTEXT-1:0]  branch_hazard_context,
-        input  wire [`LEN_CONTEXT-1:0]  branch_safe_context,
         output wire [`LEN_J_B_INFO-1:0] j_b_info);
     assign j_b_info =
-        {jump_context, jump_next_pc_ready, jump_next_pc,
-         branch_context, branch_hazard,
-         branch_hazard_context, branch_safe_context};
+        {jump, jump_next_pc,
+         branch, branch_context, branch_hazard};
 endmodule
 module unpack_j_b_info(
         input  wire [`LEN_J_B_INFO-1:0] j_b_info,
-        output wire [`LEN_CONTEXT-1:0]  jump_context,
-        output wire                     jump_next_pc_ready,
+        output wire                     jump,
         output wire [`LEN_WORD-1:0]     jump_next_pc,
+        output wire                     branch,
         output wire [`LEN_CONTEXT-1:0]  branch_context,
-        output wire                     branch_hazard,
-        output wire [`LEN_CONTEXT-1:0]  branch_hazard_context,
-        output wire [`LEN_CONTEXT-1:0]  branch_safe_context);
-    assign {jump_context, jump_next_pc_ready, jump_next_pc,
-            branch_context, branch_hazard,
-            branch_hazard_context, branch_safe_context}
+        output wire                     branch_hazard);
+    assign {jump, jump_next_pc,
+            branch, branch_context, branch_hazard}
         = j_b_info;
 endmodule
 

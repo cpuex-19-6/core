@@ -68,14 +68,12 @@ module inst_window(
     genvar i;
     genvar j;
 
-    wire [2-1:0]   flag;
+    wire [2-1:0]              flag;
     wire [`LEN_EXEC_TYPE-1:0] exec_type[2-1:0];
     wire [`LEN_WORD-1:0]      d_imm[2-1:0];
     wire [2-1:0]              io_type;
     wire [`LEN_FUNC3-1:0]     func3[2-1:0];
     wire [`LEN_FUNC7-1:0]     func7[2-1:0];
-    wire [`LEN_CONTEXT-1:0]   b_t_context[2-1:0];
-    wire [`LEN_CONTEXT-1:0]   b_f_context[2-1:0];
     wire [`LEN_VREG_ADDR-1:0] va_rs1[2-1:0];
     wire [`LEN_VREG_ADDR-1:0] va_rs2[2-1:0];
     wire [`LEN_VREG_ADDR-1:0] va_rd[2-1:0];
@@ -84,11 +82,11 @@ module inst_window(
     wire [`LEN_WORD-1:0]      d_rs1[2-1:0];
     wire [`LEN_WORD-1:0]      d_rs2[2-1:0];
     wire [`LEN_PREG_ADDR-1:0] pa_rd[2-1:0];
-    wire [2-1:0]   rs1_ready;
-    wire [2-1:0]   rs2_ready;
-    wire [2-1:0]   rd_ready;
+    wire [2-1:0]              rs1_ready;
+    wire [2-1:0]              rs2_ready;
+    wire [2-1:0]              rd_ready;
 
-    wire [2-1:0]   all_ready;
+    wire [2-1:0]              all_ready;
     
     generate
         for (i=0; i<2; i=i+1) begin
@@ -110,7 +108,6 @@ module inst_window(
         func3[0], func7[0],
         pa_rd[0], d_rs1[0], d_rs2[0],
         context[0],
-        b_t_context[0], b_f_context[0],
         e_exec_info);
 
     // replace insts into inst window
@@ -145,8 +142,6 @@ module inst_window(
     wire [`SIZE_INST_W-1:0]   next3_io_type;
     wire [`LEN_FUNC3-1:0]     next3_func3[2-1:0];
     wire [`LEN_FUNC7-1:0]     next3_func7[2-1:0];
-    wire [`LEN_CONTEXT-1:0]   next3_b_t_context[2-1:0];
-    wire [`LEN_CONTEXT-1:0]   next3_b_f_context[2-1:0];
     wire [`LEN_VREG_ADDR-1:0] next3_va_rs1[2-1:0];
     wire [`LEN_VREG_ADDR-1:0] next3_va_rs2[2-1:0];
     wire [`LEN_VREG_ADDR-1:0] next3_va_rd[2-1:0];
@@ -167,8 +162,6 @@ module inst_window(
             assign next3_io_type[i] = io_type[nextinst[i]];
             assign next3_func3[i] = func3[nextinst[i]];
             assign next3_func7[i] = func7[nextinst[i]];
-            assign next3_b_t_context[i] = b_t_context[nextinst[i]];
-            assign next3_b_f_context[i] = b_f_context[nextinst[i]];
             assign next3_va_rs1[i] = va_rs1[nextinst[i]];
             assign next3_va_rs2[i] = va_rs2[nextinst[i]];
             assign next3_va_rd[i] = va_rd[nextinst[i]];
@@ -246,8 +239,6 @@ module inst_window(
     wire                      pre_io_type;
     wire [`LEN_FUNC3-1:0]     pre_func3;
     wire [`LEN_FUNC7-1:0]     pre_func7;
-    wire [`LEN_CONTEXT-1:0]   pre_b_t_context;
-    wire [`LEN_CONTEXT-1:0]   pre_b_f_context;
 
     wire [`LEN_WORD-1:0]      pre_d_rs1 =
         (pre_exec_type[`EXEC_TYPE_ALU_NON_EXT])
@@ -268,29 +259,15 @@ module inst_window(
     wire [`LEN_VREG_ADDR-1:0] pre_va_rd;
     wire [`LEN_CONTEXT-1:0]   pre_context;
 
-    generate
-        wire [`LEN_WORD-1:0] pre_jump_imm;
-        assign pre_d_imm =
-            pre_exec_type[`EXEC_TYPE_JUMP]
-                ? pre_jump_imm
-                : pre_d_imm_temp;
-        if (`LEN_CONTEXT < 12) begin
-            assign pre_jump_imm =
-                {{(`LEN_WORD-2*`LEN_CONTEXT){pre_b_t_context[`LEN_CONTEXT-1]}},
-                 pre_b_t_context,
-                 pre_b_f_context};
-        end
-        else begin
-            assign pre_jump_imm =
-                {{(`LEN_WORD-12){pre_b_f_context[11]}},
-                 pre_b_f_context[12-1:0]};
-        end
-    endgenerate
+    assign pre_d_imm =
+        pre_exec_type[`EXEC_TYPE_JUMP]
+            ? pre_d_imm2
+            : pre_d_imm_temp;
 
     unpack_dec_exec_info m_up_d_e_info(
         d_dec_exec_info,
-        pre_exec_type, pre_inst_vreg, pre_d_imm_temp, pre_io_type,
-        pre_func3, pre_func7, pre_b_t_context, pre_b_f_context);
+        pre_exec_type, pre_inst_vreg, pre_d_imm_temp, pre_d_imm2,
+        pre_io_type, pre_func3, pre_func7);
 
     unpack_struct_inst_vreg m_up_pre_inst_vreg(
         pre_inst_vreg,
@@ -315,10 +292,6 @@ module inst_window(
             1'b1, next3_func3[0], func3[0], clk, rstn);
     temp_reg #(`LEN_FUNC7) r_func7(
             1'b1, next3_func7[0], func7[0], clk, rstn);
-    temp_reg #(`LEN_CONTEXT) r_b_t_context(
-            1'b1, next3_b_t_context[0], b_t_context[0], clk, rstn);
-    temp_reg #(`LEN_CONTEXT) r_b_f_context(
-            1'b1, next3_b_f_context[0], b_f_context[0], clk, rstn);0
     temp_reg #(`LEN_VREG_ADDR) r_va_rs1(
             1'b1, next3_va_rs1[0], va_rs1[0], clk, rstn);
     temp_reg #(`LEN_VREG_ADDR) r_va_rs2(
@@ -365,14 +338,6 @@ module inst_window(
         1'b1,
         next3_flag[1] ? next3_func7[1] : pre_func7,
         func7[1], clk, rstn);
-    temp_reg #(`LEN_CONTEXT) r_b_t_context_2(
-        1'b1,
-        next3_flag[1] ? next3_b_t_context[1] : pre_b_t_context,
-        b_t_context[1], clk, rstn);
-    temp_reg #(`LEN_CONTEXT) r_b_f_context_2(
-        1'b1,
-        next3_flag[1] ? next3_b_f_context[1] : pre_b_f_context,
-        b_f_context[i], clk, rstn);
     temp_reg #(`LEN_VREG_ADDR) r_va_rs1_2(
         1'b1,
         next3_flag[1] ? next3_va_rs1[1] : pre_va_rs1,
