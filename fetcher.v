@@ -103,7 +103,7 @@ module fetch #(
     wire [`FETCH_PREDICT_SIZE-1:0]                  predict_found_f;
 
     wire [LEN_MEMISTR_ADDR-1:0] lr_addr =
-        lr_d[LEN_MEMISTR_ADDR+FETCH_PARA+2-1:FETCH_PARA+2];
+        lr_d[LEN_MEMISTR_ADDR+LOG_FETCH_PARA+2-1:LOG_FETCH_PARA+2];
     wire                        lr_found_c;
     wire                        lr_found_f;
 
@@ -296,7 +296,7 @@ module fetch #(
     assign next_access_order =
           (~prold_mode)
         & (  |(predict_non_fetching)
-           | (lr_non_fetching & non_failure_stop));
+           | lr_non_fetching);
     assign next_access_addr =
         prold_mode
             ? prold_pc[LEN_MEMISTR_ADDR+LOG_FETCH_PARA+2-1
