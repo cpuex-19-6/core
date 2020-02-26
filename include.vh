@@ -138,7 +138,7 @@
 `define FUNC3_BGTU 3'b111
 
 `define FUNC3_FBEQ 3'b000
-`define FUNC3_FBNE 3'b001 
+`define FUNC3_FBNE 3'b001
 `define FUNC3_FBLT 3'b100
 `define FUNC3_FBGE 3'b101
 
