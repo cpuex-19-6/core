@@ -2,6 +2,20 @@
 
 `default_nettype none
 
+module choice(
+        input wire [8-1:0] i1,
+        input wire [8-1:0] i2,
+        output wire [8-1:0] o,
+        input wire clk,
+        input wire rstn);
+    wire [32-1:0] counter;
+    wire [32-1:0] next_count =
+        (counter<32'd600000000) ? (counter+32'b1) : 32'b0;
+    temp_reg #(32) r_counter(1'b1, next_count, counter, clk, rstn);
+    assign o =
+        (counter<32'd200000000) ? i1 : i2;
+endmodule
+
 module ring_buf
     #(LENGTH_ADDR = `LEN_RING_BUF_ADDR)
     (input  wire i_order,

@@ -60,6 +60,8 @@ module inst_window(
 
         output wire [`LEN_EXEC_INFO-1:0] e_exec_info,
 
+        output wire [5-1:0] led_out,
+
         input  wire clk,
         input  wire rstn);
 
@@ -523,6 +525,8 @@ module inst_window(
                 rd_ready[i], clk, rstn);
         end
     endgenerate
+
+    assign led_out = {flag[0],rs1_ready[0],rs2_ready[0],rd_ready[0],|(exec_type[0])};
 
 endmodule
 `default_nettype wire

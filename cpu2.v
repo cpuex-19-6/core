@@ -32,7 +32,7 @@ module cpu(
         input  wire native_rstn,
         input  wire usr_rst,
         input  wire usr_load,
-        output wire [5-1:0] led_stat,
+        output wire [3-1:0] led_stat,
 
         input  wire exec_busy,
 
@@ -213,8 +213,8 @@ module cpu(
     end
 
     // LED output
-    assign led_stat = {rstn, |state[7:6], |state[4:2], cpu_run, exec_busy};
-    //                       pro-ld       init         run      end
+    assign led_stat = {|state[7:6], cpu_run, exec_busy};
+    //                 pro-ld       run      end
 endmodule
 
 `default_nettype wire
