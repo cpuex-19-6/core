@@ -24,15 +24,21 @@ module fbranch
     wire each_zero = zero1 & zero2;
     wire either_zero = zero1 | zero2;
     wire NaN1 = &e1 & |m1;
-    wire NaN2 = &e1 & |m1;
+    wire NaN2 = &e2 & |m2;
     wire either_NaN = NaN1 | NaN2;
+
+    wire [32-1:0] s1s = {32{s1}};
 
     assign jump =
         (~(either_zero|either_NaN)) ?
             (func3 == `FUNC3_FBGE ) ?
-                ($signed(rs1) >= $signed(rs1)) :
+                ((s1==s2) ?
+                    ((s1s^no_sign1)>=(s1s^no_sign2)) :
+                    ~s1) :
             (func3 == `FUNC3_FBLT ) ?
-                ($signed(rs1) < $signed(rs1)) :
+                ((s1==s2) ?
+                    ((s1s^no_sign1)<(s1s^no_sign2)) :
+                    s1) :
             (func3 == `FUNC3_FBEQ ) ?
                 (rs1==rs2) :
             (func3 == `FUNC3_FBNE ) ?
@@ -41,8 +47,8 @@ module fbranch
         : either_NaN  ? 1'b0
         : each_zero   ? (func3[0] == func3[2])
         : (~func3[2]) ? func3[0] // eq or ne
-        : zero1       ? ~s2
-                      : s2; // zero2
+        : zero1       ? ~(s2^func3[0])
+                      : (s1^func3[0]); // zero2
 
 endmodule
 
