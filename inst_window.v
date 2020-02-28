@@ -55,10 +55,10 @@ module inst_window(
 
         // exec
         // EXECUTE_PARAの分だけ並列化
-        output wire order,
-        input  wire accepted,
+        output wire [`EXECUTE_PARA-1:0] order,
+        input  wire [`EXECUTE_PARA-1:0] accepted,
 
-        output wire [`LEN_EXEC_INFO-1:0] e_exec_info,
+        output wire [`LEN_EXEC_INFO*`EXECUTE_PARA-1:0] e_exec_info,
 
         input  wire clk,
         input  wire rstn);
@@ -102,11 +102,12 @@ module inst_window(
     wire [`LEN_IW_E_ABLE_ID-1:0] order_id_decide[`LEN_IW_E_ABLE:0];
     wire [`LEN_IW_E_ABLE_ID-1:0] order_id;
     wire [`LEN_IW_E_ABLE:0] order_decide;
+    wire total_order;
     generate
         assign order_id_decide[0] = `IW_E_ABLE_ID_ZERO;
         assign order_decide[0] = 1'b0;
         assign order_id = order_id_decide[`LEN_IW_E_ABLE];
-        assign order = order_decide[`LEN_IW_E_ABLE];
+        assign total_order = order_decide[`LEN_IW_E_ABLE];
         for (i=0; i<`LEN_IW_E_ABLE; i=i+1) begin
             // 実行できるものを探して実行
             // 同時に複数実行するときには優先度に注意
@@ -117,19 +118,53 @@ module inst_window(
                     ? i[`LEN_IW_E_ABLE_ID-1:0] : order_id_decide[i];
             assign next1_flag[i] =
                 (all_ready[i] & (~order_decide[i]))
-                    ? ~accepted : flag[i];
+                    ? ~|accepted : flag[i];
         end
         assign next1_flag[`SIZE_INST_W-1:`LEN_IW_E_ABLE] =
             flag[`SIZE_INST_W-1:`LEN_IW_E_ABLE];
     endgenerate
 
-    pack_exec_info m_p_exec_info(
-        exec_type[order_id], io_type[order_id],
-        func3[order_id], func7[order_id],
-        pa_rd[order_id], d_rs1[order_id], d_rs2[order_id],
-        context[order_id],
-        b_t_context[order_id], b_f_context[order_id],
-        e_exec_info);
+    generate
+        for (i=0; i<`EXECUTE_PARA; i=i+1) begin
+            pack_exec_info m_p_exec_info(
+                exec_type[order_id], io_type[order_id],
+                func3[order_id], func7[order_id],
+                pa_rd[order_id], d_rs1[order_id], d_rs2[order_id],
+                context[order_id],
+                b_t_context[order_id], b_f_context[order_id],
+                e_exec_info[`LEN_EXEC_INFO*(i+1)-1:`LEN_EXEC_INFO*i]);
+        end
+    endgenerate
+
+    wire [`LEN_EXEC_TYPE-1:0] order_exec_type = exec_type[order_id];
+
+    assign order[`EX_BRC] = total_order &
+        (  order_exec_type[`EXEC_TYPE_BRANCH]
+         | order_exec_type[`EXEC_TYPE_FBRANCH]);
+
+    assign order[`EX_MEM] = total_order &
+        (  order_exec_type[`EXEC_TYPE_MEM]);
+
+    assign order[`EX_IO] = total_order &
+        (  order_exec_type[`EXEC_TYPE_IO]);
+
+    assign order[`EX_JMP] = total_order &
+        (  order_exec_type[`EXEC_TYPE_JUMP]);
+
+    assign order[`EX_1CK] = total_order &
+        (  order_exec_type[`EXEC_TYPE_ALU_NON_EXT]
+         | order_exec_type[`EXEC_TYPE_FPU1]
+         | order_exec_type[`EXEC_TYPE_SUBST]);
+
+    assign order[`EX_AX] = total_order &
+        (  order_exec_type[`EXEC_TYPE_ALU_NON_IMM]
+         & ~order_exec_type[`EXEC_TYPE_ALU_NON_EXT]);
+
+    assign order[`EX_F2] = total_order &
+        (  order_exec_type[`EXEC_TYPE_FPU2]);
+
+    assign order[`EX_F3] = total_order &
+        (  order_exec_type[`EXEC_TYPE_FPU3]);
 
     // replace insts into inst window
     // 実行開始した(acceptされた)ものやhazardで消されたものを

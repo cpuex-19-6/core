@@ -157,9 +157,13 @@ module decode(
         (opecode == `OP_AUIPC ) ? d_imm32 + pc :
                                   32'b0;
 
+    wire fpu2 = fpu & (~(|{func7[6:4],func7[1:0]})) & (|(~func7[3:2]));
+    wire fpu3 = fpu & func7[2] & func7[3];
+    wire fpu1 = fpu & (~fpu2) & (~fpu3);
+
     wire [`LEN_EXEC_TYPE-1:0] exec_type;
     pack_exec_type m_pet(
-        alu_non_imm, alu_non_ext, fpu,
+        alu_non_imm, alu_non_ext, fpu1, fpu2, fpu3,
         mem, jump, ibranch, fbranch, subst, io,
         exec_type);
 
