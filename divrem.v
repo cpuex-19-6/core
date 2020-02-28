@@ -10,8 +10,10 @@ module divu_remu
      input  wire [`LEN_WORD-1:0] rs1,
      input  wire [`LEN_WORD-1:0] rs2,
      input  wire rem_flag,
+     input  wire [`LEN_PREG_ADDR-1:0] pa_rd_in,
 
      output wire [`LEN_WORD-1:0] rd,
+     output wire [`LEN_PREG_ADDR-1:0] pa_rd_out,
 
      input  wire clk,
      input  wire rstn);
@@ -22,9 +24,7 @@ module divu_remu
     // ここでは内部のパイプライン止まることを避けたいだけなので、
     // 内部でクロック周波数、クロック数が常に一定のときには
     // busyが常に0でもよい
-    wire busy;
-    wire next_busy = busy ? ~done : order;
-    temp_reg #(1) r_busy(1'b1, next_busy, busy, clk, rstn);
+    wire busy = 1'b0;
 
     // 現在何も実行していなくて、orderが来ているなら、
     // orderを受けて、計算を始める(acceptedを上げる)
@@ -38,6 +38,10 @@ module divu_remu
     wire stage_start = accepted;
     wire stage_last;
     assign done = stage_last;
+
+    wire [`LEN_PREG_ADDR-1:0] pa_rd_start = pa_rd_in;
+    wire [`LEN_PREG_ADDR-1:0] pa_rd_last;
+    assign pa_rd_out = pa_rd_last;
 
     localparam base = 4; // 2**n
 `define base_zero 4'b0
@@ -81,6 +85,11 @@ module divu_remu
     assign stages[0] = stage_start;
     assign stage_last = stages[calc_stages+1];
 
+    // pa_rd_n
+    wire [`LEN_PREG_ADDR-1:0] pa_rd[calc_stages+1:0];
+    assign pa_rd[0] = pa_rd_start;
+    assign pa_rd_last = pa_rd[calc_stages+1];
+
     // rem_flag_n
     // stage iでは[i]
     wire [calc_stages+1:0] rem_flags;
@@ -97,12 +106,14 @@ module divu_remu
                 temp_reg #(64) r_rems(1'b1,rems_out[l],rems_in[l],clk,rstn);
                 temp_reg #(1)  r_remflags(1'b1,rem_flags[l],rem_flags[l+1],clk,rstn);
                 temp_reg #(1)  r_stages(1'b1,stages[l],stages[l+1],clk,rstn);
+                temp_reg #(`LEN_PREG_ADDR) r_pa_rd(1'b1,pa_rd[l],pa_rd[l+1],clk,rstn);
             end
             else begin
                 assign divs_in[l] = divs_out[l];
                 assign rems_in[l] = rems_out[l];
                 assign rem_flags[l+1] = rem_flags[l];
                 assign stages[l+1] = stages[l];
+                assign pa_rd[l+1] = pa_rd[l];
             end
         end
         for (l = 0; l < calc_stages; l = l+1) begin

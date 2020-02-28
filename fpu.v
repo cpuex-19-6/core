@@ -4,30 +4,16 @@
 
 // 1 clock
 module fpu_short
-    (input  wire                  order,
-     output wire                  accepted,
-     output wire                  done,
-
-     input  wire [`LEN_FUNC3-1:0] func3,
+    (input  wire [`LEN_FUNC3-1:0] func3,
      input  wire [`LEN_FUNC7-1:0] func7,
      input  wire [`LEN_WORD-1:0]  rs1,
      input  wire [`LEN_WORD-1:0]  rs2,
 
-     output wire [`LEN_WORD-1:0]  rd,
-     
-     input  wire                  clk,
-     input  wire                  rstn);
+     output wire [`LEN_WORD-1:0]  rd);
 
     // このクロック開始時にモジュール内で計算中かどうか
     // 実行中で、現在のクロックで終了するなら次はやらない
     // 何もやってなくて、orderが出ていたら仕事をする
-    wire busy;
-    wire next_busy = (~done) & (busy | accepted);
-    temp_reg #(1) r_busy(1'b1, next_busy, busy, clk, rstn);
-  
-    // 現在何も実行していなくて、orderが来ているなら
-    // orderを子モジュールに投げられる。
-    wire order_able = ~busy & order;
 
     // 各子モジュール
     // 基本入力と出力は垂れ流し
@@ -35,18 +21,17 @@ module fpu_short
     // acceptedとdoneは後で一括管理する
 
     // fsgnj, fsgnjn, fsgnjx
-    wire fsgnj_order = order_able &
-        (func7 == `FUNC7_FSGNJ);
+    wire fsgnj_order = (func7 == `FUNC7_FSGNJ);
     wire fsgnj_accepted;
     wire fsgnj_done;
     wire [32-1:0] fsgnj_rd;
     fsgnj m_fsgnj(
         fsgnj_order, fsgnj_accepted, fsgnj_done,
         rs1, rs2, fsgnj_rd, 
-        func3, clk, rstn);
+        func3, 1'b1, 1'b1);
 
     // ffloor
-    wire ffloor_order = order_able &
+    wire ffloor_order =
         (func7 == `FUNC7_FRM) &
         (func3 == `FUNC3_FFLOOR);
     wire ffloor_accepted;
@@ -55,10 +40,10 @@ module fpu_short
     ffloor m_ffloor(
         ffloor_order, ffloor_accepted, ffloor_done,
         rs1, ffloor_rd,
-        clk, rstn);
+        1'b1, 1'b1);
 
     // itof
-    wire itof_order = order_able &
+    wire itof_order =
         (func7 == `FUNC7_ITOF);
     wire itof_accepted;
     wire itof_done;
@@ -66,10 +51,10 @@ module fpu_short
     itof m_itof(
         itof_order, itof_accepted, itof_done,
         rs1, itof_rd,
-        clk, rstn);
+        1'b1, 1'b1);
 
     // ftoi
-    wire ftoi_order = order_able &
+    wire ftoi_order =
         (func7 == `FUNC7_FTOI);
     wire ftoi_accepted;
     wire ftoi_done;
@@ -77,10 +62,10 @@ module fpu_short
     ftoi m_ftoi(
         ftoi_order, ftoi_accepted, ftoi_done,
         rs1, ftoi_rd,
-        clk, rstn);
+        1'b1, 1'b1);
 
     // fmvi
-    wire fmvi_order = order_able &
+    wire fmvi_order =
         (func7 == `FUNC7_FMVI);
     wire fmvi_accepted;
     wire fmvi_done;
@@ -91,7 +76,7 @@ module fpu_short
     assign fmvi_done = fmvi_order;
 
     // imvf
-    wire imvf_order = order_able &
+    wire imvf_order =
         (func7 == `FUNC7_IMVF);
     wire imvf_accepted;
     wire imvf_done;
@@ -102,7 +87,7 @@ module fpu_short
     assign imvf_done = imvf_order;
 
     // feq, flt, fle
-    wire fcomp_order = order_able &
+    wire fcomp_order =
         (func7 == `FUNC7_FCOMP);
     wire fcomp_accepted;
     wire fcomp_done;
@@ -110,53 +95,21 @@ module fpu_short
     fcomp m_fcomp(
         fcomp_order, fcomp_accepted, fcomp_done,
         rs1, rs2, fcomp_rd,
-        func3, clk, rstn);
+        func3, 1'b1, 1'b1);
     
     // non-instruction
-    wire error_order = order_able &
-        (func7 != `FUNC7_FSGNJ) &
-        (func7 != `FUNC7_FRM)   &
-        (func7 != `FUNC7_ITOF)  &
-        (func7 != `FUNC7_FTOI)  &
-        (func7 != `FUNC7_FMVI)  &
-        (func7 != `FUNC7_IMVF)  &
-        (func7 != `FUNC7_FCOMP);
-    wire error_accepted = error_order;
-    wire error_done = error_order;
     wire [32-1:0] error_rd = 32'b0;
-
-    // 誰かがacceptしてるならそれを伝える(acceptedを上げる)
-    assign accepted =
-        (fsgnj_accepted   | ffloor_accepted | 
-         itof_accepted    | ftoi_accepted   |
-         fmvi_accepted    | imvf_accepted   |
-         fcomp_accepted   |
-         error_accepted); // "|"でつなげる
-
-    // 子モジュールのうち誰かがdoneを上げていたそのクロックのうちに
-    // 終了するので、doneを上げておく
-    assign done =
-        (fsgnj_done   | ffloor_done |
-         itof_done    | ftoi_done   |
-         fmvi_done    | imvf_done   |
-         fcomp_done   |
-         error_done); // "|"でつなげる
     
     // doneがあがれば出力を更新する
     // そうでなければ更新しない
-    wire [32-1:0] rd_buf;
-    wire [32-1:0] next_rd_buf =
-        fsgnj_done   ? fsgnj_rd   :
+    assign rd =
         ffloor_done  ? ffloor_rd  :
         itof_done    ? itof_rd    :
         ftoi_done    ? ftoi_rd    :
-        fmvi_done    ? fmvi_rd    :
-        imvf_done    ? imvf_rd    :
         fcomp_done   ? fcomp_rd   :
-        error_done   ? error_rd   : rd_buf;
-    temp_reg r_rd_buf(1'b1, next_rd_buf, rd_buf, clk, rstn);
-
-    assign rd = next_rd_buf;
+        fsgnj_done   ? fsgnj_rd   :
+        fmvi_done    ? fmvi_rd    :
+        imvf_done    ? imvf_rd    : error_rd;
 
 endmodule
 
@@ -172,8 +125,10 @@ module fpu_medium
      input  wire [`LEN_FUNC7-1:0] func7,
      input  wire [`LEN_WORD-1:0]  rs1,
      input  wire [`LEN_WORD-1:0]  rs2,
+     input  wire [`LEN_PREG_ADDR-1:0] pa_rd_in,
 
-     output wire [`LEN_WORD-1:0]  rd,
+     output wire [`LEN_WORD-1:0] rd,
+     output wire [`LEN_PREG_ADDR-1:0] pa_rd_out,
      
      input  wire                  clk,
      input  wire                  rstn);
@@ -181,9 +136,7 @@ module fpu_medium
     // このクロック開始時にモジュール内で計算中かどうか
     // 実行中で、現在のクロックで終了するなら次はやらない
     // 何もやってなくて、orderが出ていたら仕事をする
-    wire busy;
-    wire next_busy = (~done) & (busy | accepted);
-    temp_reg #(1) r_busy(1'b1, next_busy, busy, clk, rstn);
+    wire busy = 1'b0;
   
     // 現在何も実行していなくて、orderが来ているなら
     // orderを子モジュールに投げられる。
@@ -226,27 +179,24 @@ module fpu_medium
         (func7 != `FUNC7_FSUB)  &
         (func7 != `FUNC7_FMUL);
     wire error_accepted = error_order;
-    wire error_done = error_order;
-    wire [32-1:0] error_rd = 32'b0;
 
     // 誰かがacceptしてるならそれを伝える(acceptedを上げる)
     assign accepted =
-        (addsub_accepted | fmul_accepted); // "|"でつなげる
+        (addsub_accepted | fmul_accepted | error_accepted); // "|"でつなげる
 
     // 子モジュールのうち誰かがdoneを上げていたそのクロックのうちに
     // 終了するので、doneを上げておく
-    assign done =
-        (faddsub_done | fmul_done); // "|"でつなげる
+    assign done = (faddsub_done | fmul_done); // "|"でつなげる
     
     // doneがあがれば出力を更新する
     // そうでなければ更新しない
-    wire [32-1:0] rd_buf;
-    wire [32-1:0] next_rd_buf =
+    assign rd =
         faddsub_done ? faddsub_rd :
-        fmul_done    ? fmul_rd    : rd_buf;
-    temp_reg r_rd_buf(1'b1, next_rd_buf, rd_buf, clk, rstn);
+        fmul_done    ? fmul_rd    : 32'b0;
 
-    assign rd = next_rd_buf;
+    wire [`LEN_PREG_ADDR-1:0] pa_rd_1;
+    temp_reg #(`LEN_PREG_ADDR) r_pa_rd_in(1'b1, pa_rd_in, pa_rd_1, clk, rstn);
+    temp_reg #(`LEN_PREG_ADDR) r_pa_rd_out(1'b1, pa_rd_1, pa_rd_out, clk, rstn);
 
 endmodule
 
@@ -262,8 +212,10 @@ module fpu_long
      input  wire [`LEN_FUNC7-1:0] func7,
      input  wire [`LEN_WORD-1:0]  rs1,
      input  wire [`LEN_WORD-1:0]  rs2,
+     input  wire [`LEN_PREG_ADDR-1:0] pa_rd_in,
 
-     output wire [`LEN_WORD-1:0]  rd,
+     output wire [`LEN_WORD-1:0] rd,
+     output wire [`LEN_PREG_ADDR-1:0] pa_rd_out,
      
      input  wire                  clk,
      input  wire                  rstn);
@@ -272,7 +224,7 @@ module fpu_long
     // 実行中で、現在のクロックで終了するなら次はやらない
     // 何もやってなくて、orderが出ていたら仕事をする
     wire busy;
-    wire next_busy = (~done) & (busy | accepted);
+    wire next_busy = (~done & ~error_done) & (busy | accepted);
     temp_reg #(1) r_busy(1'b1, next_busy, busy, clk, rstn);
   
     // 現在何も実行していなくて、orderが来ているなら
@@ -316,22 +268,19 @@ module fpu_long
 
     // 誰かがacceptしてるならそれを伝える(acceptedを上げる)
     assign accepted =
-        (fdiv_accepted | fsqrt_accepted); // "|"でつなげる
+        (fdiv_accepted | fsqrt_accepted | error_accepted); // "|"でつなげる
 
     // 子モジュールのうち誰かがdoneを上げていたそのクロックのうちに
     // 終了するので、doneを上げておく
     assign done =
         (fdiv_done | fsqrt_done); // "|"でつなげる
     
-    // doneがあがれば出力を更新する
-    // そうでなければ更新しない
-    wire [32-1:0] rd_buf;
-    wire [32-1:0] next_rd_buf =
+    // doneがあがれば出力する
+    assign rd =
         fdiv_done    ? fdiv_rd    :
-        fsqrt_done   ? fsqrt_rd   : rd_buf;
-    temp_reg r_rd_buf(1'b1, next_rd_buf, rd_buf, clk, rstn);
-
-    assign rd = next_rd_buf;
+        fsqrt_done   ? fsqrt_rd   : error_rd;
+        
+    temp_reg #(`LEN_PREG_ADDR) r_pa_rd(accepted, pa_rd_in, pa_rd_out, clk, rstn);
 
 endmodule
 

@@ -7,10 +7,13 @@ module io_core
      output wire                  accepted,
      output wire                  done,
 
-     input  wire                  write_flag,
-     input  wire [`LEN_FUNC3-1:0] func3,
-     input  wire [`LEN_WORD-1:0]  o_data,
-     output wire [`LEN_WORD-1:0]  i_data,
+     input  wire                      write_flag,
+     input  wire [`LEN_FUNC3-1:0]     func3,
+     input  wire [`LEN_WORD-1:0]      o_data,
+     input  wire [`LEN_PREG_ADDR-1:0] pa_rd_in,
+
+     output wire [`LEN_WORD-1:0]      i_data,
+     output wire [`LEN_PREG_ADDR-1:0] pa_rd_out,
 
      output wire                  io_write_flag,
      output wire [2-1:0]          io_size,
@@ -31,6 +34,9 @@ module io_core
     assign io_order = order;
     assign accepted = io_accepted;
     assign done = io_done;
+
+    temp_reg #(`LEN_PREG_ADDR) r_pa_rd(
+        accepted, pa_rd_in, pa_rd_out, clk, rstn);
 
 endmodule
 

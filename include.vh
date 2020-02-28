@@ -53,11 +53,54 @@
 `define IW_E_ABLE_ID_ZERO 1'b0
 
 // execute parallel degree
-`define EXECUTE_PARA 1
-// decoder parallel idの長さ
-`define LEN_E_PARA_ID 1
-// decoder parallel id zero
-`define E_PARA_ID_ZERO 1'b0
+`define EXECUTE_PARA 8
+/*
+writeするものは後ろに寄せること
+OoOできないものは前に寄せること
+id exec_type  OoO pipeline
+0  branch     x   -        (これだけは0番で固定)
+1  mem        x   o
+2  io         x   x
+3  jump       o   -
+4  (exec_1ck) o   -
+   +- alu
+   +- alu_imm
+   +- fpu1
+   +- subst
+5  alu_ext    o   o
+6  fpu2       o   o
+7  fpu3       o   x
+*/
+// index for execute parallel
+`define EX_BRC 0
+`define EX_MEM 1
+`define EX_IO  2
+`define EX_JMP 3
+`define EX_1CK 4
+`define EX_AX  5
+`define EX_F2  6
+`define EX_F3  7
+// OoO化できる最初のindexの値
+`define E_PARA_OOO 3
+// execute parallel idの長さ
+`define LEN_E_PARA_ID 3
+// execute parallel id zero
+`define E_PARA_ID_ZERO 3'b0
+
+// write parallel degree
+`define WRITE_PARA 7
+// index for write parallel
+`define WR_MEM 0
+`define WR_IO  1
+`define WR_JMP 2
+`define EX_1CK 3
+`define EX_AX  4
+`define EX_F2  5
+`define EX_F3  6
+// write parallel idの長さ
+`define LEN_W_PARA_ID 3
+// write parallel id zero
+`define W_PARA_ID_ZERO 3'b0
 
 // UART用リングバッファアドレスのサイズ(外部から更新可)
 `define LEN_RING_BUF_ADDR 12
@@ -174,10 +217,12 @@
 // write_d_r
 `define LEN_WRITE_D_R ((`LEN_PREG_ADDR)+(`LEN_WORD)+1)
 // exec_type
-`define LEN_EXEC_TYPE 9
-`define EXEC_TYPE_ALU_NON_IMM 8
-`define EXEC_TYPE_ALU_NON_EXT 7
-`define EXEC_TYPE_FPU         6
+`define LEN_EXEC_TYPE 11
+`define EXEC_TYPE_ALU_NON_IMM 10
+`define EXEC_TYPE_ALU_NON_EXT 9
+`define EXEC_TYPE_FPU1        8
+`define EXEC_TYPE_FPU2        7
+`define EXEC_TYPE_FPU3        6
 `define EXEC_TYPE_MEM         5
 `define EXEC_TYPE_JUMP        4
 `define EXEC_TYPE_BRANCH      3

@@ -18,9 +18,7 @@ module fmul
   // ここでは内部のパイプライン止まることを避けたいだけなので、
   // 内部でクロック周波数、クロック数が常に一定のときには
   // busyが常に0でもよい
-  wire busy;
-  wire next_busy = busy ? ~done : accepted;
-  temp_reg #(1) r_busy(1'b1, next_busy, busy, clk, rstn);
+  wire busy = 1'b0;
 
   // 現在何も実行していなくて、orderが来ているなら、
   // orderを受けて、計算を始める(acceptedを上げる)
