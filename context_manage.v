@@ -108,10 +108,7 @@ module context_manage(
         exec_branch_context, exec_branch_hazard,
         exec_hazard_context, exec_safe_context);
 
-    wire [`LEN_CONTEXT_ID-1:0] exec_b_cntx_id;
     wire [`LEN_CONTEXT_ID-1:0] hazard_context_id;
-    onehot_to_binary #(`LEN_CONTEXT_ID) m_o_to_b_exec_b_cntx(
-            exec_branch_context, exec_b_cntx_id);
     onehot_to_binary #(`LEN_CONTEXT_ID) m_o_to_b_haz_cntx(
             exec_hazard_context, hazard_context_id);
 
@@ -129,14 +126,12 @@ module context_manage(
 
     generate
         for (cntx=0; cntx<`LEN_CONTEXT; cntx=cntx+1) begin
-            wire [`LEN_CONTEXT-1:0] masked_cntx_info =
-                (~cntx_info[exec_b_cntx_id]) & (cntx_info[cntx]);
             assign cntx_next1_info[cntx] =
                 (init & (cntx == `CONTEXT_INIT_ID))
                     ? `CONTEXT_INIT :
                 branch_hazard
-                    ? (|(hazard_context_info & masked_cntx_info))
-                        ? `CONTEXT_ZERO : masked_cntx_info
+                    ? (  cntx_info[cntx]
+                       & (~hazard_context_info))
                     : cntx_info[cntx];
             assign cntx_next1_non_fetch[cntx] =
                 (init & (cntx == `CONTEXT_INIT_ID))
@@ -210,20 +205,21 @@ module context_manage(
                     : cntx_next1_next_pc[cntx];
             assign cntx_next2_non_fetch[cntx] =
                 (fetch_done & cntx_next1_hot[cntx])
-                    ? decode_next_pc_ready :
-                decode_branch
-                    ? (  decode_context_b_t[cntx]
-                       | decode_context_b_f[cntx])
-                    : cntx_next1_non_fetch[cntx];
+                    ? decode_next_pc_ready
+                    : ((  decode_branch
+                        & (  decode_context_b_t[cntx]
+                           | decode_context_b_f[cntx]))
+                       | cntx_next1_non_fetch[cntx]);
             wire [`LEN_CONTEXT-1:0] cntx_nx1_info =
                 cntx_next1_info[cntx];
             assign cntx_next2_info[cntx] =
+                (  decode_branch
+                 & (decode_context_b_t[cntx] | decode_context_b_f[cntx]))
+                    ? (`CONTEXT_INIT << cntx) :
                 (decode_branch & cntx_nx1_info[cntx_next1_hot_id])
                     ? (  cntx_nx1_info
                        | decode_context_b_t | decode_context_b_f) :
-                (decode_context_b_t[cntx] | decode_context_b_f[cntx])
-                        ? (`CONTEXT_INIT << cntx)
-                        : cntx_nx1_info;
+                      cntx_nx1_info;
         end
     endgenerate
 

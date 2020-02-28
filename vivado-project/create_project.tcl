@@ -32,15 +32,12 @@
 # 3. The following remote source files that were added to the original project:-
 #
 #    "../include.vh"
-#    "../struct.v"
-#    "../cpu2.v"
-#    "../reset.v"
+#    "../decoder.v"
 #    "../reg.v"
-#    "../uart_rx.v"
-#    "../uart_tx.v"
+#    "../struct.v"
 #    "../utility.v"
-#    "../uart.v"
-#    "../inst_window.v"
+#    "../context_manage.v"
+#    "../cpu2.v"
 #    "../alu.v"
 #    "../branch.v"
 #    "../divrem.v"
@@ -58,10 +55,13 @@
 #    "../FPU/itof.v"
 #    "../memory_access.v"
 #    "../exec.v"
-#    "../reg_manage.v"
-#    "../decoder.v"
-#    "../context_manage.v"
 #    "../fetcher.v"
+#    "../inst_window.v"
+#    "../reg_manage.v"
+#    "../reset.v"
+#    "../uart_rx.v"
+#    "../uart_tx.v"
+#    "../uart.v"
 #    "../uart_input_test.v"
 #    "../bin_code/uart_loopback.coe"
 #    "../bin_code/conversational_fib.coe"
@@ -82,6 +82,8 @@
 #    "../bin_code/fib15_out.coe"
 #    "../bin_code/fib15_out2.coe"
 #    "../bin_code/simple_out_int.coe"
+#    "../bin_code/stall.coe"
+#    "../bin_code/branch_test.coe"
 #    "../constraint.xdc"
 #
 #*****************************************************************************************
@@ -185,14 +187,14 @@ set_property -name "mem.enable_memory_map_generation" -value "1" -objects $obj
 set_property -name "sim.central_dir" -value "$proj_dir/${_xil_proj_name_}.ip_user_files" -objects $obj
 set_property -name "sim.ip.auto_export_scripts" -value "1" -objects $obj
 set_property -name "simulator_language" -value "Mixed" -objects $obj
-set_property -name "webtalk.activehdl_export_sim" -value "59" -objects $obj
-set_property -name "webtalk.ies_export_sim" -value "59" -objects $obj
-set_property -name "webtalk.modelsim_export_sim" -value "59" -objects $obj
-set_property -name "webtalk.questa_export_sim" -value "59" -objects $obj
-set_property -name "webtalk.riviera_export_sim" -value "59" -objects $obj
-set_property -name "webtalk.vcs_export_sim" -value "59" -objects $obj
-set_property -name "webtalk.xsim_export_sim" -value "59" -objects $obj
-set_property -name "webtalk.xsim_launch_sim" -value "185" -objects $obj
+set_property -name "webtalk.activehdl_export_sim" -value "65" -objects $obj
+set_property -name "webtalk.ies_export_sim" -value "65" -objects $obj
+set_property -name "webtalk.modelsim_export_sim" -value "65" -objects $obj
+set_property -name "webtalk.questa_export_sim" -value "65" -objects $obj
+set_property -name "webtalk.riviera_export_sim" -value "65" -objects $obj
+set_property -name "webtalk.vcs_export_sim" -value "65" -objects $obj
+set_property -name "webtalk.xsim_export_sim" -value "65" -objects $obj
+set_property -name "webtalk.xsim_launch_sim" -value "193" -objects $obj
 set_property -name "xpm_libraries" -value "XPM_CDC XPM_MEMORY" -objects $obj
 
 # Create 'sources_1' fileset (if not found)
@@ -204,15 +206,12 @@ if {[string equal [get_filesets -quiet sources_1] ""]} {
 set obj [get_filesets sources_1]
 set files [list \
  [file normalize "${origin_dir}/../include.vh"] \
- [file normalize "${origin_dir}/../struct.v"] \
- [file normalize "${origin_dir}/../cpu2.v"] \
- [file normalize "${origin_dir}/../reset.v"] \
+ [file normalize "${origin_dir}/../decoder.v"] \
  [file normalize "${origin_dir}/../reg.v"] \
- [file normalize "${origin_dir}/../uart_rx.v"] \
- [file normalize "${origin_dir}/../uart_tx.v"] \
+ [file normalize "${origin_dir}/../struct.v"] \
  [file normalize "${origin_dir}/../utility.v"] \
- [file normalize "${origin_dir}/../uart.v"] \
- [file normalize "${origin_dir}/../inst_window.v"] \
+ [file normalize "${origin_dir}/../context_manage.v"] \
+ [file normalize "${origin_dir}/../cpu2.v"] \
  [file normalize "${origin_dir}/../alu.v"] \
  [file normalize "${origin_dir}/../branch.v"] \
  [file normalize "${origin_dir}/../divrem.v"] \
@@ -230,10 +229,13 @@ set files [list \
  [file normalize "${origin_dir}/../FPU/itof.v"] \
  [file normalize "${origin_dir}/../memory_access.v"] \
  [file normalize "${origin_dir}/../exec.v"] \
- [file normalize "${origin_dir}/../reg_manage.v"] \
- [file normalize "${origin_dir}/../decoder.v"] \
- [file normalize "${origin_dir}/../context_manage.v"] \
  [file normalize "${origin_dir}/../fetcher.v"] \
+ [file normalize "${origin_dir}/../inst_window.v"] \
+ [file normalize "${origin_dir}/../reg_manage.v"] \
+ [file normalize "${origin_dir}/../reset.v"] \
+ [file normalize "${origin_dir}/../uart_rx.v"] \
+ [file normalize "${origin_dir}/../uart_tx.v"] \
+ [file normalize "${origin_dir}/../uart.v"] \
  [file normalize "${origin_dir}/../uart_input_test.v"] \
  [file normalize "${origin_dir}/../bin_code/uart_loopback.coe"] \
  [file normalize "${origin_dir}/../bin_code/conversational_fib.coe"] \
@@ -254,14 +256,16 @@ set files [list \
  [file normalize "${origin_dir}/../bin_code/fib15_out.coe"] \
  [file normalize "${origin_dir}/../bin_code/fib15_out2.coe"] \
  [file normalize "${origin_dir}/../bin_code/simple_out_int.coe"] \
+ [file normalize "${origin_dir}/../bin_code/stall.coe"] \
+ [file normalize "${origin_dir}/../bin_code/branch_test.coe"] \
 ]
 add_files -norecurse -fileset $obj $files
 
 # Import local files from the original project
 set files [list \
- [file normalize "${origin_dir}/ver2_wrapper.v" ]\
- [file normalize "${origin_dir}/ver2_sim_wrapper.v" ]\
- [file normalize "${origin_dir}/ver2_sim2_prold_wrapper.v" ]\
+ [file normalize "${origin_dir}/ver2_wrapper.v"]\
+ [file normalize "${origin_dir}/ver2_sim_wrapper.v"]\
+ [file normalize "${origin_dir}/ver2_sim2_prold_wrapper.v"]\
 ]
 set imported_files [import_files -fileset sources_1 $files]
 
@@ -308,8 +312,8 @@ if {[string equal [get_filesets -quiet sim_1] ""]} {
 set obj [get_filesets sim_1]
 # Import local files from the original project
 set files [list \
- [file normalize "${origin_dir}/ver2_sim_wrapper_behav.wcfg" ]\
- [file normalize "${origin_dir}/ver2_sim2_prold_wrapper_behav.wcfg" ]\
+ [file normalize "${origin_dir}/ver2_sim_wrapper_behav.wcfg"]\
+ [file normalize "${origin_dir}/ver2_sim2_prold_wrapper_behav.wcfg"]\
 ]
 set imported_files [import_files -fileset sim_1 $files]
 
@@ -337,47 +341,29 @@ set obj [get_filesets utils_1]
 if { [get_files include.vh] == "" } {
   import_files -quiet -fileset sources_1 ../include.vh
 }
+if { [get_files decoder.v] == "" } {
+  import_files -quiet -fileset sources_1 ../decoder.v
+}
+if { [get_files reg.v] == "" } {
+  import_files -quiet -fileset sources_1 ../reg.v
+}
+if { [get_files struct.v] == "" } {
+  import_files -quiet -fileset sources_1 ../struct.v
+}
+if { [get_files utility.v] == "" } {
+  import_files -quiet -fileset sources_1 ../utility.v
+}
+if { [get_files context_manage.v] == "" } {
+  import_files -quiet -fileset sources_1 ../context_manage.v
+}
+if { [get_files include.vh] == "" } {
+  import_files -quiet -fileset sources_1 ../include.vh
+}
 if { [get_files struct.v] == "" } {
   import_files -quiet -fileset sources_1 ../struct.v
 }
 if { [get_files cpu2.v] == "" } {
   import_files -quiet -fileset sources_1 ../cpu2.v
-}
-if { [get_files reset.v] == "" } {
-  import_files -quiet -fileset sources_1 ../reset.v
-}
-if { [get_files include.vh] == "" } {
-  import_files -quiet -fileset sources_1 ../include.vh
-}
-if { [get_files reg.v] == "" } {
-  import_files -quiet -fileset sources_1 ../reg.v
-}
-if { [get_files uart_rx.v] == "" } {
-  import_files -quiet -fileset sources_1 ../uart_rx.v
-}
-if { [get_files uart_tx.v] == "" } {
-  import_files -quiet -fileset sources_1 ../uart_tx.v
-}
-if { [get_files utility.v] == "" } {
-  import_files -quiet -fileset sources_1 ../utility.v
-}
-if { [get_files uart.v] == "" } {
-  import_files -quiet -fileset sources_1 ../uart.v
-}
-if { [get_files include.vh] == "" } {
-  import_files -quiet -fileset sources_1 ../include.vh
-}
-if { [get_files reg.v] == "" } {
-  import_files -quiet -fileset sources_1 ../reg.v
-}
-if { [get_files struct.v] == "" } {
-  import_files -quiet -fileset sources_1 ../struct.v
-}
-if { [get_files utility.v] == "" } {
-  import_files -quiet -fileset sources_1 ../utility.v
-}
-if { [get_files inst_window.v] == "" } {
-  import_files -quiet -fileset sources_1 ../inst_window.v
 }
 if { [get_files include.vh] == "" } {
   import_files -quiet -fileset sources_1 ../include.vh
@@ -451,26 +437,41 @@ if { [get_files struct.v] == "" } {
 if { [get_files utility.v] == "" } {
   import_files -quiet -fileset sources_1 ../utility.v
 }
+if { [get_files fetcher.v] == "" } {
+  import_files -quiet -fileset sources_1 ../fetcher.v
+}
+if { [get_files include.vh] == "" } {
+  import_files -quiet -fileset sources_1 ../include.vh
+}
+if { [get_files reg.v] == "" } {
+  import_files -quiet -fileset sources_1 ../reg.v
+}
+if { [get_files struct.v] == "" } {
+  import_files -quiet -fileset sources_1 ../struct.v
+}
+if { [get_files utility.v] == "" } {
+  import_files -quiet -fileset sources_1 ../utility.v
+}
+if { [get_files inst_window.v] == "" } {
+  import_files -quiet -fileset sources_1 ../inst_window.v
+}
+if { [get_files include.vh] == "" } {
+  import_files -quiet -fileset sources_1 ../include.vh
+}
+if { [get_files reg.v] == "" } {
+  import_files -quiet -fileset sources_1 ../reg.v
+}
+if { [get_files struct.v] == "" } {
+  import_files -quiet -fileset sources_1 ../struct.v
+}
+if { [get_files utility.v] == "" } {
+  import_files -quiet -fileset sources_1 ../utility.v
+}
 if { [get_files reg_manage.v] == "" } {
   import_files -quiet -fileset sources_1 ../reg_manage.v
 }
-if { [get_files include.vh] == "" } {
-  import_files -quiet -fileset sources_1 ../include.vh
-}
-if { [get_files decoder.v] == "" } {
-  import_files -quiet -fileset sources_1 ../decoder.v
-}
-if { [get_files reg.v] == "" } {
-  import_files -quiet -fileset sources_1 ../reg.v
-}
-if { [get_files struct.v] == "" } {
-  import_files -quiet -fileset sources_1 ../struct.v
-}
-if { [get_files utility.v] == "" } {
-  import_files -quiet -fileset sources_1 ../utility.v
-}
-if { [get_files context_manage.v] == "" } {
-  import_files -quiet -fileset sources_1 ../context_manage.v
+if { [get_files reset.v] == "" } {
+  import_files -quiet -fileset sources_1 ../reset.v
 }
 if { [get_files include.vh] == "" } {
   import_files -quiet -fileset sources_1 ../include.vh
@@ -478,14 +479,17 @@ if { [get_files include.vh] == "" } {
 if { [get_files reg.v] == "" } {
   import_files -quiet -fileset sources_1 ../reg.v
 }
-if { [get_files struct.v] == "" } {
-  import_files -quiet -fileset sources_1 ../struct.v
+if { [get_files uart_rx.v] == "" } {
+  import_files -quiet -fileset sources_1 ../uart_rx.v
+}
+if { [get_files uart_tx.v] == "" } {
+  import_files -quiet -fileset sources_1 ../uart_tx.v
 }
 if { [get_files utility.v] == "" } {
   import_files -quiet -fileset sources_1 ../utility.v
 }
-if { [get_files fetcher.v] == "" } {
-  import_files -quiet -fileset sources_1 ../fetcher.v
+if { [get_files uart.v] == "" } {
+  import_files -quiet -fileset sources_1 ../uart.v
 }
 
 
@@ -705,7 +709,10 @@ proc cr_bd_ver2 { parentCell } {
      catch {common::send_msg_id "BD_TCL-106" "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
      return 1
    }
-  
+    set_property -dict [ list \
+   CONFIG.LEN_MEMISTR_ADDR {16} \
+ ] $fetch_0
+
   # Create instance: inst_mem, and set properties
   set inst_mem [ create_bd_cell -type ip -vlnv xilinx.com:ip:blk_mem_gen:8.4 inst_mem ]
   set_property -dict [ list \
@@ -719,7 +726,7 @@ proc cr_bd_ver2 { parentCell } {
    CONFIG.Register_PortA_Output_of_Memory_Primitives {true} \
    CONFIG.Use_Byte_Write_Enable {false} \
    CONFIG.Use_RSTA_Pin {false} \
-   CONFIG.Write_Depth_A {32768} \
+   CONFIG.Write_Depth_A {65536} \
    CONFIG.use_bram_block {Stand_Alone} \
  ] $inst_mem
 
@@ -767,7 +774,7 @@ proc cr_bd_ver2 { parentCell } {
      return 1
    }
     set_property -dict [ list \
-   CONFIG.BAUD {9600} \
+   CONFIG.BAUD {19200} \
    CONFIG.CLK_FREQ {75000000} \
  ] $uart_manage_0
 
@@ -847,6 +854,13 @@ proc cr_bd_ver2 { parentCell } {
 
   # Create address segments
 
+  # Perform GUI Layout
+  regenerate_bd_layout -layout_string {
+   "ExpandedHierarchyInLayout":"",
+   "guistr":"# # String gsaved with Nlview 6.8.11  2018-08-07 bk=1.4403 VDI=40 GEI=35 GUI=JA:9.0 non-TLS
+#  -string -flagsOSRD
+"
+}
 
   # Restore current instance
   current_bd_instance $oldCurInst
@@ -998,6 +1012,15 @@ if { [get_files reset.v] == "" } {
 if { [get_files include.vh] == "" } {
   import_files -quiet -fileset sources_1 ../include.vh
 }
+if { [get_files uart_tx.v] == "" } {
+  import_files -quiet -fileset sources_1 ../uart_tx.v
+}
+if { [get_files uart_input_test.v] == "" } {
+  import_files -quiet -fileset sources_1 ../uart_input_test.v
+}
+if { [get_files include.vh] == "" } {
+  import_files -quiet -fileset sources_1 ../include.vh
+}
 if { [get_files reg.v] == "" } {
   import_files -quiet -fileset sources_1 ../reg.v
 }
@@ -1012,15 +1035,6 @@ if { [get_files utility.v] == "" } {
 }
 if { [get_files uart.v] == "" } {
   import_files -quiet -fileset sources_1 ../uart.v
-}
-if { [get_files include.vh] == "" } {
-  import_files -quiet -fileset sources_1 ../include.vh
-}
-if { [get_files uart_tx.v] == "" } {
-  import_files -quiet -fileset sources_1 ../uart_tx.v
-}
-if { [get_files uart_input_test.v] == "" } {
-  import_files -quiet -fileset sources_1 ../uart_input_test.v
 }
 
 
@@ -1246,7 +1260,7 @@ proc cr_bd_ver2_sim { parentCell } {
   set inst_mem [ create_bd_cell -type ip -vlnv xilinx.com:ip:blk_mem_gen:8.4 inst_mem ]
   set_property -dict [ list \
    CONFIG.Byte_Size {9} \
-   CONFIG.Coe_File {../../../../../../../../bin_code/fib15_out2.coe} \
+   CONFIG.Coe_File {../../../../../../../../bin_code/branch_test.coe} \
    CONFIG.EN_SAFETY_CKT {false} \
    CONFIG.Enable_32bit_Address {false} \
    CONFIG.Enable_A {Always_Enabled} \
@@ -1436,12 +1450,20 @@ proc cr_bd_ver2_sim { parentCell } {
 
   # Create address segments
 
+  # Perform GUI Layout
+  regenerate_bd_layout -layout_string {
+   "ExpandedHierarchyInLayout":"",
+   "guistr":"# # String gsaved with Nlview 6.8.11  2018-08-07 bk=1.4403 VDI=40 GEI=35 GUI=JA:9.0 non-TLS
+#  -string -flagsOSRD
+"
+}
 
   # Restore current instance
   current_bd_instance $oldCurInst
 
-  validate_bd_design
   save_bd_design
+common::send_msg_id "BD_TCL-1000" "WARNING" "This Tcl script was generated from a block design that has not been validated. It is possible that design <$design_name> may result in errors during validation."
+
   close_bd_design $design_name 
 }
 # End of cr_bd_ver2_sim()
@@ -1587,6 +1609,15 @@ if { [get_files reset.v] == "" } {
 if { [get_files include.vh] == "" } {
   import_files -quiet -fileset sources_1 ../include.vh
 }
+if { [get_files uart_tx.v] == "" } {
+  import_files -quiet -fileset sources_1 ../uart_tx.v
+}
+if { [get_files uart_input_test.v] == "" } {
+  import_files -quiet -fileset sources_1 ../uart_input_test.v
+}
+if { [get_files include.vh] == "" } {
+  import_files -quiet -fileset sources_1 ../include.vh
+}
 if { [get_files reg.v] == "" } {
   import_files -quiet -fileset sources_1 ../reg.v
 }
@@ -1601,15 +1632,6 @@ if { [get_files utility.v] == "" } {
 }
 if { [get_files uart.v] == "" } {
   import_files -quiet -fileset sources_1 ../uart.v
-}
-if { [get_files include.vh] == "" } {
-  import_files -quiet -fileset sources_1 ../include.vh
-}
-if { [get_files uart_tx.v] == "" } {
-  import_files -quiet -fileset sources_1 ../uart_tx.v
-}
-if { [get_files uart_input_test.v] == "" } {
-  import_files -quiet -fileset sources_1 ../uart_input_test.v
 }
 
 
@@ -2056,12 +2078,20 @@ proc cr_bd_ver2_sim2_prold { parentCell } {
 
   # Create address segments
 
+  # Perform GUI Layout
+  regenerate_bd_layout -layout_string {
+   "ExpandedHierarchyInLayout":"",
+   "guistr":"# # String gsaved with Nlview 6.8.11  2018-08-07 bk=1.4403 VDI=40 GEI=35 GUI=JA:9.0 non-TLS
+#  -string -flagsOSRD
+"
+}
 
   # Restore current instance
   current_bd_instance $oldCurInst
 
-  validate_bd_design
   save_bd_design
+common::send_msg_id "BD_TCL-1000" "WARNING" "This Tcl script was generated from a block design that has not been validated. It is possible that design <$design_name> may result in errors during validation."
+
   close_bd_design $design_name 
 }
 # End of cr_bd_ver2_sim2_prold()
